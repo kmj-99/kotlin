@@ -14,7 +14,10 @@ import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
 import org.jetbrains.kotlin.ir.interpreter.IrInterpreter
 import org.jetbrains.kotlin.ir.interpreter.IrInterpreterConfiguration
-import org.jetbrains.kotlin.ir.interpreter.checker.*
+import org.jetbrains.kotlin.ir.interpreter.checker.EvaluationMode
+import org.jetbrains.kotlin.ir.interpreter.checker.IrInterpreterChecker
+import org.jetbrains.kotlin.ir.interpreter.checker.IrInterpreterCheckerData
+import org.jetbrains.kotlin.ir.interpreter.checker.IrInterpreterCommonChecker
 import org.jetbrains.kotlin.ir.interpreter.preprocessor.IrInterpreterConstGetterPreprocessor
 import org.jetbrains.kotlin.ir.interpreter.preprocessor.IrInterpreterKCallableNamePreprocessor
 import org.jetbrains.kotlin.ir.interpreter.preprocessor.IrInterpreterPreprocessorData
@@ -69,6 +72,24 @@ fun IrFile.runConstOptimizations(
     this.transform(irConstExpressionTransformer, IrConstTransformer.Data())
 }
 
+// TODO simplify
+fun IrProperty.evaluate(
+    irFile: IrFile,
+    interpreter: IrInterpreter,
+    mode: EvaluationMode,
+    evaluatedConstTracker: EvaluatedConstTracker? = null,
+    inlineConstTracker: InlineConstTracker? = null,
+    onWarning: (IrFile, IrElement, IrErrorExpression) -> Unit = { _, _, _ -> },
+    onError: (IrFile, IrElement, IrErrorExpression) -> Unit = { _, _, _ -> },
+    suppressExceptions: Boolean = false,
+): IrProperty? {
+    val checker = IrInterpreterCommonChecker()
+    val irConstExpressionTransformer = IrConstAllTransformer(
+        interpreter, irFile, mode, checker, evaluatedConstTracker, inlineConstTracker, onWarning, onError, suppressExceptions
+    )
+    return this.transform(irConstExpressionTransformer, IrConstTransformer.Data()) as? IrProperty
+}
+
 fun IrFile.preprocessForConstTransformer(
     interpreter: IrInterpreter,
     mode: EvaluationMode,
@@ -82,7 +103,7 @@ fun IrFile.preprocessForConstTransformer(
 
 // Note: We are using `IrElementTransformer` here instead of `IrElementTransformerVoid` to avoid conflicts with `IrTypeVisitorVoid`
 // that is used later in `IrConstTypeAnnotationTransformer`.
-internal abstract class IrConstTransformer(
+abstract class IrConstTransformer(
     protected val interpreter: IrInterpreter,
     private val irFile: IrFile,
     private val mode: EvaluationMode,

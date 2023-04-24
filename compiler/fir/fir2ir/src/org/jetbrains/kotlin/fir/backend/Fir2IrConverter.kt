@@ -22,19 +22,24 @@ import org.jetbrains.kotlin.fir.extensions.declarationGenerators
 import org.jetbrains.kotlin.fir.extensions.extensionService
 import org.jetbrains.kotlin.fir.extensions.generatedMembers
 import org.jetbrains.kotlin.fir.extensions.generatedNestedClassifiers
+import org.jetbrains.kotlin.fir.java.javaElementFinder
 import org.jetbrains.kotlin.fir.resolve.ScopeSession
 import org.jetbrains.kotlin.fir.symbols.lazyDeclarationResolver
 import org.jetbrains.kotlin.ir.PsiIrFileEntry
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.impl.IrFileImpl
 import org.jetbrains.kotlin.ir.declarations.impl.IrModuleFragmentImpl
+import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.interpreter.IrInterpreter
 import org.jetbrains.kotlin.ir.interpreter.IrInterpreterConfiguration
 import org.jetbrains.kotlin.ir.interpreter.IrInterpreterEnvironment
 import org.jetbrains.kotlin.ir.interpreter.checker.EvaluationMode
+import org.jetbrains.kotlin.ir.interpreter.transformer.evaluate
 import org.jetbrains.kotlin.ir.interpreter.transformer.transformConst
 import org.jetbrains.kotlin.ir.util.KotlinMangler
 import org.jetbrains.kotlin.ir.util.NaiveSourceBasedFileEntryImpl
+import org.jetbrains.kotlin.ir.util.fileOrNull
+import org.jetbrains.kotlin.ir.visitors.acceptVoid
 import org.jetbrains.kotlin.psi.KtFile
 
 class Fir2IrConverter(
@@ -93,7 +98,7 @@ class Fir2IrConverter(
             }
         }
 
-        evaluateConstants(irModuleFragment, configuration)
+        evaluateConstants(irModuleFragment, components)
     }
 
     fun bindFakeOverridesOrPostpone(declarations: List<IrDeclaration>) {
@@ -400,7 +405,8 @@ class Fir2IrConverter(
     }
 
     companion object {
-        private fun evaluateConstants(irModuleFragment: IrModuleFragment, fir2IrConfiguration: Fir2IrConfiguration) {
+        private fun evaluateConstants(irModuleFragment: IrModuleFragment, components: Fir2IrComponents) {
+            val fir2IrConfiguration = components.configuration
             val firModuleDescriptor = irModuleFragment.descriptor as? FirModuleDescriptor
             val targetPlatform = firModuleDescriptor?.platform
             val languageVersionSettings = firModuleDescriptor?.session?.languageVersionSettings
@@ -410,8 +416,30 @@ class Fir2IrConverter(
                 platform = targetPlatform,
                 printOnlyExceptionMessage = true,
             )
+
             val interpreter = IrInterpreter(IrInterpreterEnvironment(irModuleFragment.irBuiltins, configuration))
             val mode = if (intrinsicConstEvaluation) EvaluationMode.ONLY_INTRINSIC_CONST else EvaluationMode.ONLY_BUILTINS
+
+            components.session.javaElementFinder?.propertyEvaluator = eval@{ firProperty ->
+                val irProperty = components.declarationStorage.getCachedIrProperty(firProperty) ?: return@eval null
+
+                fun IrProperty.tryToGetConst(): IrConst<*>? {
+                    return (backingField?.initializer?.expression as? IrConst<*>)
+                }
+
+                irProperty.tryToGetConst()?.let { return@eval it.value.toString() }
+                val irFile = irProperty.fileOrNull ?: return@eval null
+                // Note: can't evaluate all expressions in given file, because we can accidentally get recursive processing and
+                // second call of `Fir2IrLazyField.initializer` will return null
+                val evaluated = irProperty.evaluate(
+                    irFile, interpreter, mode,
+                    evaluatedConstTracker = fir2IrConfiguration.evaluatedConstTracker,
+                    inlineConstTracker = fir2IrConfiguration.inlineConstTracker,
+                )
+
+                return@eval evaluated?.tryToGetConst()?.value?.toString()
+            }
+
             irModuleFragment.files.forEach {
                 it.transformConst(interpreter, mode, fir2IrConfiguration.evaluatedConstTracker, fir2IrConfiguration.inlineConstTracker)
             }
