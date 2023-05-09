@@ -8,28 +8,26 @@ package org.jetbrains.kotlin.gradle.native
 import org.gradle.api.logging.LogLevel
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.GradleVersion
-import org.jetbrains.kotlin.gradle.native.GeneralNativeIT.Companion.containsSequentially
 import org.jetbrains.kotlin.gradle.testbase.*
 import org.jetbrains.kotlin.gradle.util.replaceFirst
 import org.jetbrains.kotlin.gradle.utils.NativeCompilerDownloader
 import org.jetbrains.kotlin.konan.target.HostManager
 import org.jetbrains.kotlin.konan.target.KonanTarget
-import org.jetbrains.kotlin.konan.target.Xcode
-import org.jetbrains.kotlin.konan.target.XcodeVersion
 import org.jetbrains.kotlin.konan.target.presetName
-import org.jetbrains.kotlin.konan.util.DependencyDirectories
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assumptions
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.condition.DisabledOnOs
 import org.junit.jupiter.api.condition.OS
+import java.nio.file.Paths
+import kotlin.io.path.absolutePathString
 import kotlin.io.path.appendText
-import kotlin.test.assertTrue
+import kotlin.io.path.deleteRecursively
 
-@DisabledOnOs(
-    OS.WINDOWS, disabledReason =
-    " This test class causes build timeouts on Windows CI machines. " +
-            "We temporarily disable it for windows until a proper fix is found."
+// We temporarily disable it for windows until a proper fix is found for this issue:
+// https://youtrack.jetbrains.com/issue/KT-60138/NativeDownloadAndPlatformLibsIT-fails-on-Windows-OS
+@OsCondition(
+    supportedOn = [OS.MAC, OS.LINUX], enabledOnCI = [OS.MAC, OS.LINUX]
 )
 @DisplayName("Tests for K/N builds with native downloading and platform libs")
 @NativeGradlePluginTests
@@ -43,34 +41,58 @@ class NativeDownloadAndPlatformLibsIT : KGPBaseTest() {
     private val platformName: String = HostManager.platformName()
     private val currentCompilerVersion = NativeCompilerDownloader.DEFAULT_KONAN_VERSION
 
-    private fun platformLibrariesProject(
-        vararg targets: String,
-        gradleVersion: GradleVersion,
-        test: TestProject.() -> Unit = {},
-    ) {
-        nativeProject("native-platform-libraries", gradleVersion) {
-            buildGradleKts.appendText(
-                targets.joinToString(prefix = "\n", separator = "\n") {
-                    "kotlin.$it()"
-                }
-            )
-            configureJvmMemory()
-            test()
-        }
+    override val defaultBuildOptions: BuildOptions
+        get() = super.defaultBuildOptions.copy(
+            // For each test in this class, we need to provide an isolated .konan directory,
+            // so we create it within each test project folder
+            konanDataDir = workingDir.resolve(".konan")
+                .toFile()
+                .apply { mkdirs() }.toPath()
+        )
+
+    @AfterEach
+    fun checkThatUserKonanDirIsEmptyAfterTest() {
+        val userHomeDir = System.getProperty("user.home")
+        assertFileNotExists(Paths.get("$userHomeDir/.konan/dependencies"))
+        assertFileNotExists(Paths.get("$userHomeDir/.konan/kotlin-native-prebuilt-$platformName-$currentCompilerVersion"))
     }
 
-    private fun TestProject.buildWithLightDist(vararg tasks: String, assertions: BuildResult.() -> Unit) =
-        build(*tasks, "-Pkotlin.native.distribution.type=light", assertions = assertions)
+    @DisplayName("Downloading K/N distribution in default .konan dir")
+    @GradleTest
+    fun testLibrariesGenerationInDefaultKonanDir(gradleVersion: GradleVersion) {
 
-    @BeforeEach
-    fun deleteInstalledCompilers() {
-        val currentCompilerDir = DependencyDirectories.localKonanDir
-            .resolve("kotlin-native-$platformName-$currentCompilerVersion")
-        val prebuiltDistDir = DependencyDirectories.localKonanDir
-            .resolve("kotlin-native-prebuilt-$platformName-$currentCompilerVersion")
+        checkThatUserKonanDirIsEmptyAfterTest()
 
-        for (compilerDirectory in listOf(currentCompilerDir, prebuiltDistDir)) {
-            compilerDirectory.deleteRecursively()
+        val userHomeDir = System.getProperty("user.home")
+        platformLibrariesProject("linuxX64", gradleVersion = gradleVersion) {
+            build("assemble", buildOptions = defaultBuildOptions.copy(konanDataDir = null)) {
+                assertOutputContains("Kotlin/Native distribution: .*kotlin-native-prebuilt-$platformName".toRegex())
+                assertOutputDoesNotContain("Generate platform libraries for ")
+
+                // checking that konan was downloaded and native dependencies were not downloaded into ~/.konan dir
+                assertDirectoryExists(Paths.get("$userHomeDir/.konan/dependencies"))
+                assertDirectoryExists(Paths.get("$userHomeDir/.konan/kotlin-native-prebuilt-$platformName-$currentCompilerVersion"))
+            }
+        }
+
+        // clean ~/.konan after test it should not be with all inheritors of KGPBaseTest
+        Paths.get("$userHomeDir/.konan/dependencies").deleteRecursively()
+        Paths.get("$userHomeDir/.konan/kotlin-native-prebuilt-$platformName-$currentCompilerVersion").deleteRecursively()
+
+    }
+
+    @DisplayName("Downloading K/N with custom konanDataDir property")
+    @GradleTest
+    fun testLibrariesGenerationInCustomKonanDir(gradleVersion: GradleVersion) {
+        platformLibrariesProject("linuxX64", gradleVersion = gradleVersion) {
+            build("assemble", buildOptions = defaultBuildOptions.copy(konanDataDir = workingDir.resolve(".konan"))) {
+                assertOutputContains("Kotlin/Native distribution: .*kotlin-native-prebuilt-$platformName".toRegex())
+                assertOutputDoesNotContain("Generate platform libraries for ")
+
+                // checking that konan was downloaded and native dependencies were not downloaded into ~/.konan dir
+                assertDirectoryExists(Paths.get("${workingDir.absolutePathString()}/.konan/dependencies"))
+                assertDirectoryExists(Paths.get("${workingDir.absolutePathString()}/.konan/kotlin-native-prebuilt-$platformName-$currentCompilerVersion"))
+            }
         }
     }
 
@@ -88,10 +110,9 @@ class NativeDownloadAndPlatformLibsIT : KGPBaseTest() {
     @DisplayName("K/N distribution with platform libraries generation")
     @GradleTest
     fun testLibrariesGeneration(gradleVersion: GradleVersion) {
-        nativeProject("native-platform-libraries", gradleVersion = gradleVersion) {
+        nativeProject("native-platform-libraries", gradleVersion = gradleVersion, enableGradleDebug = true) {
 
             includeOtherProjectAsSubmodule("native-platform-libraries", "", "subproject", true)
-            configureJvmMemory()
 
             buildGradleKts.appendText("\nkotlin.linuxX64()\n")
             subProject("subproject").buildGradleKts.appendText("\nkotlin.linuxArm64()\n")
@@ -115,7 +136,6 @@ class NativeDownloadAndPlatformLibsIT : KGPBaseTest() {
     fun testLinkerArgsViaGradleProperties(gradleVersion: GradleVersion) {
         nativeProject("native-platform-libraries", gradleVersion = gradleVersion) {
 
-            configureJvmMemory()
             addPropertyToGradleProperties(
                 "kotlin.native.linkArgs",
                 mapOf(
@@ -140,11 +160,8 @@ class NativeDownloadAndPlatformLibsIT : KGPBaseTest() {
                     ":compileKotlinLinuxX64",
                     ":linkDebugSharedLinuxX64"
                 )
-                assertNativeTasksCommandLineArguments(":linkDebugSharedLinuxX64") {
-                    assertCommandLineArgumentsContain(
-                        "-Xfoo=bar", "-Xbaz=qux", "-Xmen=pool",
-                        commandLineArguments = it
-                    )
+                extractNativeTasksCommandLineArgumentsFromOutput(":linkDebugSharedLinuxX64") {
+                    assertCommandLineArgumentsContain("-Xfoo=bar", "-Xbaz=qux", "-Xmen=pool")
                 }
                 assertFileInProjectExists("build/bin/linuxX64/debugShared/libnative_platform_libraries.so")
                 assertFileInProjectExists("build/bin/linuxX64/debugShared/libnative_platform_libraries_api.h")
@@ -167,21 +184,15 @@ class NativeDownloadAndPlatformLibsIT : KGPBaseTest() {
     @GradleTest
     fun testCanUsePrebuiltDistribution(gradleVersion: GradleVersion) {
         platformLibrariesProject("linuxX64", gradleVersion = gradleVersion) {
-            build("assemble", "-Pkotlin.native.distribution.type=prebuilt") {
+            build(
+                "assemble", buildOptions = defaultBuildOptions.copy(
+                    nativeOptions = defaultBuildOptions.nativeOptions.copy(
+                        distributionType = "prebuilt"
+                    )
+                )
+            ) {
                 assertOutputContains("Kotlin/Native distribution: .*kotlin-native-prebuilt-$platformName".toRegex())
                 assertOutputDoesNotContain("Generate platform libraries for ")
-            }
-        }
-    }
-
-    @DisplayName("Build K/N project with restrictedDistribution turned on")
-    @GradleTest
-    fun testDeprecatedRestrictedDistributionProperty(gradleVersion: GradleVersion) {
-        platformLibrariesProject("linuxX64", gradleVersion = gradleVersion) {
-            // We allow using this deprecated property for 1.4 too. Just download the distribution without platform libs in this case.
-            build("tasks", "-Pkotlin.native.restrictedDistribution=true") {
-                assertOutputContains("Warning: Project property 'kotlin.native.restrictedDistribution' is deprecated. Please use 'kotlin.native.distribution.type=light' instead")
-                assertOutputContains("Kotlin/Native distribution: .*kotlin-native-$platformName".toRegex())
             }
         }
     }
@@ -196,21 +207,13 @@ class NativeDownloadAndPlatformLibsIT : KGPBaseTest() {
             }
 
             // Reinstall the compiler.
-            buildWithLightDist("tasks", "-Pkotlin.native.reinstall=true") {
+            buildWithLightDist(
+                "tasks",
+                buildOptions = defaultBuildOptions.copy(nativeOptions = defaultBuildOptions.nativeOptions.copy(reinstall = true))
+            ) {
                 assertOutputContains("Unpack Kotlin/Native compiler to ")
                 assertOutputContains("Generate platform libraries for linux_x64")
             }
-        }
-    }
-
-    private fun mavenUrl(): String {
-        val versionPattern = "(\\d+)\\.(\\d+)(?:\\.(\\d+))?(?:-(\\p{Alpha}*\\p{Alnum}|[\\p{Alpha}-]*))?(?:-(\\d+))?".toRegex()
-        val (_, _, _, metaString, build) = versionPattern.matchEntire(currentCompilerVersion)?.destructured
-            ?: error("Unable to parse version $currentCompilerVersion")
-        return when {
-            metaString == "dev" || build.isNotEmpty() -> KOTLIN_SPACE_DEV
-            metaString in listOf("RC", "RC2", "Beta") || metaString.isEmpty() -> MAVEN_CENTRAL
-            else -> throw IllegalStateException("Not a published version $currentCompilerVersion")
         }
     }
 
@@ -223,14 +226,12 @@ class NativeDownloadAndPlatformLibsIT : KGPBaseTest() {
 
         nativeProject("native-download-maven", gradleVersion = gradleVersion) {
 
-            addPropertyToGradleProperties(
-                "kotlin.native.distribution.downloadFromMaven",
-                mapOf("true" to "true")
-            )
-
             buildGradleKts.replaceFirst("// <MavenPlaceholder>", "maven(\"${maven}\")")
 
-            build("assemble") {
+            build(
+                "assemble",
+                buildOptions = defaultBuildOptions.copy(nativeOptions = defaultBuildOptions.nativeOptions.copy(distributionDownloadFromMaven = true))
+            ) {
                 assertOutputContains("Unpack Kotlin/Native compiler to ")
                 assertOutputDoesNotContain("Generate platform libraries for ")
             }
@@ -238,24 +239,25 @@ class NativeDownloadAndPlatformLibsIT : KGPBaseTest() {
     }
 
     @DisplayName("Download light Native bundle with maven")
+    @RequiredXCodeVersion(minSupportedMajor = 14, minSupportedMinor = 1)
     @GradleTest
     fun shouldDownloadLightNativeBundleWithMaven(gradleVersion: GradleVersion) {
         val maven = mavenUrl()
         // Don't run this test for build that are not yet published to central
+        // We won't public K/N into Maven central until this task is completed.:
+        // https://youtrack.jetbrains.com/issue/KTI-1067/Try-deploy-native-artifacts-to-sonatype-and-verify-its-working.
         Assumptions.assumeTrue(maven != MAVEN_CENTRAL)
 
-        if (HostManager.hostIsMac) {
-            // Building platform libs require Xcode 14.1
-            Assumptions.assumeTrue(Xcode.findCurrent().version >= XcodeVersion(14, 1))
-        }
-
         nativeProject("native-download-maven", gradleVersion = gradleVersion) {
-
-            addPropertyToGradleProperties("kotlin.native.distribution.downloadFromMaven", mapOf("true" to "true"))
-
             buildGradleKts.replaceFirst("// <MavenPlaceholder>", "maven(\"${maven}\")")
-
-            build("assemble", "-Pkotlin.native.distribution.type=light") {
+            val nativeOptions = defaultBuildOptions.nativeOptions.copy(
+                distributionType = "light",
+                distributionDownloadFromMaven = true
+            )
+            build(
+                "assemble",
+                buildOptions = defaultBuildOptions.copy(nativeOptions = nativeOptions)
+            ) {
                 assertOutputContains("Unpack Kotlin/Native compiler to ")
                 assertOutputContains("Generate platform libraries for ")
             }
@@ -266,19 +268,56 @@ class NativeDownloadAndPlatformLibsIT : KGPBaseTest() {
     @GradleTest
     fun shouldFailDownloadWithNoBuildInDefaultRepos(gradleVersion: GradleVersion) {
         nativeProject("native-download-maven", gradleVersion = gradleVersion) {
-
-            addPropertyToGradleProperties(
-                "kotlin.native.version",
-                mapOf("1.8.0-dev-1234" to "1.8.0-dev-1234")
+            val nativeOptions = BuildOptions.NativeOptions(
+                version = "1.8.0-dev-1234",
+                distributionDownloadFromMaven = true
             )
-            addPropertyToGradleProperties(
-                "kotlin.native.distribution.downloadFromMaven",
-                mapOf("true" to "true")
-            )
-
-            buildAndFail("assemble") {
+            buildAndFail(
+                "assemble",
+                buildOptions = defaultBuildOptions.copy(nativeOptions = nativeOptions)
+            ) {
                 assertOutputContains("Could not find org.jetbrains.kotlin:kotlin-native")
             }
         }
     }
+
+    private fun platformLibrariesProject(
+        vararg targets: String,
+        gradleVersion: GradleVersion,
+        test: TestProject.() -> Unit = {},
+    ) {
+        nativeProject("native-platform-libraries", gradleVersion) {
+            buildGradleKts.appendText(
+                targets.joinToString(prefix = "\n", separator = "\n") {
+                    "kotlin.$it()"
+                }
+            )
+            test()
+        }
+    }
+
+    private fun TestProject.buildWithLightDist(
+        vararg tasks: String,
+        buildOptions: BuildOptions = defaultBuildOptions.copy(),
+        assertions: BuildResult.() -> Unit,
+    ) =
+        build(
+            *tasks,
+            buildOptions = buildOptions.copy(
+                nativeOptions = buildOptions.nativeOptions.copy(distributionType = "light")
+            ),
+            assertions = assertions
+        )
+
+    private fun mavenUrl(): String {
+        val versionPattern = "(\\d+)\\.(\\d+)(?:\\.(\\d+))?(?:-(\\p{Alpha}*\\p{Alnum}|[\\p{Alpha}-]*))?(?:-(\\d+))?".toRegex()
+        val (_, _, _, metaString, build) = versionPattern.matchEntire(currentCompilerVersion)?.destructured
+            ?: error("Unable to parse version $currentCompilerVersion")
+        return when {
+            metaString == "dev" || build.isNotEmpty() -> KOTLIN_SPACE_DEV
+            metaString in listOf("RC", "RC2", "Beta") || metaString.isEmpty() -> MAVEN_CENTRAL
+            else -> throw IllegalStateException("Not a published version $currentCompilerVersion")
+        }
+    }
+
 }
