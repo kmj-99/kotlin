@@ -222,7 +222,7 @@ class DeprecationDiagnosticFactory4DelegateProvider<A, B, C, D>(
 }
 
 
-private class DummyDelegate<T>(val value: T) : ReadOnlyProperty<Any?, T> {
+class DummyDelegate<T>(val value: T) : ReadOnlyProperty<Any?, T> {
     override fun getValue(thisRef: Any?, property: KProperty<*>): T {
         return value
     }
