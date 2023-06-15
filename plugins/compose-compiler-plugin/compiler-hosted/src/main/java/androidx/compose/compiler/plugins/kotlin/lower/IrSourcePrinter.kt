@@ -120,6 +120,7 @@ import org.jetbrains.kotlin.ir.visitors.acceptVoid
 import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.utils.Printer
+import java.lang.RuntimeException
 
 fun IrElement.dumpSrc(useFir: Boolean = false): String {
     val sb = StringBuilder()
@@ -1520,7 +1521,7 @@ class IrSourcePrinterVisitor(
             } else if (parent is IrPackageFragment) {
                 sb.append(parent.packageFqName.toString())
             }
-        } catch (e: UninitializedPropertyAccessException) {
+        } catch (e: RuntimeException) {
             sb.append("<uninitialized parent>")
         }
     }
