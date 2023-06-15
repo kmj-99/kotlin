@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The Android Open Source Project
+ * Copyright 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package androidx.compose.compiler.plugins.kotlin
+package androidx.compose.compiler.plugins.kotlin.k1
 
-import androidx.compose.compiler.plugins.kotlin.analysis.ComposeWritableSlices
+import androidx.compose.compiler.plugins.kotlin.ComposeFqNames
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
 import org.jetbrains.kotlin.container.StorageComponentContainer
@@ -50,8 +50,6 @@ import org.jetbrains.kotlin.psi.KtPsiUtil
 import org.jetbrains.kotlin.psi.KtTryExpression
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingContext.DELEGATED_PROPERTY_RESOLVED_CALL
-import org.jetbrains.kotlin.resolve.calls.util.getResolvedCall
-import org.jetbrains.kotlin.resolve.calls.util.getValueArgumentForExpression
 import org.jetbrains.kotlin.resolve.calls.checkers.AdditionalTypeChecker
 import org.jetbrains.kotlin.resolve.calls.checkers.CallChecker
 import org.jetbrains.kotlin.resolve.calls.checkers.CallCheckerContext
@@ -60,8 +58,11 @@ import org.jetbrains.kotlin.resolve.calls.context.ResolutionContext
 import org.jetbrains.kotlin.resolve.calls.model.ArgumentMatch
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.VariableAsFunctionResolvedCall
+import org.jetbrains.kotlin.resolve.calls.util.getResolvedCall
+import org.jetbrains.kotlin.resolve.calls.util.getValueArgumentForExpression
 import org.jetbrains.kotlin.resolve.inline.InlineUtil.isInlinedArgument
 import org.jetbrains.kotlin.resolve.sam.getSingleAbstractMethodOrNull
+import org.jetbrains.kotlin.resolve.source.PsiSourceElement
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.lowerIfFlexible
@@ -160,7 +161,7 @@ open class ComposableCallChecker :
                     val arg = getArgumentDescriptor(node.functionLiteral, bindingContext)
                     if (arg?.type?.hasDisallowComposableCallsAnnotation() == true) {
                         context.trace.record(
-                            ComposeWritableSlices.LAMBDA_CAPABLE_OF_COMPOSER_CAPTURE,
+                            FrontendWritableSlices.LAMBDA_CAPABLE_OF_COMPOSER_CAPTURE,
                             descriptor,
                             false
                         )
@@ -187,7 +188,7 @@ open class ComposableCallChecker :
                         // since the function is inlined, we continue going up the PSI tree
                         // until we find a composable context. We also mark this lambda
                         context.trace.record(
-                            ComposeWritableSlices.LAMBDA_CAPABLE_OF_COMPOSER_CAPTURE,
+                            FrontendWritableSlices.LAMBDA_CAPABLE_OF_COMPOSER_CAPTURE,
                             descriptor,
                             true
                         )
@@ -242,6 +243,10 @@ open class ComposableCallChecker :
                             if (descriptor.isVar) {
                                 // setValue delegate is not allowed for now.
                                 illegalComposableDelegate(context, reportOn)
+                            }
+                            if (descriptor is PropertyDescriptor &&
+                                descriptor.getter?.hasComposableAnnotation() != true) {
+                                composableExpected(context, node.nameIdentifier ?: node)
                             }
                             return
                         }
@@ -318,8 +323,15 @@ open class ComposableCallChecker :
     ) {
         context.trace.report(ComposeErrors.COMPOSABLE_INVOCATION.on(callEl))
         if (functionEl != null) {
-            context.trace.report(ComposeErrors.COMPOSABLE_EXPECTED.on(functionEl))
+            composableExpected(context, functionEl)
         }
+    }
+
+    private fun composableExpected(
+        context: CallCheckerContext,
+        functionEl: PsiElement
+    ) {
+        context.trace.report(ComposeErrors.COMPOSABLE_EXPECTED.on(functionEl))
     }
 
     private fun illegalCallMustBeReadonly(
@@ -366,11 +378,23 @@ open class ComposableCallChecker :
                     c.trace.bindingContext,
                     true
                 )
-                if (isInlineable) return
+                if (isInlineable) {
+                    if (!expectedComposable && descriptor.isMarkedAsComposable()) {
+                        val reportOn = (descriptor
+                            .annotations
+                            .findAnnotation(ComposeFqNames.Composable)
+                            ?.source as? PsiSourceElement)
+                            ?.psi ?: expression
+                        c.trace.report(
+                            ComposeErrors.REDUNDANT_COMPOSABLE_ANNOTATION.on(reportOn)
+                        )
+                    }
+                    return
+                }
 
                 if (!expectedComposable && isComposable) {
                     val inferred = c.trace.bindingContext[
-                        ComposeWritableSlices.INFERRED_COMPOSABLE_DESCRIPTOR,
+                        FrontendWritableSlices.INFERRED_COMPOSABLE_DESCRIPTOR,
                         descriptor
                     ] == true
                     if (inferred) {
@@ -513,7 +537,7 @@ fun CallableDescriptor.isComposableCallable(bindingContext: BindingContext): Boo
     if (isMarkedAsComposable()) return true
     if (
         this is FunctionDescriptor &&
-        bindingContext[ComposeWritableSlices.INFERRED_COMPOSABLE_DESCRIPTOR, this] == true
+        bindingContext[FrontendWritableSlices.INFERRED_COMPOSABLE_DESCRIPTOR, this] == true
     ) {
         // even though it's not marked, it is inferred as so by the type system (by being passed
         // into a parameter marked as composable or a variable typed as one. This isn't much
@@ -532,7 +556,7 @@ fun CallableDescriptor.isComposableCallable(bindingContext: BindingContext): Boo
     val lambdaExpr = functionLiteral.parent as? KtLambdaExpression
     if (
         lambdaExpr != null &&
-        bindingContext[ComposeWritableSlices.INFERRED_COMPOSABLE_LITERAL, lambdaExpr] == true
+        bindingContext[FrontendWritableSlices.INFERRED_COMPOSABLE_LITERAL, lambdaExpr] == true
     ) {
         // this lambda was marked as inferred to be composable
         return true
@@ -548,7 +572,7 @@ fun FunctionDescriptor.allowsComposableCalls(bindingContext: BindingContext): Bo
     // otherwise, this is only true if it is a lambda which can be capable of composer
     // capture
     return bindingContext[
-        ComposeWritableSlices.LAMBDA_CAPABLE_OF_COMPOSER_CAPTURE,
+        FrontendWritableSlices.LAMBDA_CAPABLE_OF_COMPOSER_CAPTURE,
         this
     ] == true
 }

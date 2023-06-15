@@ -2031,7 +2031,10 @@ class ComposableFunctionBodyTransformer(
 
             val name = declaration.kotlinFqName
             val file = declaration.file.name
-            val line = declaration.file.fileEntry.getLineNumber(declaration.startOffset)
+            // FIXME: This should probably use `declaration.startOffset`, but the K2 implementation
+            //        is unfinished (i.e., in K2 the start offset of an annotated function could
+            //        point at the annotation instead of the start of the function).
+            val line = declaration.file.fileEntry.getLineNumber(startOffset)
             val traceInfo = "$name ($file:$line)" // TODO(174715171) decide on what to log
             val dirty = scope.dirty
             val changed = scope.changedParameter
@@ -2137,8 +2140,8 @@ class ComposableFunctionBodyTransformer(
         // boxed, then we don't want to unnecessarily _unbox_ it. Note that if Kotlin allows for
         // an overridden equals method of inline classes in the future, we may have to avoid the
         // boxing in a different way.
-        val type = value.type.unboxInlineClass()
         val expr = value.unboxValueIfInline()
+        val type = expr.type
         val descriptor = type
             .toPrimitiveType()
             .let { changedPrimitiveFunctions[it] }
@@ -3927,7 +3930,7 @@ class ComposableFunctionBodyTransformer(
                 var parent = function.parent
                 while (true) {
                     when (parent) {
-                        is IrPackageFragment -> return parent.packageFqName.asString()
+                        is IrPackageFragment -> return parent.fqName.asString()
                         is IrDeclaration -> parent = parent.parent
                         else -> break
                     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The Android Open Source Project
+ * Copyright 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package androidx.compose.compiler.plugins.kotlin
+package androidx.compose.compiler.plugins.kotlin.k1
 
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
@@ -159,6 +159,15 @@ object ComposeErrors {
         DiagnosticFactory0.create<PsiElement>(
             Severity.ERROR
         )
+
+    @JvmField
+    val MISMATCHED_COMPOSABLE_IN_EXPECT_ACTUAL =
+        DiagnosticFactory0.create<PsiElement>(
+            Severity.ERROR
+        )
+
+    @JvmField
+    val REDUNDANT_COMPOSABLE_ANNOTATION = DiagnosticFactory0.create<PsiElement>(Severity.WARNING)
 
     init {
         Errors.Initializer.initializeFactoryNamesAndDefaultErrorMessages(

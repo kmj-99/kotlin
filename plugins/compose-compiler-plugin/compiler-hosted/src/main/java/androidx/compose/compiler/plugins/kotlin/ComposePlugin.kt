@@ -16,6 +16,12 @@
 
 package androidx.compose.compiler.plugins.kotlin
 
+import androidx.compose.compiler.plugins.kotlin.k1.ComposableCallChecker
+import androidx.compose.compiler.plugins.kotlin.k1.ComposableDeclarationChecker
+import androidx.compose.compiler.plugins.kotlin.k1.ComposableTargetChecker
+import androidx.compose.compiler.plugins.kotlin.k1.ComposeDiagnosticSuppressor
+import androidx.compose.compiler.plugins.kotlin.k1.ComposeTypeResolutionInterceptorExtension
+import androidx.compose.compiler.plugins.kotlin.k2.ComposeFirExtensionRegistrar
 import androidx.compose.compiler.plugins.kotlin.lower.ClassStabilityFieldSerializationPlugin
 import com.intellij.mock.MockProject
 import com.intellij.openapi.project.Project
@@ -27,12 +33,14 @@ import org.jetbrains.kotlin.compiler.plugin.CliOption
 import org.jetbrains.kotlin.compiler.plugin.CliOptionProcessingException
 import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
+import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.CompilerConfigurationKey
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.config.KotlinCompilerVersion
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
 import org.jetbrains.kotlin.extensions.internal.TypeResolutionInterceptor
+import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrarAdapter
 import org.jetbrains.kotlin.serialization.DescriptorSerializerPlugin
 
 object ComposeConfiguration {
@@ -205,10 +213,13 @@ class ComposeComponentRegistrar :
         }
     }
 
+    override val supportsK2: Boolean
+        get() = true
+
     companion object {
         fun checkCompilerVersion(configuration: CompilerConfiguration): Boolean {
             try {
-                val KOTLIN_VERSION_EXPECTATION = "1.8.20"
+                val KOTLIN_VERSION_EXPECTATION = "1.9.0-Beta"
                 KotlinCompilerVersion.getVersion()?.let { version ->
                     val msgCollector = configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY)
                     val suppressKotlinVersionCheck = configuration.get(
@@ -310,6 +321,10 @@ class ComposeComponentRegistrar :
                 project,
                 ClassStabilityFieldSerializationPlugin()
             )
+            FirExtensionRegistrarAdapter.registerExtension(
+                project,
+                ComposeFirExtensionRegistrar()
+            )
         }
 
         fun createComposeIrExtension(
@@ -345,6 +360,9 @@ class ComposeComponentRegistrar :
             val validateIr = configuration.getBoolean(
                 JVMConfigurationKeys.VALIDATE_IR
             )
+            val useK2 = configuration.getBoolean(
+                CommonConfigurationKeys.USE_FIR
+            )
 
             return ComposeIrGenerationExtension(
                 liveLiteralsEnabled = liveLiteralsEnabled,
@@ -356,6 +374,7 @@ class ComposeComponentRegistrar :
                 metricsDestination = metricsDestination,
                 reportsDestination = reportsDestination,
                 validateIr = validateIr,
+                useK2 = useK2,
             )
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The Android Open Source Project
+ * Copyright 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package androidx.compose.compiler.plugins.kotlin
+package androidx.compose.compiler.plugins.kotlin.k1
 
 import org.jetbrains.kotlin.diagnostics.rendering.CommonRenderers
 import org.jetbrains.kotlin.diagnostics.rendering.DefaultErrorMessages
@@ -127,6 +127,15 @@ class ComposeErrorMessages : DefaultErrorMessages.Extension {
         MAP.put(
             ComposeErrors.COMPOSE_INVALID_DELEGATE,
             "Composable setValue operator is not currently supported."
+        )
+        MAP.put(
+            ComposeErrors.MISMATCHED_COMPOSABLE_IN_EXPECT_ACTUAL,
+            "Mismatched @Composable annotation between expect and actual declaration"
+        )
+        MAP.put(
+            ComposeErrors.REDUNDANT_COMPOSABLE_ANNOTATION,
+            "Invalid `@Composable` annotation on inline lambda." +
+                " This will become an error in Kotlin 2.0."
         )
     }
 }
