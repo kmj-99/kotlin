@@ -14,6 +14,9 @@ dependencies {
     implementation(project(":compiler:cli-base"))
     implementation(project(":compiler:ir.serialization.js"))
     implementation(project(":compiler:backend.jvm.codegen"))
+    implementation(project(":compiler:fir:checkers"))
+    implementation(project(":compiler:fir:entrypoint"))
+    implementation(project(":compiler:fir:tree"))
 
     compileOnly(intellijCore())
 
