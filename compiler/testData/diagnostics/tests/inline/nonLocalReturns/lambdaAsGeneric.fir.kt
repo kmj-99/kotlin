@@ -1,4 +1,3 @@
-
 fun box() : String {
     test {
         return@box "123"

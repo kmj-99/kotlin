@@ -1,4 +1,3 @@
-
 fun <T> foo(resources: List<T>) {
     resources.map { runCatching { it } }.mapNotNull { it.getOrNull() }
 }

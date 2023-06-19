@@ -1,4 +1,3 @@
-
 fun test1() {
     <!ARGUMENT_TYPE_MISMATCH!>1<!>. (fun String.(i: Int) = i )(1)
     <!ARGUMENT_TYPE_MISMATCH!>1<!>.(label@ fun String.(i: Int) = i )(1)

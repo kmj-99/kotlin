@@ -1,4 +1,3 @@
-
 // completion order here: X, Y, WHEN_VARIABLE
 fun <T> List<T>.optimizeReadOnlyList() = when (size) {
     0 -> emptyList() // here type variable Y will be fixed to Nothing
