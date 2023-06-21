@@ -117,7 +117,8 @@ internal interface DecoyTransformBase {
             packageFqName = signature[0],
             declarationFqName = signature[1],
             id = signature[2].toLongOrNull(),
-            mask = signature[3].toLong()
+            mask = signature[3].toLong(),
+            description = null
         )
 
         val linker = (context as IrPluginContextImpl).linker
