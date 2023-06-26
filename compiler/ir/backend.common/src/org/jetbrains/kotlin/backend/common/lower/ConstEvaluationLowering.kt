@@ -8,8 +8,6 @@ package org.jetbrains.kotlin.backend.common.lower
 import org.jetbrains.kotlin.backend.common.CommonBackendContext
 import org.jetbrains.kotlin.backend.common.FileLoweringPass
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
-import org.jetbrains.kotlin.config.LanguageFeature
-import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.expressions.IrErrorExpression
@@ -19,7 +17,6 @@ import org.jetbrains.kotlin.ir.interpreter.IrInterpreterEnvironment
 import org.jetbrains.kotlin.ir.interpreter.checker.EvaluationMode
 import org.jetbrains.kotlin.ir.interpreter.transformer.preprocessForConstTransformer
 import org.jetbrains.kotlin.ir.interpreter.transformer.runConstOptimizations
-import org.jetbrains.kotlin.ir.interpreter.transformer.transformConst
 
 class ConstEvaluationLowering(
     val context: CommonBackendContext,
