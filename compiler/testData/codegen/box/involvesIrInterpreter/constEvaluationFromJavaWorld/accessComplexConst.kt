@@ -1,0 +1,20 @@
+// !LANGUAGE: +IntrinsicConstEvaluation
+// TARGET_BACKEND: JVM
+// WITH_STDLIB
+// FILE: Bar.java
+package one.two;
+
+public class Bar {
+    public static final String BAR = MainKt.FOO + " JavaString";
+}
+
+// FILE: Main.kt
+package one.two
+
+const val FOO = "123".<!EVALUATED("123")!>trimIndent()<!>
+
+const val BAZ = Bar.BAR <!EVALUATED("123 JavaString KotlinString")!>+ " KotlinString"<!>
+
+fun box(): String {
+    return "OK"
+}

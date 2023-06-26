@@ -24020,11 +24020,6 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
             KotlinTestUtils.runTest(this::doTest, TargetBackend.JVM_IR, testDataFilePath);
         }
 
-        @TestMetadata("accessTopLevelConstFromJava.kt")
-        public void testAccessTopLevelConstFromJava() throws Exception {
-            runTest("compiler/testData/codegen/box/involvesIrInterpreter/accessTopLevelConstFromJava.kt");
-        }
-
         public void testAllFilesPresentInInvolvesIrInterpreter() throws Exception {
             KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box/involvesIrInterpreter"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM_IR, true);
         }
@@ -24099,16 +24094,6 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
             runTest("compiler/testData/codegen/box/involvesIrInterpreter/kt57313.kt");
         }
 
-        @TestMetadata("kt57802_1.kt")
-        public void testKt57802_1() throws Exception {
-            runTest("compiler/testData/codegen/box/involvesIrInterpreter/kt57802_1.kt");
-        }
-
-        @TestMetadata("kt57802_2.kt")
-        public void testKt57802_2() throws Exception {
-            runTest("compiler/testData/codegen/box/involvesIrInterpreter/kt57802_2.kt");
-        }
-
         @TestMetadata("kt58005.kt")
         public void testKt58005() throws Exception {
             runTest("compiler/testData/codegen/box/involvesIrInterpreter/kt58005.kt");
@@ -24172,6 +24157,44 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
         @TestMetadata("useCorrectToString.kt")
         public void testUseCorrectToString() throws Exception {
             runTest("compiler/testData/codegen/box/involvesIrInterpreter/useCorrectToString.kt");
+        }
+
+        @TestMetadata("compiler/testData/codegen/box/involvesIrInterpreter/constEvaluationFromJavaWorld")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class ConstEvaluationFromJavaWorld extends AbstractLightAnalysisModeTest {
+            private void runTest(String testDataFilePath) throws Exception {
+                KotlinTestUtils.runTest(this::doTest, TargetBackend.JVM_IR, testDataFilePath);
+            }
+
+            @TestMetadata("accessComplexConst.kt")
+            public void testAccessComplexConst() throws Exception {
+                runTest("compiler/testData/codegen/box/involvesIrInterpreter/constEvaluationFromJavaWorld/accessComplexConst.kt");
+            }
+
+            @TestMetadata("accessTopLevelConst.kt")
+            public void testAccessTopLevelConst() throws Exception {
+                runTest("compiler/testData/codegen/box/involvesIrInterpreter/constEvaluationFromJavaWorld/accessTopLevelConst.kt");
+            }
+
+            public void testAllFilesPresentInConstEvaluationFromJavaWorld() throws Exception {
+                KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box/involvesIrInterpreter/constEvaluationFromJavaWorld"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM_IR, true);
+            }
+
+            @TestMetadata("differentTypes.kt")
+            public void testDifferentTypes() throws Exception {
+                runTest("compiler/testData/codegen/box/involvesIrInterpreter/constEvaluationFromJavaWorld/differentTypes.kt");
+            }
+
+            @TestMetadata("kt57802_1.kt")
+            public void testKt57802_1() throws Exception {
+                runTest("compiler/testData/codegen/box/involvesIrInterpreter/constEvaluationFromJavaWorld/kt57802_1.kt");
+            }
+
+            @TestMetadata("kt57802_2.kt")
+            public void testKt57802_2() throws Exception {
+                runTest("compiler/testData/codegen/box/involvesIrInterpreter/constEvaluationFromJavaWorld/kt57802_2.kt");
+            }
         }
 
         @TestMetadata("compiler/testData/codegen/box/involvesIrInterpreter/intrinsicConst")
