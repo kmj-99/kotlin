@@ -29,7 +29,7 @@ import org.jetbrains.kotlin.incremental.ClasspathChanges.ClasspathSnapshotEnable
 import org.jetbrains.kotlin.build.report.DoNothingICReporter
 import org.jetbrains.kotlin.incremental.IncrementalJvmCompilerRunner
 import org.jetbrains.kotlin.incremental.multiproject.EmptyModulesApiHistory
-import org.jetbrains.kotlin.incremental.withIC
+import org.jetbrains.kotlin.incremental.withIncrementalCompilation
 import java.io.File
 import java.nio.file.Files
 import org.jetbrains.kotlin.incremental.ClasspathSnapshotFiles
@@ -47,7 +47,6 @@ internal fun parseArgs(
         compilerArgs.pluginOptions =
             (compilerArgs.pluginOptions ?: emptyArray()) +
                 "plugin:androidx.compose.plugins.idea:enabled=true"
-        compilerArgs.useIR = true // Force IR since it's required for Compose
     }
     return compilerArgs
 }
@@ -115,7 +114,7 @@ object IncrementalDaemonCompiler : DaemonCompiler {
         return try {
             val compilerArgs = parseArgs(args, daemonCompilerSettings.composePluginPath)
             compilerArgs.moduleName = "test"
-            withIC(compilerArgs) {
+            withIncrementalCompilation(compilerArgs) {
                 compiler.compile(
                     compilerArgs.freeArgs.map { File(it) },
                     compilerArgs,
