@@ -26040,6 +26040,12 @@ public class FirNativeCodegenBoxTestNoPLGenerated extends AbstractNativeCodegenB
             }
 
             @Test
+            @TestMetadata("classLiteralsWithEmptyLHS.kt")
+            public void testClassLiteralsWithEmptyLHS() throws Exception {
+                runTest("compiler/testData/codegen/box/k2DifferencesChecks/classLiteralsWithEmptyLHS.kt");
+            }
+
+            @Test
             @TestMetadata("coercionToUnitWithNothingType.kt")
             public void testCoercionToUnitWithNothingType() throws Exception {
                 runTest("compiler/testData/codegen/box/k2DifferencesChecks/coercionToUnitWithNothingType.kt");
@@ -26127,6 +26133,12 @@ public class FirNativeCodegenBoxTestNoPLGenerated extends AbstractNativeCodegenB
             @TestMetadata("InheritanceAmbiguity4.kt")
             public void testInheritanceAmbiguity4() throws Exception {
                 runTest("compiler/testData/codegen/box/k2DifferencesChecks/InheritanceAmbiguity4.kt");
+            }
+
+            @Test
+            @TestMetadata("inheritedFunctionN.kt")
+            public void testInheritedFunctionN() throws Exception {
+                runTest("compiler/testData/codegen/box/k2DifferencesChecks/inheritedFunctionN.kt");
             }
 
             @Test
@@ -26425,6 +26437,12 @@ public class FirNativeCodegenBoxTestNoPLGenerated extends AbstractNativeCodegenB
             }
 
             @Test
+            @TestMetadata("sealedFunInterface.kt")
+            public void testSealedFunInterface() throws Exception {
+                runTest("compiler/testData/codegen/box/k2DifferencesChecks/sealedFunInterface.kt");
+            }
+
+            @Test
             @TestMetadata("selfCallsInCompanionSuperConstructor_error.kt")
             public void testSelfCallsInCompanionSuperConstructor_error() throws Exception {
                 runTest("compiler/testData/codegen/box/k2DifferencesChecks/selfCallsInCompanionSuperConstructor_error.kt");
@@ -26434,6 +26452,12 @@ public class FirNativeCodegenBoxTestNoPLGenerated extends AbstractNativeCodegenB
             @TestMetadata("subtypingBetweenContextReceivers.kt")
             public void testSubtypingBetweenContextReceivers() throws Exception {
                 runTest("compiler/testData/codegen/box/k2DifferencesChecks/subtypingBetweenContextReceivers.kt");
+            }
+
+            @Test
+            @TestMetadata("suspendTest.kt")
+            public void testSuspendTest() throws Exception {
+                runTest("compiler/testData/codegen/box/k2DifferencesChecks/suspendTest.kt");
             }
 
             @Test
