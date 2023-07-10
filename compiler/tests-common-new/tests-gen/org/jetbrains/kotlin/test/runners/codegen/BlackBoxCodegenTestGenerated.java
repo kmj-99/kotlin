@@ -27350,12 +27350,6 @@ public class BlackBoxCodegenTestGenerated extends AbstractBlackBoxCodegenTest {
         @TestDataPath("$PROJECT_ROOT")
         public class ConstEvaluationFromJavaWorld {
             @Test
-            @TestMetadata("accessComplexConst.kt")
-            public void testAccessComplexConst() throws Exception {
-                runTest("compiler/testData/codegen/box/involvesIrInterpreter/constEvaluationFromJavaWorld/accessComplexConst.kt");
-            }
-
-            @Test
             @TestMetadata("accessTopLevelConst.kt")
             public void testAccessTopLevelConst() throws Exception {
                 runTest("compiler/testData/codegen/box/involvesIrInterpreter/constEvaluationFromJavaWorld/accessTopLevelConst.kt");

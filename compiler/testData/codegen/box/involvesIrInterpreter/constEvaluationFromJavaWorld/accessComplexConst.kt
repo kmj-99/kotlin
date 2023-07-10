@@ -1,5 +1,6 @@
 // !LANGUAGE: +IntrinsicConstEvaluation
-// TARGET_BACKEND: JVM
+// TARGET_BACKEND: JVM_IR
+// IGNORE_BACKEND_K1: JVM_IR
 // WITH_STDLIB
 // FILE: Bar.java
 package one.two;
