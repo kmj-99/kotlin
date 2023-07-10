@@ -22,10 +22,8 @@ import org.jetbrains.kotlin.fir.expressions.FirConstExpression
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.FirQualifiedAccessExpression
 import org.jetbrains.kotlin.fir.expressions.impl.FirExpressionStub
-import org.jetbrains.kotlin.fir.lazy.Fir2IrLazyClass
-import org.jetbrains.kotlin.fir.lazy.Fir2IrLazyConstructor
-import org.jetbrains.kotlin.fir.lazy.Fir2IrLazyProperty
-import org.jetbrains.kotlin.fir.lazy.Fir2IrLazySimpleFunction
+import org.jetbrains.kotlin.fir.java.declarations.FirJavaField
+import org.jetbrains.kotlin.fir.lazy.*
 import org.jetbrains.kotlin.fir.references.toResolvedBaseSymbol
 import org.jetbrains.kotlin.fir.references.toResolvedValueParameterSymbol
 import org.jetbrains.kotlin.fir.resolve.dfa.cfg.isLocalClassOrAnonymousObject
@@ -1158,6 +1156,23 @@ class Fir2IrDeclarationStorage(
         val classId = (irParent as? IrClass)?.classId
         val containingClassLookupTag = classId?.toLookupTag()
         val signature = signatureComposer.composeSignature(field, containingClassLookupTag)
+
+        fun IrField.saveInCache() {
+            val staticFakeOverrideKey = getFieldStaticFakeOverrideKey(field, containingClassLookupTag)
+            if (staticFakeOverrideKey == null) {
+                fieldCache[field] = this
+            } else {
+                fieldStaticOverrideCache[staticFakeOverrideKey] = this
+            }
+        }
+
+        if (field is FirJavaField && field.isStatic && field.isFinal && signature != null) {
+            return createIrLazyField(field, signature, irParent!!, origin).apply {
+                saveInCache()
+                setAndModifyParent(irParent)
+            }
+        }
+
         return field.convertWithOffsets { startOffset, endOffset ->
             if (signature != null) {
                 symbolTable.declareField(
@@ -1191,12 +1206,7 @@ class Fir2IrDeclarationStorage(
                 )
             }.apply {
                 metadata = FirMetadataSource.Field(field)
-                val staticFakeOverrideKey = getFieldStaticFakeOverrideKey(field, containingClassLookupTag)
-                if (staticFakeOverrideKey == null) {
-                    fieldCache[field] = this
-                } else {
-                    fieldStaticOverrideCache[staticFakeOverrideKey] = this
-                }
+                saveInCache()
                 val initializer = field.unwrapFakeOverrides().initializer
                 if (initializer is FirConstExpression<*>) {
                     this.initializer = factory.createExpressionBody(initializer.toIrConst(type))
@@ -1567,6 +1577,22 @@ class Fir2IrDeclarationStorage(
         }
         propertyCache[fir] = irProperty
         return irProperty
+    }
+
+    private fun createIrLazyField(
+        fir: FirField,
+        signature: IdSignature,
+        lazyParent: IrDeclarationParent,
+        declarationOrigin: IrDeclarationOrigin
+    ): IrField {
+        return fir.convertWithOffsets { startOffset, endOffset ->
+            val symbol = Fir2IrFieldSymbol(signature)
+            symbolTable.declareField(signature, symbolFactory = { symbol }) {
+                Fir2IrLazyField(
+                    components, startOffset, endOffset, declarationOrigin, fir, (lazyParent as? Fir2IrLazyClass)?.fir, symbol
+                )
+            }
+        }
     }
 
     private inline fun <reified S : IrSymbol, reified D : IrOverridableDeclaration<S>> ConeClassLookupTagWithFixedSymbol.findIrFakeOverride(
