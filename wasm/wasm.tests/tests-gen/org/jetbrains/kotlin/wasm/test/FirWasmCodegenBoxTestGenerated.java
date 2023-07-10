@@ -21102,7 +21102,8 @@ public class FirWasmCodegenBoxTestGenerated extends AbstractFirWasmCodegenBoxTes
         @Nested
         @TestMetadata("compiler/testData/codegen/box/involvesIrInterpreter/constEvaluationFromJavaWorld")
         @TestDataPath("$PROJECT_ROOT")
-        public class ConstEvaluationFromJavaWorlв {
+        public class ConstEvaluationFromJavaWorld {
+            @Test
             public void testAllFilesPresentInConstEvaluationFromJavaWorld() throws Exception {
                 KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box/involvesIrInterpreter/constEvaluationFromJavaWorld"), Pattern.compile("^([^_](.+))\\.kt$"), null, TargetBackend.WASM, true);
             }

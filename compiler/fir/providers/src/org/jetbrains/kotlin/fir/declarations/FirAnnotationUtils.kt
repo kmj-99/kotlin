@@ -77,6 +77,12 @@ inline fun FirProperty.hasJvmFieldAnnotation(session: FirSession): Boolean =
 fun FirAnnotation.isJvmFieldAnnotation(session: FirSession): Boolean =
     toAnnotationClassId(session) == StandardClassIds.Annotations.JvmField
 
+fun FirDeclaration.findJvmNameAnnotation(): FirAnnotation? {
+    return annotations.firstOrNull {
+        it.annotationTypeRef.coneType.classId == StandardClassIds.Annotations.JvmName
+    }
+}
+
 fun FirAnnotation.useSiteTargetsFromMetaAnnotation(session: FirSession): Set<AnnotationUseSiteTarget> {
     return toAnnotationClass(session)
         ?.annotations

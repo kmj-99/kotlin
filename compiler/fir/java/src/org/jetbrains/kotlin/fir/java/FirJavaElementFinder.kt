@@ -19,6 +19,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.stubs.StubBase
 import com.intellij.psi.stubs.StubElement
 import com.intellij.util.ArrayUtil
+import org.jetbrains.kotlin.builtins.StandardNames
 import org.jetbrains.kotlin.builtins.jvm.JavaToKotlinClassMap
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
@@ -26,11 +27,9 @@ import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.fir.FirModuleData
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.FirSessionComponent
-import org.jetbrains.kotlin.fir.declarations.FirFile
-import org.jetbrains.kotlin.fir.declarations.FirProperty
-import org.jetbrains.kotlin.fir.declarations.FirRegularClass
-import org.jetbrains.kotlin.fir.declarations.FirTypeParameter
+import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.utils.*
+import org.jetbrains.kotlin.fir.expressions.FirConstExpression
 import org.jetbrains.kotlin.fir.moduleData
 import org.jetbrains.kotlin.fir.resolve.ScopeSession
 import org.jetbrains.kotlin.fir.resolve.fullyExpandedType
@@ -91,8 +90,8 @@ class FirJavaElementFinder(
             val classId = ClassId.topLevel(topLevelClass)
 
             // 1. We could be asked to find class of kind "...MainKt" that was created from file "main.kt"
-            val firFile = firProviders.firstNotNullOfOrNull { it.getFirFilesByPackage(classId.packageFqName) }
-                ?.singleOrNull { classId.relativeClassName.asString() == it.name.removeSuffix(".kt").capitalizeAsciiOnly() + "Kt" }
+            val firFile = firProviders.flatMap { it.getFirFilesByPackage(classId.packageFqName) }
+                .singleOrNull { classId.relativeClassName.asString() == it.jvmName() }
             if (firFile != null) {
                 val fileStub = createJavaFileStub(classId.packageFqName, psiManager)
                 return buildFileAsClassStub(firFile, classId, fileStub).psi
@@ -110,6 +109,13 @@ class FirJavaElementFinder(
         }
 
         return null
+    }
+
+    private fun FirFile.jvmName(): String {
+        val jvmNameAnnotation = this.findJvmNameAnnotation()
+        val jvmName = jvmNameAnnotation?.findArgumentByName(StandardNames.NAME)
+        val jvmNameValue = (jvmName as? FirConstExpression<*>)?.value as? String
+        return jvmNameValue ?: (this.name.removeSuffix(".kt").capitalizeAsciiOnly() + "Kt")
     }
 
     private fun buildFileAsClassStub(firFile: FirFile, classId: ClassId, parent: StubElement<*>): PsiClassStub<*> {

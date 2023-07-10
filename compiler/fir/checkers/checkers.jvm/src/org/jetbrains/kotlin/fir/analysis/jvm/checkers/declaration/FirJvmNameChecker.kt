@@ -17,7 +17,6 @@ import org.jetbrains.kotlin.fir.declarations.utils.*
 import org.jetbrains.kotlin.fir.expressions.FirAnnotation
 import org.jetbrains.kotlin.fir.expressions.FirConstExpression
 import org.jetbrains.kotlin.fir.resolve.getContainingClass
-import org.jetbrains.kotlin.fir.types.classId
 import org.jetbrains.kotlin.fir.types.coneType
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.StandardClassIds
@@ -50,12 +49,6 @@ object FirJvmNameChecker : FirBasicDeclarationChecker() {
             ) {
                 reporter.reportOn(jvmName.source, FirJvmErrors.INAPPLICABLE_JVM_NAME, context)
             }
-        }
-    }
-
-    private fun FirDeclaration.findJvmNameAnnotation(): FirAnnotation? {
-        return annotations.firstOrNull {
-            it.annotationTypeRef.coneType.classId == StandardClassIds.Annotations.JvmName
         }
     }
 
