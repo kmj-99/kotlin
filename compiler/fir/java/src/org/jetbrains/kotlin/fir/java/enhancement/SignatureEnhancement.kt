@@ -20,7 +20,10 @@ import org.jetbrains.kotlin.fir.declarations.impl.FirDeclarationStatusImpl
 import org.jetbrains.kotlin.fir.declarations.impl.FirResolvedDeclarationStatusImpl
 import org.jetbrains.kotlin.fir.declarations.synthetic.FirSyntheticProperty
 import org.jetbrains.kotlin.fir.declarations.synthetic.buildSyntheticProperty
-import org.jetbrains.kotlin.fir.declarations.utils.*
+import org.jetbrains.kotlin.fir.declarations.utils.hasStableParameterNames
+import org.jetbrains.kotlin.fir.declarations.utils.isInner
+import org.jetbrains.kotlin.fir.declarations.utils.modality
+import org.jetbrains.kotlin.fir.declarations.utils.visibility
 import org.jetbrains.kotlin.fir.expressions.FirAnnotation
 import org.jetbrains.kotlin.fir.expressions.FirConstExpression
 import org.jetbrains.kotlin.fir.expressions.unexpandedClassId
@@ -116,17 +119,8 @@ class FirSignatureEnhancement(
             is FirField -> {
                 if (firElement.returnTypeRef !is FirJavaTypeRef) return original
                 val newReturnTypeRef = enhanceReturnType(
-                    firElement, emptyList(), firElement.computeDefaultQualifiers(),
-                    predefinedEnhancementInfo = null
-                ).let {
-                    val lowerBound = it.type.lowerBoundIfFlexible()
-                    // TODO: `firElement.isFinal` check is not entirely correct, we must check that this field has a constant initializer.
-                    if ((lowerBound.isString || lowerBound.isInt) && firElement.isStatic && firElement.isFinal) {
-                        it.withReplacedConeType(it.type.withNullability(ConeNullability.NOT_NULL, session.typeContext))
-                    } else {
-                        it
-                    }
-                }
+                    firElement, emptyList(), firElement.computeDefaultQualifiers(), predefinedEnhancementInfo = null
+                )
 
                 val symbol = FirFieldSymbol(original.callableId)
                 buildJavaField {

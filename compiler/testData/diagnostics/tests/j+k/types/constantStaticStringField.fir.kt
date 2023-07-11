@@ -23,5 +23,5 @@ fun foo(w: Int): String {
         else -> JavaClass.Y
     }
 
-    return x
+    return <!RETURN_TYPE_MISMATCH!>x<!>
 }
