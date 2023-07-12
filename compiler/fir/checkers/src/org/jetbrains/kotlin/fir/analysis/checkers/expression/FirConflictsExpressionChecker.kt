@@ -15,7 +15,7 @@ import org.jetbrains.kotlin.fir.expressions.FirBlock
 
 object FirConflictsExpressionChecker : FirBlockChecker() {
     override fun check(expression: FirBlock, context: CheckerContext, reporter: DiagnosticReporter) {
-        checkForLocalRedeclarations(expression.statements, context, reporter)
+        checkForLocalRedeclarations(expression.statements as List<FirElement>, context, reporter)
         checkForLocalConflictingFunctions(expression, context, reporter)
     }
 

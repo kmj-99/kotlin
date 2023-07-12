@@ -338,7 +338,7 @@ object FirJsExternalChecker : FirBasicDeclarationChecker() {
             body is FirSingleExpressionBlock -> body.isDefinedExternallyExpression()
             body != null -> {
                 val statement = body.statements.singleOrNull() ?: return false
-                statement.isDefinedExternallyExpression()
+                (statement as FirElement).isDefinedExternallyExpression()
             }
 
             else -> false

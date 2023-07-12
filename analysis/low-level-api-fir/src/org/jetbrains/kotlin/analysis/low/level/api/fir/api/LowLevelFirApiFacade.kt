@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.analysis.project.structure.KtModule
 import org.jetbrains.kotlin.analysis.project.structure.ProjectStructureProvider
 import org.jetbrains.kotlin.diagnostics.KtPsiDiagnostic
 import org.jetbrains.kotlin.fir.FirElement
+import org.jetbrains.kotlin.fir.FirElementInterface
 import org.jetbrains.kotlin.fir.declarations.FirDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirFile
 import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
@@ -104,7 +105,7 @@ fun KtElement.getOrBuildFir(
  * Returned [FirElement] is guaranteed to be resolved to [FirResolvePhase.BODY_RESOLVE] phase
  * This operation could be performance affective because it create FIleStructureElement and resolve non-local declaration into BODY phase
  */
-inline fun <reified E : FirElement> KtElement.getOrBuildFirSafe(
+inline fun <reified E : FirElementInterface> KtElement.getOrBuildFirSafe(
     firResolveSession: LLFirResolveSession,
 ) = getOrBuildFir(firResolveSession) as? E
 

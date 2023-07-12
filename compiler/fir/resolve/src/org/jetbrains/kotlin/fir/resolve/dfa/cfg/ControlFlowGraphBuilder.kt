@@ -362,7 +362,7 @@ class ControlFlowGraphBuilder {
         val nextLevelExits = postponedLambdaExits.topOrNull().takeIf { !callCompleted }
         if (nextLevelExits != null) {
             node.updateDeadStatus()
-            nextLevelExits += createMergePostponedLambdaExitsNode(node.fir).also {
+            nextLevelExits += createMergePostponedLambdaExitsNode(node.fir as FirElement).also {
                 addEdge(node, it) // copy liveness (deadness?) from `node`
                 for ((exit, kind) in currentLevelExits) {
                     if (kind.usedInCfa) {

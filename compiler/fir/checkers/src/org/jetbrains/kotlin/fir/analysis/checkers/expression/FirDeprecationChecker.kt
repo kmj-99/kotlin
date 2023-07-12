@@ -61,7 +61,7 @@ object FirDeprecationChecker : FirBasicExpressionChecker() {
                 constructorOnlyDeprecation, reporter, context
             )
         } else {
-            reportApiStatusIfNeeded(resolvedReference.source, referencedSymbol, context, reporter, callSite = expression)
+            reportApiStatusIfNeeded(resolvedReference.source, referencedSymbol, context, reporter, callSite = expression as FirElement)
         }
     }
 

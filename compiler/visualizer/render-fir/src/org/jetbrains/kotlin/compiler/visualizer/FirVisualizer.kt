@@ -470,7 +470,8 @@ class FirVisualizer(private val firFile: FirFile) : BaseRenderer() {
         private fun renderConstructorSymbol(symbol: FirConstructorSymbol, data: StringBuilder) {
             data.append("constructor ")
             data.append(getSymbolId(symbol))
-            renderListInTriangles(symbol.fir.typeParameters, data)
+            @Suppress("UNCHECKED_CAST")
+            renderListInTriangles(symbol.fir.typeParameters as List<FirElement>, data)
         }
 
         private fun renderField(field: FirField, data: StringBuilder) {
@@ -609,7 +610,7 @@ class FirVisualizer(private val firFile: FirFile) : BaseRenderer() {
             visitValueParameters(constructor.unwrapFakeOverridesOrDelegated().valueParameters, data)
         }
 
-        override fun visitTypeParameterRef(typeParameterRef: FirTypeParameterRef, data: StringBuilder) {
+        private fun visitTypeParameterRef(typeParameterRef: FirTypeParameterRef, data: StringBuilder) {
             visitTypeParameter(typeParameterRef.symbol.fir, data)
         }
 
@@ -801,8 +802,10 @@ class FirVisualizer(private val firFile: FirFile) : BaseRenderer() {
                 }
                 fir is FirClass -> {
                     data.append(fir.classKind.name.toLowerCaseAsciiOnly().replace("_", " ")).append(" ")
+
                     data.append(fir.symbol.classId.asString().removeCurrentFilePackage())
-                    renderListInTriangles(fir.typeParameters, data)
+                    @Suppress("UNCHECKED_CAST")
+                    renderListInTriangles(fir.typeParameters as List<FirElement>, data)
                     val superTypes = fir.superTypeRefs
                         .map { it.render() }
                         .filter { it != "kotlin/Any" }

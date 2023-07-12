@@ -240,7 +240,8 @@ private class ContextCollectorVisitor(
             regularClass.lazyResolveToPhase(FirResolvePhase.STATUS)
 
             context.withContainingClass(regularClass) {
-                processList(regularClass.typeParameters)
+                @Suppress("UNCHECKED_CAST")
+                processList(regularClass.typeParameters as List<FirElement>)
 
                 context.withRegularClass(regularClass, holder) {
                     dumpContext(regularClass.psi, ContextKind.BODY)
