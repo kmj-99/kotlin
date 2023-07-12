@@ -128,6 +128,8 @@ class FirJavaElementFinder(
 
         PsiModifierListStubImpl(stub, ModifierFlags.PUBLIC_MASK or ModifierFlags.FINAL_MASK)
         PsiTypeParameterListStubImpl(stub)
+        newReferenceList(JavaStubElementTypes.EXTENDS_LIST, stub, ArrayUtil.EMPTY_STRING_ARRAY)
+        newReferenceList(JavaStubElementTypes.IMPLEMENTS_LIST, stub, ArrayUtil.EMPTY_STRING_ARRAY)
         return stub
     }
 
