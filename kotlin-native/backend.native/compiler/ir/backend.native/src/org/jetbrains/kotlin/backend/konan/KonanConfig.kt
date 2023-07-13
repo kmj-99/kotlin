@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.backend.konan
 
-import com.google.common.io.Files
+import com.google.common.base.StandardSystemProperty
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.backend.common.linkage.issues.UserVisibleIrModulesSupport
 import org.jetbrains.kotlin.backend.konan.serialization.KonanUserVisibleIrModulesSupport
@@ -22,6 +22,9 @@ import org.jetbrains.kotlin.konan.util.KonanHomeProvider
 import org.jetbrains.kotlin.konan.util.visibleName
 import org.jetbrains.kotlin.library.metadata.resolver.TopologicalLibraryOrder
 import org.jetbrains.kotlin.util.removeSuffixIfPresent
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.attribute.PosixFilePermissions
 
 enum class IrVerificationMode {
     NONE,
@@ -528,9 +531,13 @@ class KonanConfig(val project: Project, val configuration: CompilerConfiguration
     internal val saveLlvmIrDirectory: java.io.File by lazy {
         val path = configuration.get(KonanConfigKeys.SAVE_LLVM_IR_DIRECTORY)
         if (path == null) {
-            val tempDir = Files.createTempDir()
+            val tempDir = Files.createTempDirectory(
+                Paths.get(System.getProperty("java.io.tmpdir")),
+                null,
+                PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------"))
+            ).toFile()
             configuration.report(CompilerMessageSeverity.WARNING,
-                    "Temporary directory for LLVM IR is ${tempDir.canonicalPath}")
+                "Temporary directory for LLVM IR is ${tempDir.canonicalPath}")
             tempDir
         } else {
             java.io.File(path)
