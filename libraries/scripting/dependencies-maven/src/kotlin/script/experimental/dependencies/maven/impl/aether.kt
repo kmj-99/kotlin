@@ -104,7 +104,7 @@ internal class AetherResolveSession(
     }
 
     private val repositorySystem: RepositorySystem by lazy {
-        val locator = MavenRepositorySystemUtils.newServiceLocator()
+        @Suppress("DEPRECATION") val locator = MavenRepositorySystemUtils.newServiceLocator()
         locator.addService(
             RepositoryConnectorFactory::class.java,
             BasicRepositoryConnectorFactory::class.java
