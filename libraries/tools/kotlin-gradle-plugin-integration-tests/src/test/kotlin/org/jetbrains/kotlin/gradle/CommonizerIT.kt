@@ -359,7 +359,8 @@ open class CommonizerIT : KGPBaseTest() {
         nativeProject("commonize-kt-48118-c-interop-in-common-main", gradleVersion, forceOutput = true) {
             reportSourceSetCommonizerDependencies {
                 val upperMain = getCommonizerDependencies("upperMain")
-                upperMain.withoutNativeDistributionDependencies(buildOptions.konanDataDir).assertDependencyFilesMatches(".*cinterop-dummy")
+                val konanDataDirProperty = buildOptions.konanDataDir!!
+                upperMain.withoutNativeDistributionDependencies(konanDataDirProperty).assertDependencyFilesMatches(".*cinterop-dummy")
                 upperMain.onlyNativeDistributionDependencies(buildOptions.konanDataDir).assertNotEmpty()
 
                 val commonMain = getCommonizerDependencies("commonMain")
@@ -407,7 +408,8 @@ open class CommonizerIT : KGPBaseTest() {
         nativeProject("commonize-kt-48138-nativeMain-nativeTest-different-targets", gradleVersion) {
             reportSourceSetCommonizerDependencies {
                 val nativeMain = getCommonizerDependencies("nativeMain")
-                nativeMain.withoutNativeDistributionDependencies(buildOptions.konanDataDir).assertDependencyFilesMatches(".*cinterop-dummy")
+                val konanDataDirProperty = buildOptions.konanDataDir!!
+                nativeMain.withoutNativeDistributionDependencies(konanDataDirProperty).assertDependencyFilesMatches(".*cinterop-dummy")
                 nativeMain.onlyNativeDistributionDependencies(buildOptions.konanDataDir).assertNotEmpty()
                 nativeMain.assertTargetOnAllDependencies(CommonizerTarget(LINUX_X64, LINUX_ARM64, MINGW_X64))
 
@@ -523,7 +525,8 @@ open class CommonizerIT : KGPBaseTest() {
                 getCommonizerDependencies("commonMain").assertEmpty()
                 getCommonizerDependencies("commonTest").assertEmpty()
 
-                getCommonizerDependencies("nativeMain").withoutNativeDistributionDependencies(buildOptions.konanDataDir).apply {
+                val konanDataDirProperty = buildOptions.konanDataDir!!
+                getCommonizerDependencies("nativeMain").withoutNativeDistributionDependencies(konanDataDirProperty).apply {
                     assertDependencyFilesMatches(".*nativeHelper")
                     assertTargetOnAllDependencies(
                         CommonizerTarget(IOS_X64, IOS_ARM64, LINUX_X64, LINUX_ARM64, MACOS_X64, MINGW_X64)

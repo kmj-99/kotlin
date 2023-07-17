@@ -63,7 +63,9 @@ class NativeDownloadAndPlatformLibsIT : KGPBaseTest() {
 
         checkThatUserKonanDirIsEmptyAfterTest()
 
-        val userHomeDir = System.getProperty("user.home")
+        // TODO(Dmitrii Krasnov): remove checking System.getenv("KONAN_DATA_DIR"),
+        //  when KONAN_DATA_DIR is not set in TeamCity env
+        val userHomeDir = System.getenv("KONAN_DATA_DIR") ?: System.getProperty("user.home")
         platformLibrariesProject("linuxX64", gradleVersion = gradleVersion) {
             build("assemble", buildOptions = defaultBuildOptions.copy(konanDataDir = null)) {
                 assertOutputContains("Kotlin/Native distribution: .*kotlin-native-prebuilt-$platformName".toRegex())

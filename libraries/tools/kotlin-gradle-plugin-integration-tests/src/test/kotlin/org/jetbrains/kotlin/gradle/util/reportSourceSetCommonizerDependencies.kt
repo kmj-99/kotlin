@@ -36,14 +36,14 @@ data class SourceSetCommonizerDependencies(
     val dependencies: Set<SourceSetCommonizerDependency>,
 ) {
 
-    fun withoutNativeDistributionDependencies(konanDataDirProperty: Path? = null): SourceSetCommonizerDependencies {
+    fun withoutNativeDistributionDependencies(konanDataDirProperty: Path): SourceSetCommonizerDependencies {
         return SourceSetCommonizerDependencies(
             sourceSetName,
             dependencies.filter { dependency -> !dependency.isFromNativeDistribution(konanDataDirProperty) }.toSet()
         )
     }
 
-    fun onlyNativeDistributionDependencies(konanDataDirProperty: Path? = null): SourceSetCommonizerDependencies {
+    fun onlyNativeDistributionDependencies(konanDataDirProperty: Path): SourceSetCommonizerDependencies {
         return SourceSetCommonizerDependencies(
             sourceSetName,
             dependencies.filter { dependency -> dependency.isFromNativeDistribution(konanDataDirProperty) }.toSet()
