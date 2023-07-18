@@ -92,8 +92,8 @@ class NativeDownloadAndPlatformLibsIT : KGPBaseTest() {
                 assertOutputDoesNotContain("Generate platform libraries for ")
 
                 // checking that konan was downloaded and native dependencies were not downloaded into ~/.konan dir
-                assertDirectoryExists(Paths.get("${workingDir.absolutePathString()}/.konan/dependencies"))
-                assertDirectoryExists(Paths.get("${workingDir.absolutePathString()}/.konan/kotlin-native-prebuilt-$platformName-$currentCompilerVersion"))
+                assertDirectoryExists(workingDir.resolve(".konan/dependencies"))
+                assertDirectoryExists(workingDir.resolve(".konan/kotlin-native-prebuilt-$platformName-$currentCompilerVersion"))
             }
         }
     }

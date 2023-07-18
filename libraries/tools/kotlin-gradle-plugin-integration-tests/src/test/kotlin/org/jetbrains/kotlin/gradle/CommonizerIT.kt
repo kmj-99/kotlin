@@ -356,7 +356,7 @@ open class CommonizerIT : KGPBaseTest() {
     @DisplayName("KT-48118 c-interops available in commonMain")
     @GradleTest
     fun testCInteropsAvailableInCommonMain(gradleVersion: GradleVersion) {
-        nativeProject("commonize-kt-48118-c-interop-in-common-main", gradleVersion, forceOutput = true) {
+        nativeProject("commonize-kt-48118-c-interop-in-common-main", gradleVersion) {
             reportSourceSetCommonizerDependencies {
                 val upperMain = getCommonizerDependencies("upperMain")
                 val konanDataDirProperty = buildOptions.konanDataDir!!
