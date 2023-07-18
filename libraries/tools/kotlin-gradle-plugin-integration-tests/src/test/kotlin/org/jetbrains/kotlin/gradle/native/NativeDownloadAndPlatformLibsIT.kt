@@ -17,10 +17,8 @@ import org.jetbrains.kotlin.konan.target.presetName
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.condition.DisabledOnOs
 import org.junit.jupiter.api.condition.OS
 import java.nio.file.Paths
-import kotlin.io.path.absolutePathString
 import kotlin.io.path.appendText
 import kotlin.io.path.deleteRecursively
 
@@ -63,9 +61,7 @@ class NativeDownloadAndPlatformLibsIT : KGPBaseTest() {
 
         checkThatUserKonanDirIsEmptyAfterTest()
 
-        // TODO(Dmitrii Krasnov): remove checking System.getenv("KONAN_DATA_DIR"),
-        //  when KONAN_DATA_DIR is not set in TeamCity env
-        val userHomeDir = System.getenv("KONAN_DATA_DIR") ?: System.getProperty("user.home")
+        val userHomeDir = System.getProperty("user.home")
         platformLibrariesProject("linuxX64", gradleVersion = gradleVersion) {
             build("assemble", buildOptions = defaultBuildOptions.copy(konanDataDir = null)) {
                 assertOutputContains("Kotlin/Native distribution: .*kotlin-native-prebuilt-$platformName".toRegex())
@@ -81,6 +77,14 @@ class NativeDownloadAndPlatformLibsIT : KGPBaseTest() {
         Paths.get("$userHomeDir/.konan/dependencies").deleteRecursively()
         Paths.get("$userHomeDir/.konan/kotlin-native-prebuilt-$platformName-$currentCompilerVersion").deleteRecursively()
 
+    }
+
+    @DisplayName("K/N Gradle project build (on Linux or Mac) with a dependency from a Maven")
+    @GradleTest
+    fun testSetupCommonOptionsForCaches(gradleVersion: GradleVersion) {
+        nativeProject("native-with-maven-dependencies", gradleVersion = gradleVersion) {
+            build("assemble")
+        }
     }
 
     @DisplayName("Downloading K/N with custom konanDataDir property")
@@ -171,7 +175,7 @@ class NativeDownloadAndPlatformLibsIT : KGPBaseTest() {
         }
     }
 
-    @DisabledOnOs(OS.MAC)
+    @OsCondition(supportedOn = [OS.LINUX], enabledOnCI = [OS.LINUX])
     @DisplayName("Assembling project generates no platform libraries for unsupported host")
     @GradleTest
     fun testNoGenerationForUnsupportedHost(gradleVersion: GradleVersion) {

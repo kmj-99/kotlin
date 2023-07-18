@@ -32,7 +32,7 @@ import java.nio.file.Paths
 @TestDataPath("\$CONTENT_ROOT/resources/testProject")
 @OsCondition
 abstract class KGPBaseTest {
-    open val defaultBuildOptions = BuildOptions(konanDataDir = Paths.get("build/.konan"))
+    open val defaultBuildOptions = BuildOptions()
 
     @TempDir
     lateinit var workingDir: Path
