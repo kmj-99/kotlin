@@ -83,7 +83,15 @@ class NativeDownloadAndPlatformLibsIT : KGPBaseTest() {
     @GradleTest
     fun testSetupCommonOptionsForCaches(gradleVersion: GradleVersion) {
         nativeProject("native-with-maven-dependencies", gradleVersion = gradleVersion) {
-            build("assemble")
+            val nativeTaskName = when (HostManager.host) {
+                KonanTarget.LINUX_X64 -> ":compileKotlinLinuxX64"
+                KonanTarget.MACOS_ARM64 -> ":compileKotlinMacosArm64"
+                KonanTarget.MACOS_X64 -> ":compileKotlinMacosX64"
+                else -> null
+            }
+            build("assemble") {
+                assertTasksExecuted("$nativeTaskName")
+            }
         }
     }
 
