@@ -29,7 +29,7 @@ import java.lang.Boolean as RefBoolean
 // Tests are not working with AGP >= 7.1.0. See KT-57351 for details
 class AndroidAndJavaConsumeMppLibBuiltByGradle7IT : AndroidAndJavaConsumeMppLibIT() {
     override val producerAgpVersion: AGPVersion = AGPVersion.v7_0_0
-    override val producerGradleVersion: GradleVersionRequired = GradleVersionRequired.AtLeast(
+    override val producerGradleVersion: GradleVersionRequired = GradleVersionRequired.Until(
         TestVersions.Gradle.G_7_6
     )
 }
