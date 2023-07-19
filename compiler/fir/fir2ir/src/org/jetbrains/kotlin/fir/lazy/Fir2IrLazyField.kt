@@ -6,35 +6,26 @@
 package org.jetbrains.kotlin.fir.lazy
 
 import org.jetbrains.kotlin.descriptors.DescriptorVisibility
-import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
-import org.jetbrains.kotlin.descriptors.isAnnotationClass
-import org.jetbrains.kotlin.fir.backend.*
-import org.jetbrains.kotlin.fir.declarations.*
-import org.jetbrains.kotlin.fir.declarations.impl.FirDefaultPropertyGetter
-import org.jetbrains.kotlin.fir.declarations.impl.FirDefaultPropertySetter
-import org.jetbrains.kotlin.fir.declarations.utils.*
+import org.jetbrains.kotlin.fir.backend.Fir2IrComponents
+import org.jetbrains.kotlin.fir.backend.toIrConst
+import org.jetbrains.kotlin.fir.declarations.FirField
+import org.jetbrains.kotlin.fir.declarations.FirRegularClass
+import org.jetbrains.kotlin.fir.declarations.utils.isExternal
+import org.jetbrains.kotlin.fir.declarations.utils.isFinal
+import org.jetbrains.kotlin.fir.declarations.utils.isStatic
+import org.jetbrains.kotlin.fir.declarations.utils.visibility
 import org.jetbrains.kotlin.fir.expressions.FirConstExpression
-import org.jetbrains.kotlin.fir.expressions.FirExpression
-import org.jetbrains.kotlin.fir.propertyIfBackingField
 import org.jetbrains.kotlin.fir.symbols.Fir2IrFieldSymbol
-import org.jetbrains.kotlin.fir.symbols.Fir2IrPropertySymbol
-import org.jetbrains.kotlin.fir.symbols.Fir2IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.fir.unwrapFakeOverrides
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.lazy.lazyVar
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
-import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrExpressionBody
 import org.jetbrains.kotlin.ir.symbols.IrPropertySymbol
-import org.jetbrains.kotlin.ir.types.IrErrorType
 import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.util.isComposite
-import org.jetbrains.kotlin.ir.util.isInterface
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.name.NameUtils
-import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 
 class Fir2IrLazyField(
     private val components: Fir2IrComponents,
@@ -47,7 +38,6 @@ class Fir2IrLazyField(
 ) : IrField(), AbstractFir2IrLazyDeclaration<FirField>, Fir2IrComponents by components {
     init {
         symbol.bind(this)
-        classifierStorage.preCacheTypeParameters(fir, symbol)
     }
 
     override var annotations: List<IrConstructorCall> by createLazyAnnotations()

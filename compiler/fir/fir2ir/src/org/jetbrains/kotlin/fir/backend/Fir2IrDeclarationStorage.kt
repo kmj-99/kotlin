@@ -1167,6 +1167,8 @@ class Fir2IrDeclarationStorage(
         }
 
         if (field is FirJavaField && field.isStatic && field.isFinal && signature != null) {
+            // We are going to create IR for Java static final fields lazily because they can refer to some Kotlin const.
+            // This way we delay const evaluation of Java fields until IR tree is fully built, and we can run IR interpreter.
             return createIrLazyField(field, signature, irParent!!, origin).apply {
                 saveInCache()
                 setAndModifyParent(irParent)
