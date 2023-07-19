@@ -17,16 +17,15 @@ import kotlin.io.path.*
 import kotlin.test.*
 
 @JsGradlePluginTests
-open class KotlinJsIr10IncrementalGradlePluginIT : AbstractKotlinJsIncrementalGradlePluginIT(
-    irBackend = true
-)
+open class KotlinJsK1IncrementalGradlePluginIT : AbstractKotlinJsIncrementalGradlePluginIT(irBackend = true) {
+    override val defaultBuildOptions: BuildOptions
+        get() = super.defaultBuildOptions.copyEnsuringK1()
+}
 
 @JsGradlePluginTests
-class KotlinJsFirIncrementalGradlePluginIT : KotlinJsIr10IncrementalGradlePluginIT() {
+class KotlinJsK2IncrementalGradlePluginIT : AbstractKotlinJsIncrementalGradlePluginIT(irBackend = true) {
     override val defaultBuildOptions: BuildOptions
-        get() = super.defaultBuildOptions.copy(
-            languageVersion = "2.0"
-        )
+        get() = super.defaultBuildOptions.copyEnsuringK2()
 }
 
 @JsGradlePluginTests
