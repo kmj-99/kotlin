@@ -1,4 +1,5 @@
 // SKIP_SIGNATURE_DUMP
+// ^ K2 will not enhance types for constants from Java, K1 does
 // TARGET_BACKEND: JVM
 // FILE: Definitions.kt
 // IR_FILE: kt29833.txt
