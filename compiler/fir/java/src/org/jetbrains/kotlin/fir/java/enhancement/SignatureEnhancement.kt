@@ -24,8 +24,8 @@ import org.jetbrains.kotlin.fir.declarations.utils.*
 import org.jetbrains.kotlin.fir.expressions.FirAnnotation
 import org.jetbrains.kotlin.fir.expressions.FirConstExpression
 import org.jetbrains.kotlin.fir.expressions.unexpandedClassId
-import org.jetbrains.kotlin.fir.java.*
 import org.jetbrains.kotlin.fir.java.FirJavaTypeConversionMode
+import org.jetbrains.kotlin.fir.java.JavaTypeParameterStack
 import org.jetbrains.kotlin.fir.java.declarations.*
 import org.jetbrains.kotlin.fir.java.resolveIfJavaType
 import org.jetbrains.kotlin.fir.java.symbols.FirJavaOverriddenSyntheticPropertySymbol
@@ -120,6 +120,7 @@ class FirSignatureEnhancement(
                     predefinedEnhancementInfo = null
                 ).let {
                     val lowerBound = it.type.lowerBoundIfFlexible()
+                    // TODO: `firElement.isFinal` check is not entirely correct, we must check that this field has a constant initializer.
                     if ((lowerBound.isString || lowerBound.isInt) && firElement.isStatic && firElement.isFinal) {
                         it.withReplacedConeType(it.type.withNullability(ConeNullability.NOT_NULL, session.typeContext))
                     } else {
