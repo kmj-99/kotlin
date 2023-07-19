@@ -79,7 +79,7 @@ fun FirAnnotation.isJvmFieldAnnotation(session: FirSession): Boolean =
 
 fun FirDeclaration.findJvmNameAnnotation(): FirAnnotation? {
     return annotations.firstOrNull {
-        it.annotationTypeRef.coneTypeSafe<ConeKotlinType>()?.classId == StandardClassIds.Annotations.JvmName
+        it.annotationTypeRef.coneTypeOrNull?.classId == StandardClassIds.Annotations.JvmName
     }
 }
 
