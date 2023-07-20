@@ -254,7 +254,7 @@ class KotlinJavaToolchainTest : KGPBaseTest() {
             projectName = "simpleWithKapt".fullProjectName,
             gradleVersion = gradleVersion,
             projectPathAdditionalSuffix = "2/cache-test",
-            buildOptions = defaultBuildOptions.copy(buildCacheEnabled = true),
+            buildOptions = defaultBuildOptions.copy(buildCacheEnabled = true, languageVersion = "1.9"),
         ) {
             enableLocalBuildCache(buildCache)
             if (shouldUseToolchain(gradleVersion)) {
@@ -296,7 +296,7 @@ class KotlinJavaToolchainTest : KGPBaseTest() {
             projectName = "simpleWithKapt".fullProjectName,
             gradleVersion = gradleVersion,
             projectPathAdditionalSuffix = "2/cache-test",
-            buildOptions = defaultBuildOptions.copy(buildCacheEnabled = true),
+            buildOptions = defaultBuildOptions.copy(buildCacheEnabled = true, languageVersion = "1.9"),
         ) {
             enableLocalBuildCache(buildCache)
             gradleProperties.append(
