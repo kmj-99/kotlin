@@ -396,7 +396,7 @@ class BytesHexFormatTest {
         run {
 //            00010203\n04050607\n08090a0b\n0c0d0e0f\n10111213
             val length = formattedStringLength(
-                totalBytes = 20,
+                numberOfBytes = 20,
                 bytesPerLine = 4,
                 bytesPerGroup = Int.MAX_VALUE,
                 groupSeparatorLength = 2,
@@ -409,7 +409,7 @@ class BytesHexFormatTest {
         run {
 //            0001020304050607---08090a0b0c0d0e0f---10111213
             val length = formattedStringLength(
-                totalBytes = 20,
+                numberOfBytes = 20,
                 bytesPerLine = Int.MAX_VALUE,
                 bytesPerGroup = 8,
                 groupSeparatorLength = 3,
@@ -425,7 +425,7 @@ class BytesHexFormatTest {
 //            #14; #15; #16; #17;---#18; #19; #1A; #1B;---#1C; #1D;
 //            #1E;
             val length = formattedStringLength(
-                totalBytes = 31,
+                numberOfBytes = 31,
                 bytesPerLine = 10,
                 bytesPerGroup = 4,
                 groupSeparatorLength = 3,
@@ -437,7 +437,7 @@ class BytesHexFormatTest {
         }
         run {
             val length = formattedStringLength(
-                totalBytes = Int.MAX_VALUE / 2,
+                numberOfBytes = Int.MAX_VALUE / 2,
                 bytesPerLine = Int.MAX_VALUE,
                 bytesPerGroup = Int.MAX_VALUE,
                 groupSeparatorLength = 0,
@@ -449,7 +449,7 @@ class BytesHexFormatTest {
         }
         assertFailsWith<IllegalArgumentException> {
             formattedStringLength(
-                totalBytes = Int.MAX_VALUE,
+                numberOfBytes = Int.MAX_VALUE,
                 bytesPerLine = Int.MAX_VALUE,
                 bytesPerGroup = Int.MAX_VALUE,
                 groupSeparatorLength = Int.MAX_VALUE,
@@ -460,7 +460,7 @@ class BytesHexFormatTest {
         }
         assertFailsWith<IllegalArgumentException> {
             formattedStringLength(
-                totalBytes = Int.MAX_VALUE / 2 + 1,
+                numberOfBytes = Int.MAX_VALUE / 2 + 1,
                 bytesPerLine = Int.MAX_VALUE,
                 bytesPerGroup = Int.MAX_VALUE,
                 groupSeparatorLength = 0,

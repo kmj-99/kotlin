@@ -66,7 +66,7 @@ public fun ByteArray.toHexString(
     val groupSeparator = bytesFormat.groupSeparator
 
     val formatLength = formattedStringLength(
-        totalBytes = endIndex - startIndex,
+        numberOfBytes = endIndex - startIndex,
         bytesPerLine,
         bytesPerGroup,
         groupSeparator.length,
@@ -109,7 +109,7 @@ public fun ByteArray.toHexString(
 
 // Declared internal for testing
 internal fun formattedStringLength(
-    totalBytes: Int,
+    numberOfBytes: Int,
     bytesPerLine: Int,
     bytesPerGroup: Int,
     groupSeparatorLength: Int,
@@ -117,34 +117,37 @@ internal fun formattedStringLength(
     bytePrefixLength: Int,
     byteSuffixLength: Int
 ): Int {
-    require(totalBytes > 0)
+    require(numberOfBytes > 0)
     // By contract bytesPerLine and bytesPerGroup are > 0
 
-    val lineSeparators = (totalBytes - 1) / bytesPerLine
+    val lineSeparators = (numberOfBytes - 1) / bytesPerLine
     val groupSeparators = run {
         val groupSeparatorsPerLine = (bytesPerLine - 1) / bytesPerGroup
-        val bytesInLastLine = (totalBytes % bytesPerLine).let { if (it == 0) bytesPerLine else it }
+        val bytesInLastLine = (numberOfBytes % bytesPerLine).let { if (it == 0) bytesPerLine else it }
         val groupSeparatorsInLastLine = (bytesInLastLine - 1) / bytesPerGroup
         lineSeparators * groupSeparatorsPerLine + groupSeparatorsInLastLine
     }
-    val byteSeparators = totalBytes - 1 - lineSeparators - groupSeparators
+    val byteSeparators = numberOfBytes - 1 - lineSeparators - groupSeparators
 
-    // The max totalLength is achieved when
-    // totalBytes, bytePrefix/Suffix/Separator.length = Int.MAX_VALUE.
+    // The max formatLength is achieved when
+    // numberOfBytes, bytePrefix/Suffix/Separator.length = Int.MAX_VALUE.
     // The result is 3 * Int.MAX_VALUE * Int.MAX_VALUE + Int.MAX_VALUE,
     // which is > Long.MAX_VALUE, but < ULong.MAX_VALUE.
 
-    val totalLength: Long = lineSeparators.toLong() /* * lineSeparator.length = 1 */ +
+    val formatLength: Long = lineSeparators.toLong() /* * lineSeparator.length = 1 */ +
             groupSeparators.toLong() * groupSeparatorLength.toLong() +
             byteSeparators.toLong() * byteSeparatorLength.toLong() +
-            totalBytes.toLong() * (bytePrefixLength.toLong() + 2L + byteSuffixLength.toLong())
+            numberOfBytes.toLong() * (bytePrefixLength.toLong() + 2L + byteSuffixLength.toLong())
 
-    if (totalLength !in 0..Int.MAX_VALUE) {
+    return checkFormatLength(formatLength)
+}
+
+private fun checkFormatLength(formatLength: Long): Int {
+    if (formatLength !in 0..Int.MAX_VALUE) {
         // TODO: Common OutOfMemoryError?
-        throw IllegalArgumentException("The resulting string length is too big: ${totalLength.toULong()}")
+        throw IllegalArgumentException("The resulting string length is too big: ${formatLength.toULong()}")
     }
-
-    return totalLength.toInt()
+    return formatLength.toInt()
 }
 
 /**
