@@ -116,7 +116,6 @@ finally {
     23 -> {24} [color=green];
     23 -> {31} [color=red];
     24 -> {25};
-    24 -> {27} [label="onUncaughtException"];
     25 -> {26};
     26 -> {27};
     27 -> {28};
@@ -205,7 +204,6 @@ finally {
     48 -> {49} [color=green];
     48 -> {56} [color=red];
     49 -> {50};
-    49 -> {52} [label="onUncaughtException"];
     50 -> {51};
     51 -> {52};
     52 -> {53};
