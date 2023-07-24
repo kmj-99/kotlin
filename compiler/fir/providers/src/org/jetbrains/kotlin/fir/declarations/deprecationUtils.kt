@@ -177,7 +177,7 @@ fun FirBasedSymbol<*>.getDeprecationForCallSite(
 private fun FirAnnotation.getVersionFromArgument(name: Name): ApiVersion? =
     getStringArgument(name)?.let { ApiVersion.parse(it) }
 
-private fun FirAnnotation.getDeprecationLevel(): DeprecationLevelValue? {
+fun FirAnnotation.getDeprecationLevel(): DeprecationLevelValue? {
     //take last because Annotation might be not resolved yet and arguments passed without explicit names
     val argument = if (resolved) {
         argumentMapping.mapping[ParameterNames.deprecatedLevel]

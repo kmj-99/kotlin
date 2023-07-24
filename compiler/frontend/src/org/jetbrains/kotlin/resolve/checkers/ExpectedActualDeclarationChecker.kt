@@ -18,16 +18,21 @@ package org.jetbrains.kotlin.resolve.checkers
 
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.builtins.StandardNames
 import org.jetbrains.kotlin.config.AnalysisFlags
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.incremental.components.ExpectActualTracker
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.hasActualModifier
 import org.jetbrains.kotlin.resolve.*
 import org.jetbrains.kotlin.resolve.calls.mpp.AbstractExpectActualAnnotationMatchChecker
 import org.jetbrains.kotlin.resolve.constants.ConstantValue
+import org.jetbrains.kotlin.resolve.constants.EnumValue
+import org.jetbrains.kotlin.resolve.deprecation.DeprecationLevelValue
 import org.jetbrains.kotlin.resolve.descriptorUtil.isAnnotationConstructor
 import org.jetbrains.kotlin.resolve.descriptorUtil.isPrimaryConstructorOfInlineClass
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
@@ -44,6 +49,8 @@ class ExpectedActualDeclarationChecker(
     val moduleStructureOracle: ModuleStructureOracle,
     val argumentExtractors: Iterable<ActualAnnotationArgumentExtractor>
 ) : DeclarationChecker {
+    private val DEPRECATED_LEVEL_NAME = Name.identifier("level")
+
     interface ActualAnnotationArgumentExtractor {
         fun extractDefaultValue(parameter: ValueParameterDescriptor, expectedType: KotlinType): ConstantValue<*>?
     }
@@ -67,6 +74,9 @@ class ExpectedActualDeclarationChecker(
                 checkActualModifier, context.expectActualTracker
             )
             checkOptInAnnotation(declaration, descriptor, descriptor, context.trace)
+        }
+        if (descriptor.isActual) {
+            checkActualDeprecatedAnnotation(declaration, descriptor, context.trace)
         }
         if (descriptor.isActualOrSomeContainerIsActual()) {
             val allDependsOnModules = moduleStructureOracle.findAllDependsOnPaths(descriptor.module).flatMap { it.nodes }.toHashSet()
@@ -463,6 +473,28 @@ class ExpectedActualDeclarationChecker(
                 incompatibility.actualSymbol as DeclarationDescriptor
             )
         )
+    }
+
+    private fun checkActualDeprecatedAnnotation(
+        actualDeclaration: KtNamedDeclaration,
+        actualDescriptor: MemberDescriptor,
+        trace: BindingTrace,
+    ) {
+        fun AnnotationDescriptor.getDeprecatedLevel(): DeprecationLevelValue {
+            val value = allValueArguments[DEPRECATED_LEVEL_NAME] as? EnumValue ?: return DeprecationLevelValue.WARNING
+            return DeprecationLevelValue.valueOf(value.enumEntryName.identifier)
+        }
+        for (entry in actualDeclaration.annotationEntries) {
+            val annotationDescriptor = trace.get(BindingContext.ANNOTATION, entry)
+            if (annotationDescriptor?.fqName != StandardNames.FqNames.deprecated) continue
+            val actualDeprecationLevel = annotationDescriptor.getDeprecatedLevel()
+            val expectedDescriptor = actualDescriptor.findCompatibleExpectsForActual().singleOrNull() ?: return
+            val expectedAnnotation = expectedDescriptor.annotations.findAnnotation(StandardNames.FqNames.deprecated)
+            val expectedDeprecationLevel = expectedAnnotation?.getDeprecatedLevel()
+            if (expectedDeprecationLevel == null || actualDeprecationLevel.ordinal > expectedDeprecationLevel.ordinal) {
+                trace.report(Errors.EXPECT_ACTUAL_DEPRECATION_LEVEL.on(entry))
+            }
+        }
     }
 
     companion object {
