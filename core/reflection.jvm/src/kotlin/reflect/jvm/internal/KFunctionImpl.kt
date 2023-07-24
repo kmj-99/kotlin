@@ -106,12 +106,12 @@ internal class KFunctionImpl private constructor(
                 if (descriptor.let { it.containingDeclaration.isMultiFieldValueClass() && it is ConstructorDescriptor && it.isPrimary }) {
                     throw KotlinReflectionInternalError("${descriptor.containingDeclaration} cannot have default arguments")
                 }
-                container.findDefaultMethod(jvmSignature.methodName, jvmSignature.methodDesc, !Modifier.isStatic(caller.member!!.modifiers))
+                container.findDefaultMethod(descriptor, jvmSignature.methodName, jvmSignature.methodDesc, !Modifier.isStatic(caller.member!!.modifiers))
             }
             is KotlinConstructor -> {
                 if (isAnnotationConstructor)
                     return@defaultCaller AnnotationConstructorCaller(container.jClass, parameters.map { it.name!! }, CALL_BY_NAME, KOTLIN)
-                container.findDefaultConstructor(jvmSignature.constructorDesc)
+                container.findDefaultConstructor(descriptor, jvmSignature.constructorDesc)
             }
             is FakeJavaAnnotationConstructor -> {
                 val methods = jvmSignature.methods

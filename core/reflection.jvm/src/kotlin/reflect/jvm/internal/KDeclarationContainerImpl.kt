@@ -24,8 +24,14 @@ import org.jetbrains.kotlin.descriptors.runtime.structure.wrapperByPrimitive
 import org.jetbrains.kotlin.load.java.JvmAbi
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
+import org.jetbrains.kotlin.resolve.descriptorUtil.multiFieldValueClassRepresentation
+import org.jetbrains.kotlin.resolve.isInlineClassType
 import org.jetbrains.kotlin.resolve.isMultiFieldValueClass
+import org.jetbrains.kotlin.resolve.needsMfvcFlattening
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
+import org.jetbrains.kotlin.resolve.unsubstitutedUnderlyingType
+import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.isNullable
 import java.lang.reflect.Constructor
 import java.lang.reflect.Method
 import kotlin.jvm.internal.ClassBasedDeclarationContainer
@@ -225,7 +231,7 @@ internal abstract class KDeclarationContainerImpl : ClassBasedDeclarationContain
         return null
     }
 
-    fun findDefaultMethod(name: String, desc: String, isMember: Boolean): Method? {
+    fun findDefaultMethod(descriptor: FunctionDescriptor, name: String, desc: String, isMember: Boolean): Method? {
         if (name == "<init>") return null
 
         val parameterTypes = arrayListOf<Class<*>>()
@@ -233,7 +239,7 @@ internal abstract class KDeclarationContainerImpl : ClassBasedDeclarationContain
             // Note that this value is replaced inside the lookupMethod call below, for each class/interface in the hierarchy.
             parameterTypes.add(jClass)
         }
-        addParametersAndMasks(parameterTypes, desc, false)
+        addParametersAndMasks(descriptor, parameterTypes, desc, false)
 
         return methodOwner.lookupMethod(
             name + JvmAbi.DEFAULT_PARAMS_IMPL_SUFFIX, parameterTypes.toTypedArray(), loadReturnType(desc), isStaticDefault = isMember
@@ -243,15 +249,55 @@ internal abstract class KDeclarationContainerImpl : ClassBasedDeclarationContain
     fun findConstructorBySignature(desc: String): Constructor<*>? =
         jClass.tryGetConstructor(loadParameterTypes(desc))
 
-    fun findDefaultConstructor(desc: String): Constructor<*>? =
+    fun findDefaultConstructor(descriptor: FunctionDescriptor, desc: String): Constructor<*>? =
         jClass.tryGetConstructor(arrayListOf<Class<*>>().also { parameterTypes ->
-            addParametersAndMasks(parameterTypes, desc, true)
+            addParametersAndMasks(descriptor, parameterTypes, desc, true)
         })
 
-    private fun addParametersAndMasks(result: MutableList<Class<*>>, desc: String, isConstructor: Boolean) {
+    private fun addParametersAndMasks(descriptor: FunctionDescriptor, result: MutableList<Class<*>>, desc: String, isConstructor: Boolean) {
         val valueParameters = loadParameterTypes(desc)
-        result.addAll(valueParameters)
-        repeat((valueParameters.size + Integer.SIZE - 1) / Integer.SIZE) {
+        val descriptorParameters = buildList {
+            addAll(descriptor.contextReceiverParameters)
+            descriptor.extensionReceiverParameter?.let(this::add)
+            addAll(descriptor.valueParameters)
+        }
+        var i = 0
+        var potentiallyDefaultParametersCount = 0
+        for (parameterDescriptor in descriptorParameters) {
+            if (parameterDescriptor is ValueParameterDescriptor && parameterDescriptor.type.needsMfvcFlattening()) {
+                fun size(kotlinType: KotlinType): Int {
+                    if (!kotlinType.needsMfvcFlattening()) return 1
+                    val classDescriptor = kotlinType.constructor.declarationDescriptor as? ClassDescriptor ?: return 1
+                    val multiFieldValueClassRepresentation = classDescriptor.multiFieldValueClassRepresentation ?: return 1
+                    return multiFieldValueClassRepresentation.underlyingPropertyNamesToTypes.sumOf { (_, type) -> size(type) }
+                }
+                repeat(size(parameterDescriptor.type)) {
+                    result.add(valueParameters[i])
+                    i++
+                    potentiallyDefaultParametersCount++
+                }
+            } else if (
+                parameterDescriptor is ValueParameterDescriptor && parameterDescriptor.declaresDefaultValue() &&
+                parameterDescriptor.type.isInlineClassType() &&
+                generateSequence(parameterDescriptor.type) { it.unsubstitutedUnderlyingType() }.any { it.isNullable() }
+            ) {
+                val jvmDescriptor = parameterDescriptor.type.constructor.declarationDescriptor?.toJvmDescriptor()
+                jvmDescriptor?.let { result.add(parseType(it, 0, it.length)) }
+                i++
+                potentiallyDefaultParametersCount++
+            } else {
+                if (parameterDescriptor is ValueParameterDescriptor) {
+                    potentiallyDefaultParametersCount++
+                }
+                result.add(valueParameters[i])
+                i++
+            }
+        }
+        for (parameter in valueParameters.subList(i, valueParameters.size)) {
+            result.add(parameter)
+        }
+
+        repeat((potentiallyDefaultParametersCount + Integer.SIZE - 1) / Integer.SIZE) {
             result.add(Integer.TYPE)
         }
 

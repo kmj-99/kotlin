@@ -44479,6 +44479,30 @@ public class IrBlackBoxCodegenWithIrInlinerTestGenerated extends AbstractIrBlack
             }
 
             @Test
+            @TestMetadata("inlineClassFunctionsAndConstructorsMfvc.kt")
+            public void testInlineClassFunctionsAndConstructorsMfvc() throws Exception {
+                runTest("compiler/testData/codegen/box/reflection/callBy/inlineClassFunctionsAndConstructorsMfvc.kt");
+            }
+
+            @Test
+            @TestMetadata("inlineClassFunctionsAndConstructorsNullable.kt")
+            public void testInlineClassFunctionsAndConstructorsNullable() throws Exception {
+                runTest("compiler/testData/codegen/box/reflection/callBy/inlineClassFunctionsAndConstructorsNullable.kt");
+            }
+
+            @Test
+            @TestMetadata("inlineClassFunctionsAndConstructorsPrimitive.kt")
+            public void testInlineClassFunctionsAndConstructorsPrimitive() throws Exception {
+                runTest("compiler/testData/codegen/box/reflection/callBy/inlineClassFunctionsAndConstructorsPrimitive.kt");
+            }
+
+            @Test
+            @TestMetadata("inlineClassFunctionsAndConstructorsPrimitiveNullable.kt")
+            public void testInlineClassFunctionsAndConstructorsPrimitiveNullable() throws Exception {
+                runTest("compiler/testData/codegen/box/reflection/callBy/inlineClassFunctionsAndConstructorsPrimitiveNullable.kt");
+            }
+
+            @Test
             @TestMetadata("inlineClassMembers.kt")
             public void testInlineClassMembers() throws Exception {
                 runTest("compiler/testData/codegen/box/reflection/callBy/inlineClassMembers.kt");
