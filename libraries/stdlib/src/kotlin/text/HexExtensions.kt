@@ -545,7 +545,7 @@ private fun String.hexToLongImpl(startIndex: Int = 0, endIndex: Int = length, fo
     val prefix = format.number.prefix
     val suffix = format.number.suffix
 
-    if (prefix.length + suffix.length >= endIndex - startIndex) {
+    if (endIndex - startIndex - prefix.length <= suffix.length) {
         throw NumberFormatException(
             "Expected a hexadecimal number with prefix \"$prefix\" and suffix \"$suffix\", but was ${substring(startIndex, endIndex)}"
         )
@@ -567,6 +567,7 @@ private fun String.hexToLongImpl(startIndex: Int = 0, endIndex: Int = length, fo
 }
 
 private fun String.checkContainsAt(part: String, index: Int, endIndex: Int, partName: String): Int {
+    if (part.isEmpty()) return index
     val end = index + part.length
     if (end > endIndex || !regionMatches(index, part, 0, part.length, ignoreCase = true)) {
         throw NumberFormatException(
