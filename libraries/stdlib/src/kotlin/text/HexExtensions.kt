@@ -231,9 +231,11 @@ private fun String.hexToByteArray(
         indexInLine += 1
         indexInGroup += 1
 
-        i = checkContainsAt(bytePrefix, i, endIndex, "byte prefix")
+        if (endIndex - i - bytePrefix.length < 2) {
+            throwInvalidNumberOfDigits(i, endIndex, maxDigits = 2, requireMaxLength = true)
+        }
 
-        checkHexLength(i, (i + 2).coerceAtMost(endIndex), maxDigits = 2, requireMaxLength = true)
+        i = checkContainsAt(bytePrefix, i, endIndex, "byte prefix")
 
         result[byteIndex++] = ((decimalFromHexDigitAt(i++) shl 4) or decimalFromHexDigitAt(i++)).toByte()
 
@@ -553,7 +555,9 @@ private fun String.hexToLongImpl(startIndex: Int = 0, endIndex: Int = length, fo
     val digitsEndIndex = endIndex - suffix.length
     checkContainsAt(suffix, digitsEndIndex, endIndex, "suffix")
 
-    checkHexLength(digitsStartIndex, digitsEndIndex, maxDigits, requireMaxLength = false)
+    if (digitsEndIndex - digitsStartIndex > maxDigits) {
+        throwInvalidNumberOfDigits(digitsStartIndex, digitsEndIndex, maxDigits, requireMaxLength = false)
+    }
 
     var result = 0L
     for (i in digitsStartIndex until digitsEndIndex) {
@@ -572,16 +576,12 @@ private fun String.checkContainsAt(part: String, index: Int, endIndex: Int, part
     return end
 }
 
-private fun String.checkHexLength(startIndex: Int, endIndex: Int, maxDigits: Int, requireMaxLength: Boolean) {
-    val digitsLength = endIndex - startIndex
-    val isCorrectLength = if (requireMaxLength) digitsLength == maxDigits else digitsLength <= maxDigits
-    if (!isCorrectLength) {
-        val specifier = if (requireMaxLength) "exactly" else "at most"
-        val substring = substring(startIndex, endIndex)
-        throw NumberFormatException(
-            "Expected $specifier $maxDigits hexadecimal digits at index $startIndex, but was $substring of length $digitsLength"
-        )
-    }
+private fun String.throwInvalidNumberOfDigits(startIndex: Int, endIndex: Int, maxDigits: Int, requireMaxLength: Boolean) {
+    val specifier = if (requireMaxLength) "exactly" else "at most"
+    val substring = substring(startIndex, endIndex)
+    throw NumberFormatException(
+        "Expected $specifier $maxDigits hexadecimal digits at index $startIndex, but was $substring of length ${endIndex - startIndex}"
+    )
 }
 
 private fun String.decimalFromHexDigitAt(index: Int): Int {
