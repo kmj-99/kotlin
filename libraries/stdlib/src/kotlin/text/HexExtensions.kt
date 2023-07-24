@@ -538,6 +538,15 @@ private fun Long.toHexStringImpl(format: HexFormat, bits: Int): String {
     }
 }
 
+private fun String.toCharArrayIfNotEmpty(destination: CharArray, destinationOffset: Int): Int {
+    when (length) {
+        0 -> { /* do nothing */ }
+        1 -> destination[destinationOffset] = this[0]
+        else -> toCharArray(destination, destinationOffset)
+    }
+    return destinationOffset + length
+}
+
 @ExperimentalStdlibApi
 private fun String.hexToLongImpl(startIndex: Int = 0, endIndex: Int = length, format: HexFormat, maxDigits: Int): Long {
     AbstractList.checkBoundsIndexes(startIndex, endIndex, length)
