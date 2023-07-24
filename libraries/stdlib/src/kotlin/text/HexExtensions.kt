@@ -515,27 +515,42 @@ private fun Long.toHexStringImpl(format: HexFormat, bits: Int): String {
 
     val digits = if (format.upperCase) UPPER_CASE_HEX_DIGITS else LOWER_CASE_HEX_DIGITS
     val value = this
+    val numberOfHexDigits = bits shr 2
 
     val prefix = format.number.prefix
     val suffix = format.number.suffix
-    val formatLength = prefix.length + (bits shr 2) + suffix.length
     var removeZeros = format.number.removeLeadingZeros
 
-    return buildString(formatLength) {
-        append(prefix)
-
-        var shift = bits
-        while (shift > 0) {
-            shift -= 4
+    // Optimize for the default format
+    if (prefix.isEmpty() && suffix.isEmpty() && !removeZeros) {
+        val charArray = CharArray(numberOfHexDigits)
+        var shift = bits - 4
+        for (i in 0 until numberOfHexDigits) {
             val decimal = ((value shr shift) and 0xF).toInt()
-            removeZeros = removeZeros && decimal == 0 && shift > 0
-            if (!removeZeros) {
-                append(digits[decimal])
-            }
+            charArray[i] = digits[decimal]
+            shift -= 4
         }
-
-        append(suffix)
+        return charArray.concatToString()
     }
+
+    val formatLength = prefix.length.toLong() + numberOfHexDigits + suffix.length
+    val charArray = CharArray(checkFormatLength(formatLength))
+
+    var i = prefix.toCharArrayIfNotEmpty(charArray, 0)
+
+    var shift = bits
+    repeat(numberOfHexDigits) {
+        shift -= 4
+        val decimal = ((value shr shift) and 0xF).toInt()
+        removeZeros = removeZeros && decimal == 0 && shift > 0
+        if (!removeZeros) {
+            charArray[i++] = digits[decimal]
+        }
+    }
+
+    i = suffix.toCharArrayIfNotEmpty(charArray, i)
+
+    return if (i == charArray.size) charArray.concatToString() else charArray.concatToString(endIndex = i)
 }
 
 private fun String.toCharArrayIfNotEmpty(destination: CharArray, destinationOffset: Int): Int {
