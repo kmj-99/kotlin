@@ -60,7 +60,6 @@ val kotlinGradlePluginAndItsRequired = arrayOf(
     ":kotlin-reflect",
     ":kotlin-test",
     ":kotlin-gradle-subplugin-example",
-    ":kotlin-stdlib-common",
     ":kotlin-stdlib",
     ":kotlin-stdlib-jdk7",
     ":kotlin-stdlib-jdk8",
