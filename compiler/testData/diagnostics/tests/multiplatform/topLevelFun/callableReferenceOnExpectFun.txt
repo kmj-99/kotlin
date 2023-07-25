@@ -1,18 +1,14 @@
 // -- Module: <m1-common> --
 package
 
-package test {
-    public expect fun foo(): kotlin.String
-    public fun g(/*0*/ f: () -> kotlin.String): kotlin.String
-    public fun test(): kotlin.Unit
-}
+@kotlin.Deprecated(level = DeprecationLevel.ERROR, message = "message") public expect fun foo(): kotlin.String
+public fun g(/*0*/ f: () -> kotlin.String): kotlin.String
+public fun test(): kotlin.Unit
 
-// -- Module: <m2-jvm> --
+// -- Module: <m1-jvm> --
 package
 
-package test {
-    @kotlin.Deprecated(message = "To check that ::foo is resolved to actual fun foo when compiling common+jvm") public actual fun foo(): kotlin.String
-    public fun g(/*0*/ f: () -> kotlin.String): kotlin.String
-    public fun test(): kotlin.Unit
-}
+@kotlin.Deprecated(level = DeprecationLevel.WARNING, message = "To check that ::foo is resolved to actual fun foo when compiling common+jvm") public actual fun foo(): kotlin.String
+public fun g(/*0*/ f: () -> kotlin.String): kotlin.String
+public fun test(): kotlin.Unit
 

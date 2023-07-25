@@ -406,6 +406,52 @@ public class FirOldFrontendMPPDiagnosticsWithPsiTestGenerated extends AbstractFi
     }
 
     @Nested
+    @TestMetadata("compiler/testData/diagnostics/tests/multiplatform/deprecateAnnotation")
+    @TestDataPath("$PROJECT_ROOT")
+    public class DeprecateAnnotation {
+        @Test
+        public void testAllFilesPresentInDeprecateAnnotation() throws Exception {
+            KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/diagnostics/tests/multiplatform/deprecateAnnotation"), Pattern.compile("^(.*)\\.kts?$"), Pattern.compile("^(.+)\\.(reversed|fir|ll)\\.kts?$"), TargetBackend.JVM_IR, true);
+        }
+
+        @Test
+        @TestMetadata("expectActualDeprecationLevelImplicit.kt")
+        public void testExpectActualDeprecationLevelImplicit() throws Exception {
+            runTest("compiler/testData/diagnostics/tests/multiplatform/deprecateAnnotation/expectActualDeprecationLevelImplicit.kt");
+        }
+
+        @Test
+        @TestMetadata("expectActualDeprecationLevelSimple.kt")
+        public void testExpectActualDeprecationLevelSimple() throws Exception {
+            runTest("compiler/testData/diagnostics/tests/multiplatform/deprecateAnnotation/expectActualDeprecationLevelSimple.kt");
+        }
+
+        @Test
+        @TestMetadata("expectActualDeprecationLevelSimple2.kt")
+        public void testExpectActualDeprecationLevelSimple2() throws Exception {
+            runTest("compiler/testData/diagnostics/tests/multiplatform/deprecateAnnotation/expectActualDeprecationLevelSimple2.kt");
+        }
+
+        @Test
+        @TestMetadata("expectActualDeprecationLevelSimple3.kt")
+        public void testExpectActualDeprecationLevelSimple3() throws Exception {
+            runTest("compiler/testData/diagnostics/tests/multiplatform/deprecateAnnotation/expectActualDeprecationLevelSimple3.kt");
+        }
+
+        @Test
+        @TestMetadata("expectActualDeprecationLevelSimple4.kt")
+        public void testExpectActualDeprecationLevelSimple4() throws Exception {
+            runTest("compiler/testData/diagnostics/tests/multiplatform/deprecateAnnotation/expectActualDeprecationLevelSimple4.kt");
+        }
+
+        @Test
+        @TestMetadata("expectActualDeprecationLevelWithoutExpectAnnotation.kt")
+        public void testExpectActualDeprecationLevelWithoutExpectAnnotation() throws Exception {
+            runTest("compiler/testData/diagnostics/tests/multiplatform/deprecateAnnotation/expectActualDeprecationLevelWithoutExpectAnnotation.kt");
+        }
+    }
+
+    @Nested
     @TestMetadata("compiler/testData/diagnostics/tests/multiplatform/deprecated")
     @TestDataPath("$PROJECT_ROOT")
     public class Deprecated {
