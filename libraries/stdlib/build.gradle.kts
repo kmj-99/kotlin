@@ -112,12 +112,6 @@ kotlin {
                         )
                     }
                 }
-                defaultSourceSet {
-                    dependencies {
-                        implementation(main.output.classesDirs)
-                    }
-                    configurations.compileOnlyConfiguration.extendsFrom(main.configurations.compileDependencyConfiguration)
-                }
             }
             val mainJdk8 by creating {
                 associateWith(main)
@@ -132,13 +126,6 @@ kotlin {
                         )
                     }
                 }
-                defaultSourceSet {
-                    dependencies {
-                        implementation(main.output.allOutputs)
-                        implementation(mainJdk7.output.allOutputs)
-                    }
-                    configurations.compileOnlyConfiguration.extendsFrom(main.configurations.compileDependencyConfiguration)
-                }
             }
             project.sourceSets.create("java9") {
                 java.srcDir("jvm/java9")
@@ -149,6 +136,8 @@ kotlin {
                 mainJdk8.output.allOutputs,
             ), main.configurations.compileDependencyConfiguration)
             val test by getting {
+                associateWith(mainJdk7)
+                associateWith(mainJdk8)
                 compileTaskProvider.configure {
                     kotlinOptions {
                         freeCompilerArgs += listOf(
@@ -161,19 +150,11 @@ kotlin {
                         freeCompilerArgs -= "-Xno-optimized-callable-references"
                     }
                 }
-                defaultSourceSet {
-                    dependencies {
-                        compileOnly(mainJdk7.output.classesDirs)
-                        compileOnly(mainJdk8.output.classesDirs)
-                    }
-                }
             }
             val longRunningTest by creating {
-                defaultSourceSet {
-                    dependencies {
-                        implementation(main.output.allOutputs)
-                    }
-                }
+                associateWith(main)
+                associateWith(mainJdk7)
+                associateWith(mainJdk8)
             }
         }
     }
@@ -428,10 +409,9 @@ kotlin {
     "UNUSED_PARAMETER"
 )
 """
-                val jsIrMainSources = jsIrMainSources // for f-ing conf-cache
                 doLast {
                     unimplementedNativeBuiltIns.forEach { path ->
-                        val file = File("$jsIrMainSources/$path")
+                        val file = File("$destinationDir/$path")
                         val sourceCode = builtInsHeader + file.readText()
                         file.writeText(sourceCode)
                     }
