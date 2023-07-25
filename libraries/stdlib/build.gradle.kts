@@ -62,10 +62,6 @@ kotlin {
                 }
             }
         }
-
-//        mavenPublication {
-//            artifactId = "kotlin-stdlib-mpp-common" // ?
-//        }
     }
     jvm {
         withJava()
@@ -451,7 +447,7 @@ kotlin {
 
         all sourceSet@ {
             languageSettings {
-                //            progressiveMode = true
+                // TODO: progressiveMode = use build property 'test.progressive.mode'
                 if (this@sourceSet == jvmCompileOnlyDeclarations) {
                     return@languageSettings
                 }
