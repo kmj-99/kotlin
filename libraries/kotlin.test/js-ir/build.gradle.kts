@@ -38,9 +38,6 @@ kotlin {
             kotlin.srcDir(commonTestSources.get().destinationDir)
         }
         named("jsMain") {
-            dependencies {
-//                api(project(":kotlin-stdlib-js-ir"))
-            }
             kotlin.srcDir(jsMainSources.get().destinationDir)
         }
     }
