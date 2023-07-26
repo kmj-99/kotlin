@@ -218,8 +218,9 @@ internal abstract class KDeclarationContainerImpl : ClassBasedDeclarationContain
     fun findMethodBySignature(name: String, desc: String): Method? {
         if (name == "<init>") return null
 
-        val parameterTypes = loadParameterTypes(desc).toTypedArray()
-        val returnType = loadReturnType(desc)
+        val functionJvmDescriptor = parseJvmDescriptor(desc)
+        val parameterTypes = functionJvmDescriptor.parameters.map { parseType(it) }.toTypedArray()
+        val returnType = parseType(functionJvmDescriptor.returnType)
         methodOwner.lookupMethod(name, parameterTypes, returnType, false)?.let { return it }
 
         // Methods from java.lang.Object (equals, hashCode, toString) cannot be found in the interface via
@@ -242,12 +243,12 @@ internal abstract class KDeclarationContainerImpl : ClassBasedDeclarationContain
         addParametersAndMasks(descriptor, parameterTypes, desc, false)
 
         return methodOwner.lookupMethod(
-            name + JvmAbi.DEFAULT_PARAMS_IMPL_SUFFIX, parameterTypes.toTypedArray(), loadReturnType(desc), isStaticDefault = isMember
+            name + JvmAbi.DEFAULT_PARAMS_IMPL_SUFFIX, parameterTypes.toTypedArray(), parseType(parseJvmDescriptor(desc).returnType), isStaticDefault = isMember
         )
     }
 
     fun findConstructorBySignature(desc: String): Constructor<*>? =
-        jClass.tryGetConstructor(loadParameterTypes(desc))
+        jClass.tryGetConstructor(parseJvmDescriptor(desc).parameters.map { parseType(it) })
 
     fun findDefaultConstructor(descriptor: FunctionDescriptor, desc: String): Constructor<*>? =
         jClass.tryGetConstructor(arrayListOf<Class<*>>().also { parameterTypes ->
@@ -255,7 +256,7 @@ internal abstract class KDeclarationContainerImpl : ClassBasedDeclarationContain
         })
 
     private fun addParametersAndMasks(descriptor: FunctionDescriptor, result: MutableList<Class<*>>, desc: String, isConstructor: Boolean) {
-        val valueParameters = loadParameterTypes(desc)
+        val valueParameters = parseJvmDescriptor(desc).parameters.map { parseType(it) }
         val descriptorParameters = buildList {
             addAll(descriptor.contextReceiverParameters)
             descriptor.extensionReceiverParameter?.let(this::add)
@@ -311,8 +312,12 @@ internal abstract class KDeclarationContainerImpl : ClassBasedDeclarationContain
         } else result.add(Any::class.java)
     }
 
-    private fun loadParameterTypes(desc: String): List<Class<*>> {
-        val result = arrayListOf<Class<*>>()
+    private data class FunctionJvmDescriptor(val parameters: List<String>, val returnType: String) {
+        override fun toString(): String = parameters.joinToString(separator = "", prefix = "(", postfix = ")$returnType")
+    }
+
+    private fun parseJvmDescriptor(desc: String): FunctionJvmDescriptor {
+        val result = arrayListOf<String>()
 
         var begin = 1
         while (desc[begin] != ')') {
@@ -325,14 +330,16 @@ internal abstract class KDeclarationContainerImpl : ClassBasedDeclarationContain
                 else -> throw KotlinReflectionInternalError("Unknown type prefix in the method signature: $desc")
             }
 
-            result.add(parseType(desc, begin, end))
+            result.add(desc.substring(begin, end))
             begin = end
         }
 
-        return result
+        val returnType = desc.substring(begin + 1)
+
+        return FunctionJvmDescriptor(result, returnType)
     }
 
-    private fun parseType(desc: String, begin: Int, end: Int): Class<*> =
+    private fun parseType(desc: String, begin: Int = 0, end: Int = desc.length): Class<*> =
         when (desc[begin]) {
             'L' -> jClass.safeClassLoader.loadClass(desc.substring(begin + 1, end - 1).replace('/', '.'))
             '[' -> parseType(desc, begin + 1, end).createArrayType()
@@ -347,9 +354,6 @@ internal abstract class KDeclarationContainerImpl : ClassBasedDeclarationContain
             'D' -> Double::class.java
             else -> throw KotlinReflectionInternalError("Unknown type prefix in the method signature: $desc")
         }
-
-    private fun loadReturnType(desc: String): Class<*> =
-        parseType(desc, desc.indexOf(')') + 1, desc.length)
 
     companion object {
         private val DEFAULT_CONSTRUCTOR_MARKER = Class.forName("kotlin.jvm.internal.DefaultConstructorMarker")
