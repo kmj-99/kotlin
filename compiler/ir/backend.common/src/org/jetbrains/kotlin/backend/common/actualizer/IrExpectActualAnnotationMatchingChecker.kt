@@ -49,7 +49,9 @@ internal class IrExpectActualAnnotationMatchingChecker(
                 AbstractExpectActualAnnotationMatchChecker.ClassMembersCheck.Disabled
             ) ?: continue
 
-            val reportOn = getTypealiasSymbolIfActualizedViaTypealias(expectSymbol) ?: actualSymbol
+            val reportOn = getTypealiasSymbolIfActualizedViaTypealias(expectSymbol)
+                ?: getContainingActualClassIfFakeOverride(actualSymbol)
+                ?: actualSymbol
             diagnosticsReporter.reportActualAnnotationsNotMatchExpect(
                 incompatibility.expectSymbol as IrSymbol,
                 incompatibility.actualSymbol as IrSymbol,
@@ -63,10 +65,21 @@ internal class IrExpectActualAnnotationMatchingChecker(
         get() = (owner as IrDeclaration).isFakeOverride
 
     private fun getTypealiasSymbolIfActualizedViaTypealias(expectSymbol: IrSymbol): IrTypeAliasSymbol? {
-        val expectDeclaration = expectSymbol.owner as IrDeclaration
-        val parentsWithSelf = sequenceOf(expectDeclaration) + expectDeclaration.parents
-        val topLevelExpectClass = parentsWithSelf.filterIsInstance<IrClass>().lastOrNull() ?: return null
+        val topLevelExpectClass = getContainingTopLevelClass(expectSymbol) ?: return null
         val classId = topLevelExpectClass.classIdOrFail
         return classActualizationInfo.actualTypeAliases[classId]
+    }
+
+    private fun getContainingActualClassIfFakeOverride(actualSymbol: IrSymbol): IrSymbol? {
+        if (!actualSymbol.isFakeOverride) {
+            return null
+        }
+        return getContainingTopLevelClass(actualSymbol)?.symbol
+    }
+
+    private fun getContainingTopLevelClass(symbol: IrSymbol): IrClass? {
+        val declaration = symbol.owner as IrDeclaration
+        val parentsWithSelf = sequenceOf(declaration) + declaration.parents
+        return parentsWithSelf.filterIsInstance<IrClass>().lastOrNull()
     }
 }
