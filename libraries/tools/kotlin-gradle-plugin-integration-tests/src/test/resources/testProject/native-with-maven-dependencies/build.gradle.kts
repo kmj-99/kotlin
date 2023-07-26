@@ -8,13 +8,13 @@ repositories {
 }
 
 kotlin {
-    sourceSets {
-        commonMain {
-            dependencies {
-                implementation("com.squareup.okio:okio:3.2.0")
-            }
-        }
+    <SingleNativeTarget>("native") {
+        binaries.executable()
     }
 
-    <SingleNativeTarget>()
+    sourceSets.commonMain {
+        dependencies {
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.2")
+        }
+    }
 }

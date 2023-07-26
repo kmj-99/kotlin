@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.condition.OS
 import java.nio.file.Paths
+import kotlin.io.path.absolutePathString
 import kotlin.io.path.appendText
 import kotlin.io.path.deleteRecursively
 
@@ -79,18 +80,26 @@ class NativeDownloadAndPlatformLibsIT : KGPBaseTest() {
 
     }
 
+    @OptIn(EnvironmentalVariablesOverride::class)
     @DisplayName("K/N Gradle project build (on Linux or Mac) with a dependency from a Maven")
     @GradleTest
     fun testSetupCommonOptionsForCaches(gradleVersion: GradleVersion) {
-        nativeProject("native-with-maven-dependencies", gradleVersion = gradleVersion) {
-            val nativeTaskName = when (HostManager.host) {
-                KonanTarget.LINUX_X64 -> ":compileKotlinLinuxX64"
-                KonanTarget.MACOS_ARM64 -> ":compileKotlinMacosArm64"
-                KonanTarget.MACOS_X64 -> ":compileKotlinMacosX64"
-                else -> null
-            }
-            build("assemble") {
-                assertTasksExecuted("$nativeTaskName")
+        val anotherKonanDataDir = Paths.get("build/.konan2")
+        nativeProject(
+            "native-with-maven-dependencies",
+            gradleVersion = gradleVersion,
+            environmentVariables = EnvironmentalVariables(Pair("KONAN_DATA_DIR", anotherKonanDataDir.absolutePathString()))
+        ) {
+            build("linkDebugExecutableNative",
+                  forceOutput = true,
+                  buildOptions = defaultBuildOptions.copy(
+                      nativeOptions =  defaultBuildOptions.nativeOptions.copy(
+                          cacheKind = null
+                      )
+                  )) {
+                assertOutputDoesNotContain("w: Failed to build cache")
+                assertTasksExecuted(":linkDebugExecutableNative")
+                assertFileNotExists(anotherKonanDataDir)
             }
         }
     }
