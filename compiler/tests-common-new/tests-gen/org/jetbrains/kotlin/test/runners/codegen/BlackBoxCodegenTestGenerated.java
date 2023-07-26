@@ -41833,6 +41833,12 @@ public class BlackBoxCodegenTestGenerated extends AbstractBlackBoxCodegenTest {
             }
 
             @Test
+            @TestMetadata("kt60709.kt")
+            public void testKt60709() throws Exception {
+                runTest("compiler/testData/codegen/box/reflection/callBy/kt60709.kt");
+            }
+
+            @Test
             @TestMetadata("manyArgumentsNoneDefaultConstructor.kt")
             public void testManyArgumentsNoneDefaultConstructor() throws Exception {
                 runTest("compiler/testData/codegen/box/reflection/callBy/manyArgumentsNoneDefaultConstructor.kt");
