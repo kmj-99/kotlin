@@ -798,9 +798,7 @@ publishing {
             variant("jsRuntimeElements")
             variant("jsV1ApiElements")
             variant("jsV1RuntimeElements")
-            variant("jsSourcesElements") {
-                // TODO: Remove org.jetbrains.kotlin.js.compiler attribute?
-            }
+            variant("jsSourcesElements")
         }
 
         // Makes all variants from common and js be visible through `available-at`
