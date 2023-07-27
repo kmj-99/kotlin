@@ -28,14 +28,6 @@ interface KotlinWasmJsTargetDsl : KotlinWasmTargetDsl, KotlinJsTargetDsl {
             fn.execute(this)
         }
     }
-
-    fun applyBinaryen() = applyBinaryen { }
-    fun applyBinaryen(body: BinaryenExec.() -> Unit)
-    fun applyBinaryen(fn: Action<BinaryenExec>) {
-        applyBinaryen {
-            fn.execute(this)
-        }
-    }
 }
 
 interface KotlinWasmD8Dsl : KotlinJsSubTargetDsl {

@@ -233,7 +233,7 @@ constructor(
         applyBinaryenHandlers.forEach { handler ->
             handler(body)
         }
-        browserConfiguredHandlers.clear()
+        applyBinaryenHandlers.clear()
     }
 
     //Browser
