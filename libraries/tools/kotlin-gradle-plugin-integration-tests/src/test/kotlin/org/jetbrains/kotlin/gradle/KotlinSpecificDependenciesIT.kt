@@ -30,7 +30,26 @@ class KotlinSpecificDependenciesIT : KGPBaseTest() {
     fun testStdlibByDefaultJvm(gradleVersion: GradleVersion) {
         project("simpleProject", gradleVersion) {
             removeDependencies(buildGradle)
-            checkTaskCompileClasspath("compileKotlin", listOf("kotlin-stdlib"))
+            checkTaskCompileClasspath("compileKotlin", listOf("kotlin-stdlib"), listOf("kotlin-stdlib-jdk7", "kotlin-stdlib-jdk8"))
+        }
+    }
+
+    @GradleTest
+    @DisplayName("JVM: add pre-1.9.20 kotlin-stdlib dependency")
+    @JvmGradlePluginTests
+    fun testStdlibByDefaultPre1920Jvm(gradleVersion: GradleVersion) {
+        project("simpleProject", gradleVersion) {
+            removeDependencies(buildGradle)
+
+            buildGradle.appendText(
+                //language=groovy
+                """
+                |
+                |kotlin.coreLibrariesVersion = "1.9.0"
+                """.trimMargin()
+            )
+
+            checkTaskCompileClasspath("compileKotlin", listOf("kotlin-stdlib", "kotlin-stdlib-jdk7", "kotlin-stdlib-jdk8"))
         }
     }
 
@@ -112,7 +131,11 @@ class KotlinSpecificDependenciesIT : KGPBaseTest() {
             buildJdk = jdkVersion.location
         ) {
             removeDependencies(buildGradle)
-            checkTaskCompileClasspath("compileDebugKotlin", listOf("kotlin-stdlib"))
+            checkTaskCompileClasspath(
+                "compileDebugKotlin",
+                listOf("kotlin-stdlib"),
+                listOf("kotlin-stdlib-jdk7", "kotlin-stdlib-jdk8")
+            )
         }
     }
 
