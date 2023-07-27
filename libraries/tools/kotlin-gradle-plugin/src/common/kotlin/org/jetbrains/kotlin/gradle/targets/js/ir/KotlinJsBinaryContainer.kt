@@ -60,7 +60,9 @@ constructor(
         }
 
         if (target is KotlinJsIrTarget && target.wasmTargetType == KotlinWasmTargetType.WASI) {
-            project.tasks.named(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(binaryenTask)
+            if (binary.compilation.isMain() && binary.mode == PRODUCTION) {
+                project.tasks.named(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(binaryenTask)
+            }
         } else {
             binary.linkSyncTask.configure {
                 it.dependsOn(binaryenTask)
