@@ -9,12 +9,14 @@ import org.gradle.api.DomainObjectSet
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.plugins.ExtensionAware
+import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinJsCompilation
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinTargetWithBinaries
 import org.jetbrains.kotlin.gradle.plugin.mpp.isMain
 import org.jetbrains.kotlin.gradle.targets.js.KotlinJsTarget
+import org.jetbrains.kotlin.gradle.targets.js.KotlinWasmTargetType
 import org.jetbrains.kotlin.gradle.targets.js.binaryen.BinaryenExec
 import org.jetbrains.kotlin.gradle.targets.js.dsl.Distribution
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsBinaryMode
@@ -23,6 +25,7 @@ import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsBinaryMode.PRODUCTION
 import org.jetbrains.kotlin.gradle.targets.js.subtargets.DefaultDistribution
 import org.jetbrains.kotlin.gradle.targets.js.subtargets.KotlinJsSubTarget
 import org.jetbrains.kotlin.gradle.targets.js.subtargets.createDefaultDistribution
+import org.jetbrains.kotlin.gradle.tasks.dependsOn
 import org.jetbrains.kotlin.gradle.utils.lowerCamelCaseName
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 import javax.inject.Inject
@@ -56,8 +59,12 @@ constructor(
             binaryenDsl()
         }
 
-        binary.linkSyncTask.configure {
-            it.dependsOn(binaryenTask)
+        if (target is KotlinJsIrTarget && target.wasmTargetType == KotlinWasmTargetType.WASI) {
+            project.tasks.named(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(binaryenTask)
+        } else {
+            binary.linkSyncTask.configure {
+                it.dependsOn(binaryenTask)
+            }
         }
     }
 
