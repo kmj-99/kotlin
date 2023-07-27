@@ -135,39 +135,39 @@ class Fir2IrClassifierStorage(
         preCacheTypeParameters(klass, symbol)
         setTypeParameters(klass)
         if (klass is FirRegularClass) {
-            val fieldsForContextReceiversOfCurrentClass = createContextReceiverFields(klass)
-            if (fieldsForContextReceiversOfCurrentClass.isNotEmpty()) {
+            val fieldsForContextReceiversOfCurrentClass = getFieldsWithContextReceiversForClass(this, klass)
+            if (fieldsForContextReceiversOfCurrentClass != null) {
                 declarations.addAll(fieldsForContextReceiversOfCurrentClass)
-                fieldsForContextReceivers[this] = fieldsForContextReceiversOfCurrentClass
             }
         }
     }
 
-    fun IrClass.createContextReceiverFields(klass: FirRegularClass): List<IrField> {
-        if (klass.contextReceivers.isEmpty()) return emptyList()
+    fun getFieldsWithContextReceiversForClass(irClass: IrClass, klass: FirClass): List<IrField>? {
+        if (klass !is FirRegularClass || klass.contextReceivers.isEmpty()) return null
 
-        val contextReceiverFields = mutableListOf<IrField>()
-        for ((index, contextReceiver) in klass.contextReceivers.withIndex()) {
-            val irField = components.irFactory.createField(
-                startOffset = UNDEFINED_OFFSET,
-                endOffset = UNDEFINED_OFFSET,
-                origin = IrDeclarationOrigin.FIELD_FOR_CLASS_CONTEXT_RECEIVER,
-                name = Name.identifier("contextReceiverField$index"),
-                visibility = DescriptorVisibilities.PRIVATE,
-                symbol = IrFieldSymbolImpl(),
-                type = contextReceiver.typeRef.toIrType(),
-                isFinal = true,
-                isStatic = false,
-                isExternal = false,
-            )
-            irField.parent = this@createContextReceiverFields
-            contextReceiverFields.add(irField)
+        var contextReceiverFields = fieldsForContextReceivers[irClass]
+        if (contextReceiverFields == null) {
+            contextReceiverFields = mutableListOf<IrField>()
+            for ((index, contextReceiver) in klass.contextReceivers.withIndex()) {
+                val irField = components.irFactory.createField(
+                    startOffset = UNDEFINED_OFFSET,
+                    endOffset = UNDEFINED_OFFSET,
+                    origin = IrDeclarationOrigin.FIELD_FOR_CLASS_CONTEXT_RECEIVER,
+                    name = Name.identifier("contextReceiverField$index"),
+                    visibility = DescriptorVisibilities.PRIVATE,
+                    symbol = IrFieldSymbolImpl(),
+                    type = contextReceiver.typeRef.toIrType(),
+                    isFinal = true,
+                    isStatic = false,
+                    isExternal = false,
+                )
+                irField.parent = irClass
+                contextReceiverFields.add(irField)
+            }
+            fieldsForContextReceivers[irClass] = contextReceiverFields
         }
-
         return contextReceiverFields
     }
-
-    fun getFieldsWithContextReceiversForClass(irClass: IrClass): List<IrField>? = fieldsForContextReceivers[irClass]
 
     private fun IrClass.declareSupertypes(klass: FirClass) {
         superTypes = klass.superTypeRefs.map { superTypeRef -> superTypeRef.toIrType() }

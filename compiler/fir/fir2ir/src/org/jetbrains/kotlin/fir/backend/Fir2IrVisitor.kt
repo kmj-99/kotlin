@@ -691,7 +691,7 @@ class Fir2IrVisitor(
                                 IrGetValueImpl(startOffset, endOffset, constructorParameter.type, constructorParameter.symbol)
                             } else {
                                 val contextReceivers =
-                                    components.classifierStorage.getFieldsWithContextReceiversForClass(irClass)
+                                    components.classifierStorage.getFieldsWithContextReceiversForClass(irClass, firClass)
                                         ?: error("Not defined context receivers for $irClass")
 
                                 IrGetFieldImpl(

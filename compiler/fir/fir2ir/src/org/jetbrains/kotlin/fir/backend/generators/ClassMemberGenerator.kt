@@ -130,7 +130,7 @@ internal class ClassMemberGenerator(
 
                 if (containingClass is FirRegularClass && containingClass.contextReceivers.isNotEmpty()) {
                     val contextReceiverFields =
-                        components.classifierStorage.getFieldsWithContextReceiversForClass(irClass)
+                        components.classifierStorage.getFieldsWithContextReceiversForClass(irClass, containingClass)
                             ?: error("Not found context receiver fields")
 
                     val thisParameter =
