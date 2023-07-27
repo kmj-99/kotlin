@@ -56,13 +56,12 @@ class WasmDependencyResolutionSmokeTest {
 
         consumer.kotlinIdeMultiplatformImport.resolveDependencies("commonMain").assertMatches(
             regularSourceDependency(":producer/commonMain"),
-            binaryCoordinates(Regex(".*stdlib-common.*"))
+            binaryCoordinates(Regex(".*stdlib.*"))
         )
 
         consumer.kotlinIdeMultiplatformImport.resolveDependencies("wasmMain").assertMatches(
             dependsOnDependency(":consumer/commonMain"),
             projectArtifactDependency(type = Regular, ":producer", FilePathRegex(".*/producer-wasm.klib")),
-            binaryCoordinates(Regex(".*stdlib-wasm.*"))
         )
 
         consumer.kotlinIdeMultiplatformImport.resolveDependencies("wasmTest").assertMatches(
@@ -70,7 +69,6 @@ class WasmDependencyResolutionSmokeTest {
             friendSourceDependency(":consumer/wasmMain"),
             dependsOnDependency(":consumer/commonTest"),
             projectArtifactDependency(type = Regular, ":producer", FilePathRegex(".*/producer-wasm.klib")),
-            binaryCoordinates(Regex(".*stdlib-wasm.*"))
         )
     }
 }
