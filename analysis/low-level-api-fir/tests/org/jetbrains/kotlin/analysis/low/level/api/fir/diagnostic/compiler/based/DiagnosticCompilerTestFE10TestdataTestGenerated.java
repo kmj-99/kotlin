@@ -34217,6 +34217,12 @@ public class DiagnosticCompilerTestFE10TestdataTestGenerated extends AbstractDia
             }
 
             @Test
+            @TestMetadata("constructorCallWithOutModifier.kt")
+            public void testConstructorCallWithOutModifier() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/typealias/constructorCallWithOutModifier.kt");
+            }
+
+            @Test
             @TestMetadata("cyclicInheritanceViaTypeAlias.kt")
             public void testCyclicInheritanceViaTypeAlias() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/typealias/cyclicInheritanceViaTypeAlias.kt");

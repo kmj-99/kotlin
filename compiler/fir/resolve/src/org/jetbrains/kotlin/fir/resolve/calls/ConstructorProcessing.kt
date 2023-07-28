@@ -21,9 +21,7 @@ import org.jetbrains.kotlin.fir.scopes.processClassifiersByName
 import org.jetbrains.kotlin.fir.scopes.scopeForClass
 import org.jetbrains.kotlin.fir.symbols.impl.*
 import org.jetbrains.kotlin.fir.symbols.lazyResolveToPhase
-import org.jetbrains.kotlin.fir.types.ConeClassLikeType
-import org.jetbrains.kotlin.fir.types.coneTypeUnsafe
-import org.jetbrains.kotlin.fir.types.withReplacedConeType
+import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.visibilityChecker
 import org.jetbrains.kotlin.fir.whileAnalysing
 import org.jetbrains.kotlin.name.Name
@@ -160,6 +158,25 @@ private fun processSyntheticConstructors(
     }
 }
 
+private fun ConeTypeProjection.withoutProjections(session: FirSession): ConeTypeProjection {
+    return when (this) {
+        is ConeClassLikeType -> withArguments { it.withoutProjections(session) }
+        is ConeKotlinTypeProjectionOut -> type.withoutProjections(session)
+        is ConeKotlinTypeProjectionIn -> type.withoutProjections(session)
+        is ConeStarProjection -> session.builtinTypes.nullableAnyType.type
+        is ConeDefinitelyNotNullType -> ConeDefinitelyNotNullType(original.withoutProjections(session) as ConeSimpleKotlinType)
+        is ConeFlexibleType -> ConeFlexibleType(
+            lowerBound.withoutProjections(session) as ConeSimpleKotlinType,
+            upperBound.withoutProjections(session) as ConeSimpleKotlinType
+        )
+        is ConeIntersectionType -> ConeIntersectionType(
+            intersectedTypes.map { it.withoutProjections(session) as ConeKotlinType },
+            alternativeType?.withoutProjections(session) as ConeKotlinType
+        )
+        else -> this
+    }
+}
+
 private fun processConstructors(
     matchedSymbol: FirClassLikeSymbol<*>,
     substitutor: ConeSubstitutor,
@@ -173,7 +190,12 @@ private fun processConstructors(
             is FirTypeAliasSymbol -> {
                 matchedSymbol.lazyResolveToPhase(FirResolvePhase.TYPES)
                 val type = matchedSymbol.fir.expandedTypeRef.coneTypeUnsafe<ConeClassLikeType>().fullyExpandedType(session)
-                val basicScope = type.scope(
+
+                // A typealias TA<T> = Foo<out T> can introduce projections into the expanded type.
+                // We want to prevent projections from getting into the substituted constructor's parameter types when building the scope.
+                // Otherwise, we'll get captured types which will lead to false-positive type mismatches.
+                val typeWithoutProjections = type.withoutProjections(session) as ConeClassLikeType
+                val basicScope = typeWithoutProjections.scope(
                     session,
                     bodyResolveComponents.scopeSession,
                     FakeOverrideTypeCalculator.DoNothing,
@@ -188,7 +210,10 @@ private fun processConstructors(
                     TypeAliasConstructorsSubstitutingScope(
                         matchedSymbol,
                         basicScope,
-                        outerType
+                        outerType,
+                        // However, we must keep projections in the return type of the constructor.
+                        // Otherwise, the type of the call will be wrong.
+                        returnType = type
                     )
                 } else basicScope
             }
@@ -207,10 +232,9 @@ private fun processConstructors(
             }
         }
 
-            scope?.processDeclaredConstructors {
-                if (includeInnerConstructors || !it.fir.isInner) {
-                    processor(it)
-
+        scope?.processDeclaredConstructors {
+            if (includeInnerConstructors || !it.fir.isInner) {
+                processor(it)
             }
         }
     }
@@ -220,6 +244,7 @@ private class TypeAliasConstructorsSubstitutingScope(
     private val typeAliasSymbol: FirTypeAliasSymbol,
     private val delegatingScope: FirScope,
     private val outerType: ConeClassLikeType?,
+    private val returnType: ConeClassLikeType,
 ) : FirScope() {
 
     override fun processDeclaredConstructors(processor: (FirConstructorSymbol) -> Unit) {
@@ -230,6 +255,7 @@ private class TypeAliasConstructorsSubstitutingScope(
                 buildConstructorCopy(originalConstructorSymbol.fir) {
                     symbol = FirConstructorSymbol(originalConstructorSymbol.callableId)
                     origin = FirDeclarationOrigin.Synthetic
+                    returnTypeRef = returnTypeRef.withReplacedConeType(returnType)
 
                     this.typeParameters.clear()
                     this.typeParameters += typeParameters.map { buildConstructedClassTypeParameterRef { symbol = it.symbol } }
