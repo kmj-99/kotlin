@@ -16,6 +16,8 @@ import java.nio.file.Path
 import java.util.*
 import java.util.stream.Stream
 import kotlin.io.path.appendText
+import kotlin.io.path.createDirectories
+import kotlin.io.path.writeText
 import kotlin.streams.asStream
 import kotlin.streams.toList
 import kotlin.test.assertFalse
@@ -232,6 +234,45 @@ class KotlinSpecificDependenciesIT : KGPBaseTest() {
                 "compileKotlin",
                 listOf("kotlin-stdlib-${defaultBuildOptions.kotlinVersion}"),
                 listOf("kotlin-stdlib-jdk8")
+            )
+        }
+    }
+
+    @MppGradlePluginTests
+    @DisplayName("Stdlib should be added into compilation not depending on common")
+    @GradleTest
+    fun testStdlibAddedIntoCompilationNotUsingCommon(gradleVersion: GradleVersion) {
+        project("hierarchical-all-native", gradleVersion) {
+            buildGradleKts.modify {
+                it.substringBefore("kotlin {")
+                    .plus(
+                        """
+                        |
+                        |kotlin {
+                        |    js()
+                        |    jvm("standalone") {
+                        |        compilations.register("jvmAllAlone")
+                        |    }
+                        |}
+                        """.trimMargin()
+                    )
+            }
+
+            kotlinSourcesDir("standaloneJvmAllAlone").also {
+                it.createDirectories()
+                it.resolve("main.kt").writeText(
+                    """
+                    |fun main() {
+                    |    println("Hello")
+                    |}
+                    """.trimIndent()
+                )
+            }
+
+            checkTaskCompileClasspath(
+                "compileJvmAllAloneKotlinStandalone",
+                listOf("kotlin-stdlib"),
+                isBuildGradleKts = true
             )
         }
     }

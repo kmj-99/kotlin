@@ -137,9 +137,11 @@ private fun KotlinTarget.addStdlibDependency(
                 val stdlibVersion = SemVer.fromGradleRichVersion(requestedStdlibVersion)
 
                 // Since 1.9.20 in MPP projects, we should add stdlib only for common dependencies
+                // except standalone compilations which as not using 'common'
                 if (isMppProject &&
                     stdlibVersion >= kotlin1920Version &&
-                    compilation.platformType != KotlinPlatformType.common
+                    compilation.platformType != KotlinPlatformType.common &&
+                    kotlinSourceSet.hasDependencyOnCommon()
                 ) return@withDependencies
 
                 val stdlibModule = compilation
@@ -165,6 +167,11 @@ private fun KotlinTarget.addStdlibDependency(
         }
     }
 }
+
+internal fun KotlinSourceSet.hasDependencyOnCommon(): Boolean = dependsOn
+    .any { sourceSet ->
+        sourceSet.internal.compilations.any { it.platformType == KotlinPlatformType.common }
+    }
 
 internal fun isStdlibAddedByUser(
     configurations: ConfigurationContainer,
