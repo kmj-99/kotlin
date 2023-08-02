@@ -109,6 +109,7 @@ object AbstractExpectActualAnnotationMatchChecker {
         actualSymbol: DeclarationSymbolMarker,
     ): Incompatibility? {
         areAnnotationsSetOnDeclarationsCompatible(expectSymbol, actualSymbol)?.let { return it }
+        areAnnotationsOnTypeParametersCompatible(expectSymbol, actualSymbol)?.let { return it }
 
         return null
     }
@@ -120,6 +121,30 @@ object AbstractExpectActualAnnotationMatchChecker {
     ): Incompatibility? {
         val expectParams = expectSymbol.valueParameters
         val actualParams = actualSymbol.valueParameters
+        return expectParams.zip(actualParams).firstNotNullOfOrNull { (expectParam, actualParam) ->
+            areAnnotationsSetOnDeclarationsCompatible(expectParam, actualParam)
+        }?.let {
+            // Write the entire declaration in diagnostic
+            Incompatibility(expectSymbol, actualSymbol, it.type)
+        }
+    }
+
+    context (ExpectActualMatchingContext<*>)
+    private fun areAnnotationsOnTypeParametersCompatible(
+        expectSymbol: DeclarationSymbolMarker,
+        actualSymbol: DeclarationSymbolMarker,
+    ): Incompatibility? {
+        fun DeclarationSymbolMarker.getTypeParameters(): List<TypeParameterSymbolMarker>? {
+            return when (this) {
+                is FunctionSymbolMarker -> typeParameters
+                is RegularClassSymbolMarker -> typeParameters
+                else -> null
+            }
+        }
+
+        val expectParams = expectSymbol.getTypeParameters() ?: return null
+        val actualParams = actualSymbol.getTypeParameters() ?: return null
+
         return expectParams.zip(actualParams).firstNotNullOfOrNull { (expectParam, actualParam) ->
             areAnnotationsSetOnDeclarationsCompatible(expectParam, actualParam)
         }?.let {
