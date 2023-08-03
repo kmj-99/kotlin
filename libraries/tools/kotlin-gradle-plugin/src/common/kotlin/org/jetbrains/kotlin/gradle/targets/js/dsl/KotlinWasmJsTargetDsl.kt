@@ -16,8 +16,6 @@ interface KotlinWasmSubTargetContainerDsl : KotlinTarget {
     val isD8Configured: Boolean
 
     fun whenD8Configured(body: KotlinWasmD8Dsl.() -> Unit)
-
-    fun whenBinaryenApplied(body: (BinaryenExec.() -> Unit) -> Unit)
 }
 
 interface KotlinWasmJsTargetDsl : KotlinWasmTargetDsl, KotlinJsTargetDsl {

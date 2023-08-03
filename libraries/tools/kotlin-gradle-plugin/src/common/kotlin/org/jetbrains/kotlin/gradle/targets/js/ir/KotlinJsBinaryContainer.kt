@@ -44,32 +44,6 @@ constructor(
     private val defaultCompilation: KotlinJsCompilation
         get() = target.compilations.getByName(KotlinCompilation.MAIN_COMPILATION_NAME)
 
-    private fun configureBinaryen(binary: JsIrBinary, binaryenDsl: BinaryenExec.() -> Unit) {
-        val linkTask = binary.linkTask
-
-        val compiledWasmFile = linkTask.map { link ->
-            link.destinationDirectory.asFile.get().resolve(link.compilerOptions.moduleName.get() + ".wasm")
-        }
-
-        //TODO This is temporary solution that overrides compiled files that triggers recompile and reoptimize wasm every time (when binaryen is enabled)
-        val binaryenTask = BinaryenExec.create(binary.compilation, "${linkTask.name}Optimize") {
-            dependsOn(linkTask)
-            inputFileProperty.fileProvider(compiledWasmFile)
-            outputFileProperty.fileProvider(compiledWasmFile)
-            binaryenDsl()
-        }
-
-        if (target is KotlinJsIrTarget && target.wasmTargetType == KotlinWasmTargetType.WASI) {
-            if (binary.compilation.isMain() && binary.mode == PRODUCTION) {
-                project.tasks.named(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(binaryenTask)
-            }
-        } else {
-            binary.linkSyncTask.configure {
-                it.dependsOn(binaryenTask)
-            }
-        }
-    }
-
     // For Groovy DSL
     @JvmOverloads
     fun executable(
@@ -205,12 +179,6 @@ constructor(
         // Allow accessing binaries as properties of the container in Groovy DSL.
         if (this is ExtensionAware) {
             extensions.add(binary.name, binary)
-        }
-
-        if (compilation.platformType == KotlinPlatformType.wasm && target is KotlinJsIrTarget && binary is JsIrBinary) {
-            target.whenBinaryenApplied {
-                configureBinaryen(binary, it)
-            }
         }
 
         return binary
