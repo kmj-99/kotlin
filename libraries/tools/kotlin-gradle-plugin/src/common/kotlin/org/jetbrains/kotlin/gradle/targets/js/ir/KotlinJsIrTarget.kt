@@ -33,9 +33,8 @@ import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
 import org.jetbrains.kotlin.gradle.targets.js.npm.NpmResolverPlugin
 import org.jetbrains.kotlin.gradle.targets.js.npm.npmProject
 import org.jetbrains.kotlin.gradle.targets.js.typescript.TypeScriptValidationTask
-import org.jetbrains.kotlin.gradle.tasks.dependsOn
-import org.jetbrains.kotlin.gradle.tasks.locateOrRegisterTask
-import org.jetbrains.kotlin.gradle.tasks.registerTask
+import org.jetbrains.kotlin.gradle.tasks.*
+import org.jetbrains.kotlin.gradle.utils.*
 import org.jetbrains.kotlin.gradle.utils.dashSeparatedName
 import org.jetbrains.kotlin.gradle.utils.decamelize
 import org.jetbrains.kotlin.gradle.utils.lowerCamelCaseName
@@ -171,7 +170,7 @@ constructor(
                 .withType(JsIrBinary::class.java)
                 .all { binary ->
                     val syncTask = registerCompileSync(binary)
-                    binaryenReplaceInput?.let { it() }
+                    binaryenReplaceInput[binary]?.invoke()
                     val tsValidationTask = registerTypeScriptCheckTask(binary)
 
                     binary.linkTask.configure {
@@ -222,20 +221,21 @@ constructor(
     }
 
     //Binaryen
-    private var binaryenReplaceInput: (() -> Unit)? = null
+    private var binaryenReplaceInput: MutableMap<JsIrBinary, () -> Unit> = mutableMapOf()
 
     override fun applyBinaryen(body: BinaryenExec.() -> Unit) {
         compilations.all {
             it.binaries.all { binary ->
-                if (binary is JsIrBinary) {
+                if (binary is ExecutableWasm) {
                     val binaryenExec = createBinaryen(binary, body)
 
-                    if (wasmTargetType == KotlinWasmTargetType.WASI && nodejsLazyDelegate.isInitialized() || commonLazyDelegate.isInitialized()) {
+                    if (
+                        wasmTargetType == KotlinWasmTargetType.WASI && nodejsLazyDelegate.isInitialized() ||
+                        project.locateTask<IncrementalSyncTask>(binary.linkSyncTaskName) != null
+                    ) {
                         configureBinaryen(binary, binaryenExec)
                     } else {
-                        val previous = binaryenReplaceInput
-                        binaryenReplaceInput = {
-                            previous?.invoke()
+                        binaryenReplaceInput[binary] = {
                             configureBinaryen(binary, binaryenExec)
                         }
                     }
@@ -244,7 +244,7 @@ constructor(
         }
     }
 
-    private fun createBinaryen(binary: JsIrBinary, binaryenDsl: BinaryenExec.() -> Unit): TaskProvider<BinaryenExec> {
+    private fun createBinaryen(binary: ExecutableWasm, binaryenDsl: BinaryenExec.() -> Unit): TaskProvider<BinaryenExec> {
         val linkTask = binary.linkTask
 
         val compileWasmDestDir = linkTask.map {
@@ -255,7 +255,7 @@ constructor(
             link.destinationDirectory.asFile.get().resolve(link.compilerOptions.moduleName.get() + ".wasm")
         }
 
-        return BinaryenExec.create(binary.compilation, "${linkTask.name}Optimize") {
+        return BinaryenExec.create(binary.compilation, binary.optimizeTaskName) {
             val compilation = binary.compilation
             dependsOn(linkTask)
             inputFileProperty.fileProvider(compiledWasmFile)
@@ -277,8 +277,11 @@ constructor(
             doLast {
                 fs.copy {
                     it.from(compileWasmDestDir)
-                    it.into(outputDirectory) {
-                        it.exclude(outputFile.get().normalize().absolutePath)
+                    it.into(outputDirectory)
+                    it.eachFile {
+                        if (it.relativePath.getFile(outputDirectory.get()).exists()) {
+                            it.exclude()
+                        }
                     }
                 }
             }
@@ -291,6 +294,16 @@ constructor(
         if (wasmTargetType == KotlinWasmTargetType.WASI) {
             if (binary.compilation.isMain() && binary.mode == KotlinJsBinaryMode.PRODUCTION) {
                 project.tasks.named(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(binaryenExec)
+            }
+
+            whenNodejsConfigured {
+                testTask {
+                    val name = binary.linkTask.flatMap { it.outputFileProperty.map { it.name } }
+                    it.inputFileProperty.fileProvider(
+                        binaryenExec.flatMap { it.outputFileProperty.map { it.asFile.parentFile.resolve(name.get()) } }
+                    )
+                    it.dependsOn(binaryenExec)
+                }
             }
         } else {
             binary.linkSyncTask.configure {
@@ -329,7 +342,11 @@ constructor(
             commonLazy
         } else {
             NodeJsRootPlugin.apply(project.rootProject)
-            binaryenReplaceInput?.let { it() }
+            compilations.all { compilation ->
+                compilation.binaries.all { binary ->
+                    binaryenReplaceInput[binary]?.invoke()
+                }
+            }
         }
         project.objects.newInstance(KotlinNodeJsIr::class.java, this).also {
             it.configureSubTarget()

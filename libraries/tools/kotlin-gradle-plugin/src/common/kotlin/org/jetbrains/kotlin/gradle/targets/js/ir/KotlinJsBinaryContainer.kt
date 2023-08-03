@@ -86,7 +86,13 @@ constructor(
     internal fun executableIrInternal(compilation: KotlinJsCompilation): List<JsBinary> = createBinaries(
         compilation = compilation,
         jsBinaryType = KotlinJsBinaryType.EXECUTABLE,
-        create = ::Executable
+        create = { compilation, name, mode ->
+            if (target.platformType == KotlinPlatformType.wasm) {
+                ExecutableWasm(compilation, name, mode)
+            } else {
+                Executable(compilation, name, mode)
+            }
+        }
     )
 
     private fun executableLegacyInternal(compilation: KotlinJsCompilation) = createBinaries(
