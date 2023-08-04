@@ -28,11 +28,9 @@ import org.jetbrains.kotlin.fir.scopes.getDeclaredConstructors
 import org.jetbrains.kotlin.fir.scopes.impl.declaredMemberScope
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.SymbolInternals
-import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirTypeAliasSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirValueParameterSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.*
 import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.mpp.RegularClassSymbolMarker
 import org.jetbrains.kotlin.name.StandardClassIds
 import org.jetbrains.kotlin.resolve.calls.mpp.AbstractExpectActualAnnotationMatchChecker
 import org.jetbrains.kotlin.resolve.checkers.OptInNames
@@ -258,8 +256,19 @@ object FirExpectActualDeclarationChecker : FirBasicDeclarationChecker() {
         reporter: DiagnosticReporter
     ) {
         val matchingContext = context.session.expectActualMatchingContextFactory.create(context.session, context.scopeSession)
-        val incompatibility =
-            AbstractExpectActualAnnotationMatchChecker.areAnnotationsCompatible(expectSymbol, actualSymbol, matchingContext) ?: return
+        val expectForActualFinder = AbstractExpectActualAnnotationMatchChecker.ExpectForActualFinder { member, _, _ ->
+            (member as FirBasedSymbol<*>).expectForActual ?: emptyMap()
+        }
+        val incompatibility = AbstractExpectActualAnnotationMatchChecker.areAnnotationsCompatible(
+            expectSymbol, actualSymbol, matchingContext,
+            AbstractExpectActualAnnotationMatchChecker.ClassMembersCheck.Enabled(expectForActualFinder)
+        ) ?: return
+
+        if (actualSymbol is RegularClassSymbolMarker && (incompatibility.actualSymbol as? FirCallableSymbol<*>)?.isActual == true) {
+            // Actual members of actual class are checked separately, don't report extra diagnostic on class.
+            // It's only needed for actual typealiases or fake override members.
+            return
+        }
         reporter.reportOn(
             actualSymbol.source, FirErrors.ACTUAL_ANNOTATIONS_NOT_MATCH_EXPECT,
             incompatibility.expectSymbol as FirBasedSymbol<*>,

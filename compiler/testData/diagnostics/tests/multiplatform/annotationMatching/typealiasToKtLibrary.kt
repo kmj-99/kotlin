@@ -40,4 +40,4 @@ actual typealias <!ACTUAL_ANNOTATIONS_NOT_MATCH_EXPECT!>MyDeprecatedNotMatch<!> 
 
 actual typealias MyDeprecatedMatch = kotlin.Deprecated
 
-actual typealias MyAbstractIterator<T> = AbstractIterator<T>
+actual typealias <!ACTUAL_ANNOTATIONS_NOT_MATCH_EXPECT!>MyAbstractIterator<!><T> = AbstractIterator<T>

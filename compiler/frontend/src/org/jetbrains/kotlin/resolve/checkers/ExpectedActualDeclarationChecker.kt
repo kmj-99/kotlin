@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.incremental.components.ExpectActualTracker
 import org.jetbrains.kotlin.mpp.MppJavaImplicitActualizatorMarker
+import org.jetbrains.kotlin.mpp.RegularClassSymbolMarker
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.hasActualModifier
@@ -40,7 +41,6 @@ import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.source.KotlinSourceElement
 import org.jetbrains.kotlin.resolve.source.PsiSourceFile
 import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.utils.addToStdlib.cast
 import java.io.File
 
 private val implicitlyActualizedAnnotationFqn = FqName("kotlin.jvm.ImplicitlyActualizedByJvmDeclaration")
@@ -485,8 +485,24 @@ class ExpectedActualDeclarationChecker(
         trace: BindingTrace
     ) {
         val context = ClassicExpectActualMatchingContext(actualDescriptor.module)
-        val incompatibility =
-            AbstractExpectActualAnnotationMatchChecker.areAnnotationsCompatible(expectDescriptor, actualDescriptor, context) ?: return
+        val expectForActualFinder = AbstractExpectActualAnnotationMatchChecker.ExpectForActualFinder { member, actualClass, expectClass ->
+            ExpectedActualResolver.findExpectForActualClassMember(
+                member as MemberDescriptor,
+                actualClass as ClassDescriptor,
+                expectClass as ClassDescriptor,
+                context,
+            )
+        }
+        val incompatibility = AbstractExpectActualAnnotationMatchChecker.areAnnotationsCompatible(
+            expectDescriptor, actualDescriptor, context,
+            AbstractExpectActualAnnotationMatchChecker.ClassMembersCheck.Enabled(expectForActualFinder)
+        ) ?: return
+
+        if (actualDescriptor is RegularClassSymbolMarker && (incompatibility.actualSymbol as? CallableMemberDescriptor)?.isActual == true) {
+            // Actual members of actual class are checked separately, don't report extra diagnostic on class.
+            // It's only needed for actual typealiases or fake override members.
+            return
+        }
         trace.report(
             Errors.ACTUAL_ANNOTATIONS_NOT_MATCH_EXPECT.on(
                 reportOn,
