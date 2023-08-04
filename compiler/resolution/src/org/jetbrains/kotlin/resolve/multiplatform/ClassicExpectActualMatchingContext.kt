@@ -377,4 +377,9 @@ class ClassicExpectActualMatchingContext(val platformModule: ModuleDescriptor) :
                     this !is K1SyntheticClassifierSymbolMarker &&
                     !(this is CallableMemberDescriptor && kind == CallableMemberDescriptor.Kind.SYNTHESIZED)
         }
+
+    override fun KotlinTypeMarker.getClassId(): ClassId? = (this as KotlinType).constructor.declarationDescriptor?.classId
+
+    override fun KotlinTypeMarker.getAnnotations(): List<AnnotationCallInfo> =
+        (this as KotlinType).annotations.map(::AnnotationCallInfoImpl)
 }

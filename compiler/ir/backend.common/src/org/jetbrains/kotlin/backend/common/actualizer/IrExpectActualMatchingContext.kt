@@ -31,7 +31,6 @@ import org.jetbrains.kotlin.resolve.checkers.OptInNames
 import org.jetbrains.kotlin.types.AbstractTypeChecker
 import org.jetbrains.kotlin.types.TypeCheckerState
 import org.jetbrains.kotlin.types.Variance
-import org.jetbrains.kotlin.types.model.AnnotationMarker
 import org.jetbrains.kotlin.types.model.KotlinTypeMarker
 import org.jetbrains.kotlin.types.model.TypeSubstitutorMarker
 import org.jetbrains.kotlin.types.model.TypeSystemContext
@@ -496,4 +495,9 @@ internal abstract class IrExpectActualMatchingContext(
             val ir = asIr()
             return ir.sourceElement() == null && ir.origin !is IrDeclarationOrigin.GeneratedByPlugin
         }
+
+    override fun KotlinTypeMarker.getClassId(): ClassId? = (this as IrType).classOrNull?.classId
+
+    override fun KotlinTypeMarker.getAnnotations(): List<AnnotationCallInfo> =
+        (this as IrType).annotations.map(::AnnotationCallInfoImpl)
 }

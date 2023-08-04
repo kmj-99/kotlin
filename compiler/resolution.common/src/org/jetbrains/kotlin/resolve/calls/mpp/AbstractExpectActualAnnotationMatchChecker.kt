@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.mpp.*
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.StandardClassIds
 import org.jetbrains.kotlin.resolve.multiplatform.ExpectActualCompatibility
+import org.jetbrains.kotlin.types.model.KotlinTypeMarker
 import org.jetbrains.kotlin.resolve.multiplatform.ExpectActualAnnotationsIncompatibilityType as IncompatibilityType
 
 object AbstractExpectActualAnnotationMatchChecker {
@@ -79,6 +80,12 @@ object AbstractExpectActualAnnotationMatchChecker {
             arePropertyGetterAndSetterAnnotationsCompatible(expectSymbol, actualSymbol)?.let { return it }
         }
 
+        areAnnotationsSetOnTypesCompatible(expectSymbol.extensionReceiverType, actualSymbol.extensionReceiverType, actualSymbol)
+            ?.let { return Incompatibility(expectSymbol, actualSymbol, type = it) }
+
+        areAnnotationsSetOnTypesCompatible(expectSymbol.returnType, actualSymbol.returnType, actualSymbol)
+            ?.let { return Incompatibility(expectSymbol, actualSymbol, type = it) }
+
         return null
     }
 
@@ -125,6 +132,13 @@ object AbstractExpectActualAnnotationMatchChecker {
             ClassMembersCheck.Disabled -> {}
         }
 
+        val actualSuperTypes = actualSymbol.superTypes.groupBy { it.getClassId() }
+        for (expectSuperType in expectSymbol.superTypes) {
+            val actualSuperType = actualSuperTypes[expectSuperType.getClassId()]?.singleOrNull() ?: continue
+            areAnnotationsSetOnTypesCompatible(expectSuperType, actualSuperType, actualSymbol)
+                ?.let { return Incompatibility(expectSymbol, actualSymbol, type = it) }
+        }
+
         return null
     }
 
@@ -147,10 +161,11 @@ object AbstractExpectActualAnnotationMatchChecker {
         val expectParams = expectSymbol.valueParameters
         val actualParams = actualSymbol.valueParameters
         return expectParams.zip(actualParams).firstNotNullOfOrNull { (expectParam, actualParam) ->
-            areAnnotationsSetOnDeclarationsCompatible(expectParam, actualParam)
+            areAnnotationsSetOnDeclarationsCompatible(expectParam, actualParam)?.type
+                ?: areAnnotationsSetOnTypesCompatible(expectParam.returnType, actualParam.returnType, actualSymbol)
         }?.let {
             // Write the entire declaration in diagnostic
-            Incompatibility(expectSymbol, actualSymbol, it.type)
+            Incompatibility(expectSymbol, actualSymbol, type = it)
         }
     }
 
@@ -171,11 +186,50 @@ object AbstractExpectActualAnnotationMatchChecker {
         val actualParams = actualSymbol.getTypeParameters() ?: return null
 
         return expectParams.zip(actualParams).firstNotNullOfOrNull { (expectParam, actualParam) ->
-            areAnnotationsSetOnDeclarationsCompatible(expectParam, actualParam)
+            areAnnotationsSetOnDeclarationsCompatible(expectParam, actualParam)?.type
+                ?: areAnnotationsOnTypeParameterBoundsCompatible(expectParam, actualParam, actualSymbol)
         }?.let {
             // Write the entire declaration in diagnostic
-            Incompatibility(expectSymbol, actualSymbol, it.type)
+            Incompatibility(expectSymbol, actualSymbol, type = it)
         }
+    }
+
+    context (ExpectActualMatchingContext<*>)
+    private fun areAnnotationsOnTypeParameterBoundsCompatible(
+        expectParam: TypeParameterSymbolMarker,
+        actualParam: TypeParameterSymbolMarker,
+        actualContainerSymbol: DeclarationSymbolMarker,
+    ): IncompatibilityType<ExpectActualMatchingContext.AnnotationCallInfo>? {
+        return expectParam.bounds.zip(actualParam.bounds).firstNotNullOfOrNull { (expectType, actualType) ->
+            areAnnotationsSetOnTypesCompatible(expectType, actualType, actualContainerSymbol)
+        }
+    }
+
+    context (ExpectActualMatchingContext<*>)
+    private fun areAnnotationsSetOnTypesCompatible(
+        expectType: KotlinTypeMarker?,
+        actualType: KotlinTypeMarker?,
+        actualContainerSymbol: DeclarationSymbolMarker,
+    ): IncompatibilityType<ExpectActualMatchingContext.AnnotationCallInfo>? {
+        if (expectType == null || actualType == null) {
+            return null
+        }
+        areAnnotationListsCompatible(expectType.getAnnotations(), actualType.getAnnotations(), actualContainerSymbol)
+            ?.let { return it }
+
+        val expectTypeArgs = expectType.asSimpleType()?.getArguments() ?: return null
+        val actualTypeArgs = actualType.asSimpleType()?.getArguments() ?: return null
+
+        if (expectTypeArgs.size == actualTypeArgs.size) {
+            for ((expectArg, actualArg) in expectTypeArgs.zip(actualTypeArgs)) {
+                if (expectArg.isStarProjection() || actualArg.isStarProjection()) {
+                    continue
+                }
+                areAnnotationsSetOnTypesCompatible(expectArg.getType(), actualArg.getType(), actualContainerSymbol)
+                    ?.let { return it }
+            }
+        }
+        return null
     }
 
     context (ExpectActualMatchingContext<*>)

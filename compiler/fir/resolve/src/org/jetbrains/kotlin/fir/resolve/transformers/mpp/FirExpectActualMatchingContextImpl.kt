@@ -381,6 +381,11 @@ class FirExpectActualMatchingContextImpl private constructor(
             return symbol.source == null && symbol.origin !is FirDeclarationOrigin.Plugin
         }
 
+    override fun KotlinTypeMarker.getClassId(): ClassId? = (this as ConeKotlinType).classId
+
+    override fun KotlinTypeMarker.getAnnotations(): List<AnnotationCallInfo> =
+        (this as ConeKotlinType).customAnnotations.map(::AnnotationCallInfoImpl)
+
     object Factory : FirExpectActualMatchingContextFactory {
         override fun create(session: FirSession, scopeSession: ScopeSession): FirExpectActualMatchingContextImpl =
             FirExpectActualMatchingContextImpl(session, scopeSession)

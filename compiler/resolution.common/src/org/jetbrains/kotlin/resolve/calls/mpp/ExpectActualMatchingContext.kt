@@ -175,4 +175,7 @@ interface ExpectActualMatchingContext<T : DeclarationSymbolMarker> : TypeSystemC
         val isRetentionSource: Boolean
         val isOptIn: Boolean
     }
+
+    fun KotlinTypeMarker.getClassId(): ClassId?
+    fun KotlinTypeMarker.getAnnotations(): List<AnnotationCallInfo>
 }
