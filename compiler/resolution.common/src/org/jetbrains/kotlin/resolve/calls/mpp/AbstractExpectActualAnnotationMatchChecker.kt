@@ -183,12 +183,20 @@ object AbstractExpectActualAnnotationMatchChecker {
         expectSymbol: DeclarationSymbolMarker,
         actualSymbol: DeclarationSymbolMarker,
     ): Incompatibility? {
-        // TODO(Roman.Efremov, KT-58551): check other annotation targets (constructors, types, value parameters, etc)
+        return areAnnotationListsCompatible(expectSymbol.annotations, actualSymbol.annotations, actualSymbol)
+            ?.let { Incompatibility(expectSymbol, actualSymbol, it) }
+    }
 
-        val skipSourceAnnotations = actualSymbol.hasSourceAnnotationsErased
-        val actualAnnotationsByName = actualSymbol.annotations.groupBy { it.classId }
+    context (ExpectActualMatchingContext<*>)
+    private fun areAnnotationListsCompatible(
+        expectAnnotations: List<ExpectActualMatchingContext.AnnotationCallInfo>,
+        actualAnnotations: List<ExpectActualMatchingContext.AnnotationCallInfo>,
+        actualContainerSymbol: DeclarationSymbolMarker,
+    ): IncompatibilityType<ExpectActualMatchingContext.AnnotationCallInfo>? {
+        val skipSourceAnnotations = actualContainerSymbol.hasSourceAnnotationsErased
+        val actualAnnotationsByName = actualAnnotations.groupBy { it.classId }
 
-        for (expectAnnotation in expectSymbol.annotations) {
+        for (expectAnnotation in expectAnnotations) {
             val expectClassId = expectAnnotation.classId ?: continue
             if (expectClassId in SKIPPED_CLASS_IDS || expectAnnotation.isOptIn) {
                 continue
@@ -198,23 +206,18 @@ object AbstractExpectActualAnnotationMatchChecker {
             }
             val actualAnnotationsWithSameClassId = actualAnnotationsByName[expectClassId] ?: emptyList()
             if (actualAnnotationsWithSameClassId.isEmpty()) {
-                return Incompatibility(
-                    expectSymbol,
-                    actualSymbol,
-                    IncompatibilityType.MissingOnActual(expectAnnotation)
-                )
+                return IncompatibilityType.MissingOnActual(expectAnnotation)
             }
             val collectionCompatibilityChecker = getAnnotationCollectionArgumentsCompatibilityChecker(expectClassId)
             if (actualAnnotationsWithSameClassId.none {
                     areAnnotationArgumentsEqual(expectAnnotation, it, collectionCompatibilityChecker)
                 }) {
-                val incompatibilityType = if (actualAnnotationsWithSameClassId.size == 1) {
+                return if (actualAnnotationsWithSameClassId.size == 1) {
                     IncompatibilityType.DifferentOnActual(expectAnnotation, actualAnnotationsWithSameClassId.single())
                 } else {
                     // In the case of repeatable annotations, we can't choose on which to report
                     IncompatibilityType.MissingOnActual(expectAnnotation)
                 }
-                return Incompatibility(expectSymbol, actualSymbol, incompatibilityType)
             }
         }
         return null
