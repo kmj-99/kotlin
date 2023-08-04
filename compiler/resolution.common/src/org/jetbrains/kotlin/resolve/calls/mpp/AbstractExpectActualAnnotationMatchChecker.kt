@@ -75,7 +75,32 @@ object AbstractExpectActualAnnotationMatchChecker {
         commonForClassAndCallableChecks(expectSymbol, actualSymbol)?.let { return it }
         areAnnotationsOnValueParametersCompatible(expectSymbol, actualSymbol)?.let { return it }
 
+        if (expectSymbol is PropertySymbolMarker && actualSymbol is PropertySymbolMarker) {
+            arePropertyGetterAndSetterAnnotationsCompatible(expectSymbol, actualSymbol)?.let { return it }
+        }
+
         return null
+    }
+
+    context (ExpectActualMatchingContext<*>)
+    private fun arePropertyGetterAndSetterAnnotationsCompatible(
+        expectSymbol: PropertySymbolMarker,
+        actualSymbol: PropertySymbolMarker,
+    ): Incompatibility? {
+        val accessorsToCheck = listOf(
+            expectSymbol.getter to actualSymbol.getter,
+            expectSymbol.setter to actualSymbol.setter,
+        )
+        return accessorsToCheck.firstNotNullOfOrNull { (expect, actual) ->
+            if (expect != null && actual != null) {
+                areAnnotationsSetOnDeclarationsCompatible(expect, actual)
+            } else {
+                null
+            }
+        }?.let {
+            // Write the entire property into diagnostic, not only accessors
+            Incompatibility(expectSymbol, actualSymbol, it.type)
+        }
     }
 
     context (ExpectActualMatchingContext<*>)

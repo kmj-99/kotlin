@@ -22942,6 +22942,12 @@ public class DiagnosticTestGenerated extends AbstractDiagnosticTest {
                 }
 
                 @Test
+                @TestMetadata("getersAndSetters.kt")
+                public void testGetersAndSetters() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/multiplatform/annotationMatching/getersAndSetters.kt");
+                }
+
+                @Test
                 @TestMetadata("intrinsicConstEvaluation.kt")
                 public void testIntrinsicConstEvaluation() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/multiplatform/annotationMatching/intrinsicConstEvaluation.kt");
