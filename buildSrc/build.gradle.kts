@@ -177,7 +177,8 @@ tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions.freeCompilerArgs += listOf(
         "-opt-in=kotlin.RequiresOptIn",
         "-Xsuppress-version-warnings",
-        "-opt-in=kotlin.ExperimentalStdlibApi"
+        "-opt-in=kotlin.ExperimentalStdlibApi",
+        "-opt-in=org.jetbrains.kotlin.gradle.DeprecatedTargetPresetApi",
     )
 }
 
