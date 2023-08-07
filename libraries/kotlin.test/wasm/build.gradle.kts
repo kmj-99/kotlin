@@ -13,7 +13,7 @@ val commonMainSources by task<Sync> {
 }
 
 kotlin {
-    wasm {
+    wasm("wasm") {
         nodejs()
     }
 

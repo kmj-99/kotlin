@@ -78,7 +78,7 @@ val commonTestSources by task<Sync> {
 D8RootPlugin.apply(rootProject).version = v8Version
 
 kotlin {
-    wasm {
+    wasm("wasm") {
         d8()
     }
 
