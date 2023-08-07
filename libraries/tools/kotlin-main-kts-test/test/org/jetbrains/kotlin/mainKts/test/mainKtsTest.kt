@@ -253,7 +253,7 @@ class MainKtsTest {
                 File("$TEST_DATA_ROOT/hello-kotlinx-serialization.main.kts"),
                 compilation = {
                     compilerOptions(
-                        "-Xplugin", serializationPluginClasspath
+                        "-Xplugin=$serializationPluginClasspath"
                     )
                 }
             )
