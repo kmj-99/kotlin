@@ -247,15 +247,30 @@ class FirTypeResolverImpl(private val session: FirSession) : FirTypeResolver() {
                     val (parameterClass, qualifierPartIndex) = typeParametersAlignedToQualifierParts[typeParameter.symbol] ?: continue
 
                     if (typeParameterIndex < typeArgumentsCount) {
-                        // Check if type argument matches type parameter in respective qualifier part
-                        val qualifierPartArgumentsCount = qualifier[qualifierPartIndex].typeArgumentList.typeArguments.size
+                        // Check if type argument matches type parameter in the respective qualifier part
+                        val normalizedQualifierPartIndex: Int
+                        val normalizedParameterClass: FirClassLikeDeclaration?
+                        if (qualifierPartIndex >= 0) {
+                            normalizedQualifierPartIndex = qualifierPartIndex
+                            normalizedParameterClass = parameterClass
+                        } else {
+                            // This is the case when the real type parameter is "mapped" to not existing qualifier part
+                            // That's why all real qualifier parts with type arguments are considered as invalid
+                            // It's possible to report all invalid qualifier parts (with not empty arguments),
+                            // but K1 behavior is preserved and only the last one is reported
+                            normalizedQualifierPartIndex = qualifier.indexOfLast { it.typeArgumentList.typeArguments.isNotEmpty() }
+                            normalizedParameterClass = null
+                        }
+
+                        val qualifierPartArgumentsCount = qualifier[normalizedQualifierPartIndex].typeArgumentList.typeArguments.size
                         createDiagnosticsIfExists(
-                            parameterClass,
-                            qualifierPartIndex,
+                            normalizedParameterClass,
+                            normalizedQualifierPartIndex,
                             symbol,
                             typeRef,
                             qualifierPartArgumentsCount
                         )?.let { return it }
+
                         continue
                     }
 
