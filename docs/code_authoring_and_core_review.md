@@ -8,7 +8,7 @@ It can and should be used as the reference for the mismatches between the review
 
 * For any code review, there exists **a single primary code reviewer**, solely responsible for the change processed:
   - They review not only the change from their subsystem but the change in general – they decide whether the change is reasonable as a whole and whether it is future-proof and sustainable in the long run. They know the context of the feature, the final deliverable, and further related enhancements.
-  - Effectively, it means that this reviewer is the next in line to further maintain this change, answer other developers’ questions regarding the change, and fix regressions in this very change.
+  - Effectively, it means that this reviewer is the next in line to maintain this change further, answer other developers’ questions regarding the change, and fix regressions in this very change.
   - We emphasize that it means “the code is properly documented and tested, is approachable and maintainable by others” rather than “If I am responsible for it, then it should be written in the manner I would have done so”.
 * `CODEOWNERS` reviewers review the change in their particular subsystems
   - Their responsibility is to ensure that the change in the corresponding subsystem makes sense: is consistent with the rest of the subsystem, is tested and/or documented accordingly to their subsystem’s standards, does not contradict potential subsequent changes etc.
