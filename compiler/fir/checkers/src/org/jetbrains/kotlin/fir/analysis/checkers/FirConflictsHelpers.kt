@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.fir.declarations.FirOuterClassTypeParameterRef
 import org.jetbrains.kotlin.fir.declarations.impl.FirResolvedDeclarationStatusImpl.Companion.DEFAULT_STATUS_FOR_STATUSLESS_DECLARATIONS
 import org.jetbrains.kotlin.fir.declarations.impl.FirResolvedDeclarationStatusImpl.Companion.DEFAULT_STATUS_FOR_SUSPEND_MAIN_FUNCTION
 import org.jetbrains.kotlin.fir.declarations.impl.modifiersRepresentation
+import org.jetbrains.kotlin.fir.expressions.FirBlock
 import org.jetbrains.kotlin.fir.resolve.fullyExpandedType
 import org.jetbrains.kotlin.fir.resolve.providers.firProvider
 import org.jetbrains.kotlin.fir.scopes.impl.FirPackageMemberScope
@@ -153,9 +154,32 @@ fun FirDeclarationCollector<FirDeclaration>.collectClassMembers(klass: FirRegula
     }
 }
 
-    private fun collect(declaration: FirDeclaration, representation: String, map: MutableMap<String, MutableList<FirDeclaration>>) {
-        map.getOrPut(representation, ::mutableListOf).also {
-            it.add(declaration)
+fun collectConflictingLocalFunctionsFrom(block: FirBlock, context: CheckerContext): Map<FirFunction, SmartSet<FirBasedSymbol<*>>> {
+    var inspector: FirDeclarationCollector<FirFunction>? = null
+    val functionDeclarations = mutableMapOf<String, MutableList<FirFunction>>()
+
+    for (declaration in block.statements) {
+        if (declaration !is FirDeclaration || !declaration.isCollectable()) {
+            continue
+        }
+
+        if (inspector == null) {
+            inspector = FirDeclarationCollector(context)
+        }
+
+        when (declaration) {
+            is FirSimpleFunction ->
+                inspector.collect(declaration, FirRedeclarationPresenter.represent(declaration), functionDeclarations)
+            is FirRegularClass ->
+                declaration.declarations.filterIsInstance<FirConstructor>().forEach {
+                    inspector.collect(it, FirRedeclarationPresenter.represent(it, declaration), functionDeclarations)
+                }
+            else -> {}
+        }
+    }
+
+    return inspector?.declarationConflictingSymbols ?: emptyMap()
+}
 
 private fun <D : FirDeclaration> FirDeclarationCollector<D>.collect(
     declaration: D,

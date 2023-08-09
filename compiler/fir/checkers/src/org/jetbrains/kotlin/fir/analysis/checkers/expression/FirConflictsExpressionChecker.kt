@@ -6,12 +6,25 @@
 package org.jetbrains.kotlin.fir.analysis.checkers.expression
 
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
+import org.jetbrains.kotlin.diagnostics.reportOn
 import org.jetbrains.kotlin.fir.analysis.checkers.checkForLocalRedeclarations
+import org.jetbrains.kotlin.fir.analysis.checkers.collectConflictingLocalFunctionsFrom
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
+import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors
 import org.jetbrains.kotlin.fir.expressions.FirBlock
 
 object FirConflictsExpressionChecker : FirBlockChecker() {
     override fun check(expression: FirBlock, context: CheckerContext, reporter: DiagnosticReporter) {
         checkForLocalRedeclarations(expression.statements, context, reporter)
+        val conflictingFunctions = collectConflictingLocalFunctionsFrom(expression, context)
+
+        for ((conflictingDeclaration, symbols) in conflictingFunctions) {
+            if (symbols.isEmpty()) {
+                continue
+            }
+
+            val source = conflictingDeclaration.source
+            reporter.reportOn(source, FirErrors.CONFLICTING_OVERLOADS, symbols, context)
+        }
     }
 }
