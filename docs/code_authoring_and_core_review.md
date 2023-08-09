@@ -14,7 +14,7 @@ It can and should be used as the reference for the mismatches between the review
   - Their responsibility is to ensure that the change in the corresponding subsystem makes sense: is consistent with the rest of the subsystem, is tested and/or documented accordingly to their subsystem’s standards, does not contradict potential subsequent changes etc.
   - There is no requirement to review other subsystems, this is up to the primary reviewer
 
-There is no a formal way to define the main code reviewer, but it's encouraged to mention them explicitly if it is not obvious. This reviewer should take a look at the overall picture when reviewing, and when there are multiple reviewers, it is worth explicitly spelling out who is the primary one.
+There is no formal way to define the primary code reviewer, but it's encouraged to mention them explicitly if it is not obvious. This reviewer should take a look at the overall picture when reviewing, and when there are multiple reviewers, it is worth explicitly spelling out who is the primary one.
 When you are assigned as a reviewer, your very first action should be to ensure you are the relevant reviewer for the change and to re-assign to someone else otherwise.
 
 ### Code authoring
