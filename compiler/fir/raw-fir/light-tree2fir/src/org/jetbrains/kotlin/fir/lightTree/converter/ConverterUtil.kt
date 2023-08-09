@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.fir.lightTree.converter
 
 import com.intellij.lang.LighterASTNode
+import com.intellij.psi.tree.IElementType
 import org.jetbrains.kotlin.KtFakeSourceElementKind
 import org.jetbrains.kotlin.KtNodeTypes.*
 import org.jetbrains.kotlin.descriptors.Modality
@@ -73,6 +74,37 @@ inline fun isClassLocal(classNode: LighterASTNode, getParent: LighterASTNode.() 
         currentNode = parent
     }
     return false
+}
+
+inline fun LighterASTNode.getStrictParentOfType(type: IElementType, getParent: LighterASTNode.() -> LighterASTNode?): LighterASTNode? {
+    return getParentOfType(this, type, true, getParent)
+}
+
+inline fun getParentOfType(
+    node: LighterASTNode?,
+    type: IElementType,
+    strict: Boolean,
+    getParent: LighterASTNode.() -> LighterASTNode?,
+): LighterASTNode? {
+    var currentNode: LighterASTNode? = node ?: return null
+
+    if (strict) {
+        if (currentNode?.tokenType == KT_FILE) {
+            return null
+        }
+
+        currentNode = currentNode?.getParent()
+    }
+
+    while (currentNode != null) {
+        when (currentNode.tokenType) {
+            type -> return currentNode
+            KT_FILE -> return null
+            else -> currentNode = currentNode.getParent()
+        }
+    }
+
+    return null
 }
 
 fun generateDestructuringBlock(
