@@ -18,13 +18,12 @@ object FirConflictsExpressionChecker : FirBlockChecker() {
         checkForLocalRedeclarations(expression.statements, context, reporter)
         val conflictingFunctions = collectConflictingLocalFunctionsFrom(expression, context)
 
-        for ((conflictingDeclaration, symbols) in conflictingFunctions) {
-            if (symbols.isEmpty()) {
+        for ((function, otherFunctionsThatConflictWithIt) in conflictingFunctions) {
+            if (otherFunctionsThatConflictWithIt.isEmpty()) {
                 continue
             }
 
-            val source = conflictingDeclaration.source
-            reporter.reportOn(source, FirErrors.CONFLICTING_OVERLOADS, symbols, context)
+            reporter.reportOn(function.source, FirErrors.CONFLICTING_OVERLOADS, otherFunctionsThatConflictWithIt, context)
         }
     }
 }
