@@ -1,6 +1,3 @@
-// IGNORE_FIR
-// In K2 the symbol is kotlin.collections.MutableList<`<local>`.TagData>
-
 // WITH_STDLIB
 
 interface Indexer {
