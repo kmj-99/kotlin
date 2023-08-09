@@ -11,7 +11,10 @@ repositories {
 
 dependencies {
     implementation(libs.kotlinx.serialization.json)
-    implementation(kotlin("test-junit5"))
+    testImplementation(kotlin("test-junit5"))
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.10.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.10.0")
 }
 
 kotlin.jvmToolchain(8)
