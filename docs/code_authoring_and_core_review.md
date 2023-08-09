@@ -2,7 +2,7 @@
 
 The goal of this document is to describe a general contribution guideline that serves as **the** reference, facilitating the simplification, unification, and streamlining of our code authoring process.
 
-It can and should be used as the reference for the mismatches between reviewer and the reviewee.
+It can and should be used as the reference for the mismatches between the reviewer and the reviewee.
 
 ### Code review accountability
 
