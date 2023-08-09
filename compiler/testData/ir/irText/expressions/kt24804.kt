@@ -1,6 +1,7 @@
 // IGNORE_BACKEND_K2: JVM_IR
 // IGNORE_BACKEND_K2: JS_IR
 // IGNORE_BACKEND_K2: JS_IR_ES6
+
 inline fun foo() = false
 
 fun run(x: Boolean, y: Boolean): String {
