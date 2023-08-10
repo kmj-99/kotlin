@@ -166,15 +166,6 @@ object StandardClassIds {
         val Repeatable = "Repeatable".annotationId()
         val MustBeDocumented = "MustBeDocumented".annotationId()
 
-        val JvmStatic = "JvmStatic".jvmId()
-        val JvmName = "JvmName".jvmId()
-        val JvmField = "JvmField".jvmId()
-        val JvmDefault = "JvmDefault".jvmId()
-        val JvmRepeatable = "JvmRepeatable".jvmId()
-        val JvmRecord = "JvmRecord".jvmId()
-        val JvmVolatile = "Volatile".jvmId()
-        val Throws = "Throws".jvmId()
-
         val Volatile = "Volatile".concurrentId()
 
         val Test = "Test".testId()
@@ -197,16 +188,6 @@ object StandardClassIds {
         val AccessibleLateinitPropertyLiteral = "AccessibleLateinitPropertyLiteral".internalId()
 
         val OptionalExpectation = "OptionalExpectation".baseId()
-
-        object Java {
-            val Deprecated = "Deprecated".javaLangId()
-            val Repeatable = "Repeatable".javaAnnotationId()
-            val Retention = "Retention".javaAnnotationId()
-            val Documented = "Documented".javaAnnotationId()
-            val Target = "Target".javaAnnotationId()
-            val ElementType = "ElementType".javaAnnotationId()
-            val RetentionPolicy = "RetentionPolicy".javaAnnotationId()
-        }
 
         object ParameterNames {
             val value = Name.identifier("value")
@@ -238,10 +219,6 @@ object StandardClassIds {
         val not = "not".callableId(Boolean)
 
         val contract = "contract".callableId(BASE_CONTRACTS_PACKAGE)
-    }
-
-    object Java {
-        val Record = "Record".javaLangId()
     }
 
     object Collections {
@@ -281,11 +258,5 @@ private fun String.testId() = ClassId(StandardClassIds.BASE_TEST_PACKAGE, Name.i
 
 private fun String.callableId(packageName: FqName) = CallableId(packageName, Name.identifier(this))
 private fun String.callableId(classId: ClassId) = CallableId(classId, Name.identifier(this))
-
-private val JAVA_LANG_PACKAGE = FqName("java.lang")
-private val JAVA_LANG_ANNOTATION_PACKAGE = JAVA_LANG_PACKAGE.child(Name.identifier("annotation"))
-
-private fun String.javaLangId() = ClassId(JAVA_LANG_PACKAGE, Name.identifier(this))
-private fun String.javaAnnotationId() = ClassId(JAVA_LANG_ANNOTATION_PACKAGE, Name.identifier(this))
 
 private fun <K, V> Map<K, V>.inverseMap(): Map<V, K> = entries.associate { (k, v) -> v to k }
