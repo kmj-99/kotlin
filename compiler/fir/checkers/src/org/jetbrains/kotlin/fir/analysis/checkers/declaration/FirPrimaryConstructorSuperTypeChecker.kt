@@ -13,6 +13,8 @@ import org.jetbrains.kotlin.diagnostics.reportOn
 import org.jetbrains.kotlin.fir.analysis.checkers.SourceNavigator
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors
+import org.jetbrains.kotlin.diagnostics.reportOn
+import org.jetbrains.kotlin.fir.analysis.checkers.primaryConstructorSuperTypePlatformSupport
 import org.jetbrains.kotlin.fir.declarations.FirClass
 import org.jetbrains.kotlin.fir.declarations.FirRegularClass
 import org.jetbrains.kotlin.fir.declarations.primaryConstructorIfAny
@@ -80,7 +82,9 @@ object FirPrimaryConstructorSuperTypeChecker : FirClassChecker() {
         }
         val delegatedCallSource = delegatedConstructorCall.source ?: return
         if (delegatedCallSource.kind !is KtFakeSourceElementKind) return
-        if (superClassSymbol.classId == StandardClassIds.Enum || superClassSymbol.classId == StandardClassIds.Java.Record) return
+        val supertypesToSkip = context.session.primaryConstructorSuperTypePlatformSupport
+            .supertypesThatDontNeedInitializationInSubtypesConstructors
+        if (superClassSymbol.classId in supertypesToSkip) return
         if (delegatedCallSource.elementType != KtNodeTypes.SUPER_TYPE_CALL_ENTRY) {
             reporter.reportOn(constructedTypeRef.source, FirErrors.SUPERTYPE_NOT_INITIALIZED, context)
         }
