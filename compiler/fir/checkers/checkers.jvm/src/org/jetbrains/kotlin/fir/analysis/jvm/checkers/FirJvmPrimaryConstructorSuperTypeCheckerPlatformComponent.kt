@@ -6,9 +6,9 @@
 package org.jetbrains.kotlin.fir.analysis.jvm.checkers
 
 import org.jetbrains.kotlin.fir.analysis.checkers.FirPrimaryConstructorSuperTypeCheckerPlatformComponent
-import org.jetbrains.kotlin.name.JvmNames
+import org.jetbrains.kotlin.name.JvmStandardClassIds
 import org.jetbrains.kotlin.name.StandardClassIds
 
 object FirJvmPrimaryConstructorSuperTypeCheckerPlatformComponent : FirPrimaryConstructorSuperTypeCheckerPlatformComponent() {
-    override val supertypesThatDontNeedInitializationInSubtypesConstructors = setOf(StandardClassIds.Enum, JvmNames.Java.Record)
+    override val supertypesThatDontNeedInitializationInSubtypesConstructors = setOf(StandardClassIds.Enum, JvmStandardClassIds.Java.Record)
 }

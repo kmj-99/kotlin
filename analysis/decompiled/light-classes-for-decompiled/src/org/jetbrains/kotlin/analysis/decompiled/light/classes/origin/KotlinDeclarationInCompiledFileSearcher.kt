@@ -17,7 +17,7 @@ import org.jetbrains.kotlin.load.java.JvmAbi
 import org.jetbrains.kotlin.load.java.propertyNameByGetMethodName
 import org.jetbrains.kotlin.load.java.propertyNamesBySetMethodName
 import org.jetbrains.kotlin.load.kotlin.MemberSignature
-import org.jetbrains.kotlin.name.JvmNames
+import org.jetbrains.kotlin.name.JvmStandardClassIds
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.hasSuspendModifier
@@ -117,7 +117,7 @@ abstract class KotlinDeclarationInCompiledFileSearcher {
     private fun getJvmName(declaration: KtDeclaration?): String? {
         if (declaration == null) return null
         val annotationEntry = declaration.annotationEntries.firstOrNull {
-            it.calleeExpression?.constructorReferenceExpression?.getReferencedName() == JvmNames.JVM_NAME_SHORT
+            it.calleeExpression?.constructorReferenceExpression?.getReferencedName() == JvmStandardClassIds.JVM_NAME_SHORT
         }
         if (annotationEntry != null) {
             val constantValue = (annotationEntry.stub as? KotlinAnnotationEntryStubImpl)?.valueArguments?.get(Name.identifier("name"))
@@ -158,7 +158,7 @@ abstract class KotlinDeclarationInCompiledFileSearcher {
         val parametersCount = member.parameterList.parametersCount
         val isJvmOverloads = ktNamedFunction.annotationEntries.any {
             it.calleeExpression?.constructorReferenceExpression?.getReferencedName() ==
-                    JvmNames.JVM_OVERLOADS_FQ_NAME.shortName().asString()
+                    JvmStandardClassIds.JVM_OVERLOADS_FQ_NAME.shortName().asString()
         }
         val firstDefaultParametersToPass = if (isJvmOverloads) {
             val totalNumberOfParametersWithDefaultValues = ktNamedFunction.valueParameters.filter { it.hasDefaultValue() }.size
