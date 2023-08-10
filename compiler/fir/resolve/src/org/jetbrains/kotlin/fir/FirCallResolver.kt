@@ -193,7 +193,11 @@ class FirCallResolver(
     ): Pair<Set<Candidate>, CandidateApplicability?> {
         fun chooseMostSpecific(list: List<Candidate>): Set<Candidate> {
             val onSuperReference = (explicitReceiver as? FirQualifiedAccessExpression)?.calleeReference is FirSuperReference
-            return conflictResolver.chooseMaximallySpecificCandidates(list, discriminateAbstracts = onSuperReference)
+            val result = conflictResolver.chooseMaximallySpecificCandidates(list, discriminateAbstracts = onSuperReference)
+            if (result.size > 1 && result.first().isCodeFragmentVisibilityError) {
+                return chooseCandidateForCodeFragment(result)?.let { setOf(it) } ?: result
+            }
+            return result
         }
 
         val candidates = collector.bestCandidates()
@@ -216,6 +220,41 @@ class FirCallResolver(
         }
 
         return candidates.toSet() to null
+    }
+
+    private fun chooseCandidateForCodeFragment(reducedCandidates: Set<Candidate>): Candidate? {
+        val visibilityErrorCandidates = reducedCandidates.filter { c ->
+            c.currentApplicability == CandidateApplicability.K2_VISIBILITY_ERROR
+        }
+        visibilityErrorCandidates.singleOrNull()?.let {
+            return it
+        }
+        var curType: ConeKotlinType? = null
+        var best: Candidate? = null
+        for (c in visibilityErrorCandidates) {
+            val coneType = (c.symbol.fir as? FirCallableDeclaration)?.dispatchReceiverType
+            if (coneType == null) {
+                best = null
+                break
+            }
+            if (curType != null) {
+                if (curType == coneType) {
+                    best = null
+                    break
+                }
+                if (coneType.isSubtypeOf(curType, session)) {
+                    curType = coneType
+                    best = c
+                } else if (!curType.isSubtypeOf(coneType, session)) {
+                    best = null
+                    break
+                }
+            } else {
+                curType = coneType
+                best = c
+            }
+        }
+        return best
     }
 
     fun resolveVariableAccessAndSelectCandidate(

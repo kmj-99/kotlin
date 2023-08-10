@@ -181,6 +181,12 @@ public class CodeFragmentCapturingTestGenerated extends AbstractCodeFragmentCapt
     }
 
     @Test
+    @TestMetadata("privateShadowing.kt")
+    public void testPrivateShadowing() throws Exception {
+        runTest("analysis/analysis-api/testData/components/compilerFacility/compilation/codeFragments/capturing/privateShadowing.kt");
+    }
+
+    @Test
     @TestMetadata("secondClassContextReceiver.kt")
     public void testSecondClassContextReceiver() throws Exception {
         runTest("analysis/analysis-api/testData/components/compilerFacility/compilation/codeFragments/capturing/secondClassContextReceiver.kt");

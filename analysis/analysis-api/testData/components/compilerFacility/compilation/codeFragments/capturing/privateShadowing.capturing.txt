@@ -1,0 +1,3 @@
+Local[name: b; isMutated: false; displayText: b]
+    b: R|B|
+    R|B|
