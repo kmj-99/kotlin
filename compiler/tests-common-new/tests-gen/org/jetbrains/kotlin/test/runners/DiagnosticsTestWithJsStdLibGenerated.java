@@ -704,6 +704,12 @@ public class DiagnosticsTestWithJsStdLibGenerated extends AbstractDiagnosticsTes
         }
 
         @Test
+        @TestMetadata("classMembers.kt")
+        public void testClassMembers() throws Exception {
+            runTest("compiler/testData/diagnostics/testsWithJsStdLib/name/classMembers.kt");
+        }
+
+        @Test
         @TestMetadata("conflictingNamesFromSuperclass.kt")
         public void testConflictingNamesFromSuperclass() throws Exception {
             runTest("compiler/testData/diagnostics/testsWithJsStdLib/name/conflictingNamesFromSuperclass.kt");
@@ -719,6 +725,18 @@ public class DiagnosticsTestWithJsStdLibGenerated extends AbstractDiagnosticsTes
         @TestMetadata("extensionPropertyAndMethod.kt")
         public void testExtensionPropertyAndMethod() throws Exception {
             runTest("compiler/testData/diagnostics/testsWithJsStdLib/name/extensionPropertyAndMethod.kt");
+        }
+
+        @Test
+        @TestMetadata("extensionPropertyAndMethodWithJsName.kt")
+        public void testExtensionPropertyAndMethodWithJsName() throws Exception {
+            runTest("compiler/testData/diagnostics/testsWithJsStdLib/name/extensionPropertyAndMethodWithJsName.kt");
+        }
+
+        @Test
+        @TestMetadata("externalClassInheritance.kt")
+        public void testExternalClassInheritance() throws Exception {
+            runTest("compiler/testData/diagnostics/testsWithJsStdLib/name/externalClassInheritance.kt");
         }
 
         @Test
