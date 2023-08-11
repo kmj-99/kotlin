@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.psi2ir.descriptors.IrBuiltInsOverDescriptors
 @OptIn(ObsoleteDescriptorBasedAPI::class)
 class JsIrCompilerWithIC(
     private val mainModule: IrModuleFragment,
+    private val mainArguments: List<String>?,
     configuration: CompilerConfiguration,
     granularity: JsGenerationGranularity,
     private val phaseConfig: PhaseConfig,
@@ -44,15 +45,12 @@ class JsIrCompilerWithIC(
             configuration = configuration,
             es6mode = es6mode,
             granularity = granularity,
-            incrementalCacheEnabled = true
+            incrementalCacheEnabled = true,
+            mainCallArguments = mainArguments
         )
     }
 
-    override fun compile(
-        allModules: Collection<IrModuleFragment>,
-        dirtyFiles: Collection<IrFile>,
-        mainArguments: List<String>?
-    ): List<() -> List<JsIrProgramFragment>> {
+    override fun compile(allModules: Collection<IrModuleFragment>, dirtyFiles: Collection<IrFile>): List<() -> List<JsIrProgramFragment>> {
         val shouldGeneratePolyfills = context.configuration.getBoolean(JSConfigurationKeys.GENERATE_POLYFILLS)
 
         allModules.forEach {
@@ -66,7 +64,7 @@ class JsIrCompilerWithIC(
 
         lowerPreservingTags(allModules, context, phaseConfig, context.irFactory.stageController as WholeWorldStageController)
 
-        val transformer = IrModuleToJsTransformer(context, mainArguments)
+        val transformer = IrModuleToJsTransformer(context, shouldReferMainFunction = mainArguments != null)
         return transformer.makeIrFragmentsGenerators(dirtyFiles, allModules)
     }
 }

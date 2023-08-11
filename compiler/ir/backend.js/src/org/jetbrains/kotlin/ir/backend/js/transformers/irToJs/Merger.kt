@@ -57,7 +57,6 @@ class Merger(
                 }
 
                 rename(f.initializers)
-                f.mainFunction?.let { rename(it) }
                 f.testFunInvocation?.let { rename(it) }
                 f.suiteFn?.let { f.suiteFn = rename(it) }
             }
@@ -243,7 +242,7 @@ class Merger(
             moduleBody.endRegion()
         }
 
-        val callToMain = fragments.sortedBy { it.packageFqn }.firstNotNullOfOrNull { it.mainFunction }
+        val fragmentWithMainFunction = fragments.sortedBy { it.packageFqn }.firstOrNull { it.mainFunction != null }
 
         val exportStatements = declareAndCallJsExporter() + additionalExports + transitiveJsExport()
 
@@ -263,8 +262,10 @@ class Merger(
                 statements.addWithComment("block: imports", importStatements)
                 statements += moduleBody
                 statements.addWithComment("block: exports", exportStatements)
-                if (generateCallToMain) {
-                    callToMain?.let { this.statements += it }
+                if (generateCallToMain && fragmentWithMainFunction != null) {
+                    val mainFunctionTag = fragmentWithMainFunction.mainFunction ?: error("Expect to have main function signature at this point")
+                    val mainFunctionName = fragmentWithMainFunction.nameBindings[mainFunctionTag] ?: error("Expect to have name binding for tag $mainFunctionTag")
+                    statements += JsInvocation(mainFunctionName.makeRef()).makeStmt()
                 }
                 this.statements += JsReturn(internalModuleName.makeRef())
             }

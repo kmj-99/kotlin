@@ -22,7 +22,7 @@ class JsIrProgramFragment(val name: String, val packageFqn: String) {
     var dts: TypeScriptFragment? = null
     val classes = mutableMapOf<JsName, JsIrIcClassModel>()
     val initializers = JsCompositeBlock()
-    var mainFunction: JsStatement? = null
+    var mainFunction: String? = null
     var testFunInvocation: JsStatement? = null
     var suiteFn: JsName? = null
     val definitions = mutableSetOf<String>()

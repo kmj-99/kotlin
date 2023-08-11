@@ -17,6 +17,9 @@ class JsMapping : DefaultMapping() {
     val esClassWhichNeedBoxParameters = DefaultDelegateFactory.newDeclarationToValueMapping<IrClass, Boolean>()
     val esClassToPossibilityForOptimization = DefaultDelegateFactory.newDeclarationToValueMapping<IrClass, MutableReference<Boolean>>()
 
+    // Main function wrappers
+    val mainFunctionToItsWrapper = DefaultDelegateFactory.newDeclarationToDeclarationMapping<IrSimpleFunction, IrSimpleFunction>()
+
     // Check if we need concurrency here
     val chunkToOriginalFile = WeakHashMap<IrFile, IrFile>()
 

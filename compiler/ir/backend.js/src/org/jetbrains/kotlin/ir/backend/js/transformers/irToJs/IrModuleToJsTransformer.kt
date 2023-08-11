@@ -47,10 +47,19 @@ val String.safeModuleName: String
 val IrModuleFragment.safeName: String
     get() = name.asString().safeModuleName
 
-fun generateProxyIrModuleWith(safeName: String, externalName: String) = JsIrModule(
+fun generateProxyIrModuleWith(
+    safeName: String,
+    externalName: String,
+    mainFunction: String?
+) = JsIrModule(
     safeName,
     externalName,
-    listOf(JsIrProgramFragment(safeName, "<proxy-file>"))
+    listOf(JsIrProgramFragment(safeName, "<proxy-file>").apply {
+        mainFunction?.let {
+            this.mainFunction = it
+            this.nameBindings[it] = JsName("main", true)
+        }
+    })
 )
 
 enum class JsGenerationGranularity {
@@ -125,8 +134,8 @@ class JsCodeGenerator(
 
 class IrModuleToJsTransformer(
     private val backendContext: JsIrBackendContext,
-    private val mainArguments: List<String>?,
     moduleToName: Map<IrModuleFragment, String> = emptyMap(),
+    private val shouldReferMainFunction: Boolean = false,
     private val removeUnusedAssociatedObjects: Boolean = true,
 ) {
     private val shouldGeneratePolyfills = backendContext.configuration.getBoolean(JSConfigurationKeys.GENERATE_POLYFILLS)
@@ -267,12 +276,16 @@ class IrModuleToJsTransformer(
         val modulesPerFile = buildList {
             for (module in exportData) {
                 var hasFileWithJsExportedDeclaration = false
+                var mainFunctionTag: String? = null
 
-                for (fileExports in module.files) {
+                for (fileExports in module.files.sortedBy { it.file.packageFqName.asString() }) {
                     if (fileExports.file.couldBeSkipped()) continue
                     val programFragments = generateProgramFragment(fileExports, mode)
 
-                    add(fileExports.toJsIrModule(programFragments.mainFragment))
+                    programFragments.mainFragment.let {
+                        add(fileExports.toJsIrModule(it))
+                        if (mainFunctionTag == null) mainFunctionTag = it.mainFunction
+                    }
 
                     programFragments.exportFragment?.let {
                         add(fileExports.toJsIrModuleForExport(module, it))
@@ -280,8 +293,8 @@ class IrModuleToJsTransformer(
                     }
                 }
 
-                if (hasFileWithJsExportedDeclaration) {
-                    add(module.toJsIrProxyModule())
+                if (hasFileWithJsExportedDeclaration || mainFunctionTag != null) {
+                    add(module.toJsIrProxyModule(mainFunctionTag))
                 }
             }
         }
@@ -306,10 +319,11 @@ class IrModuleToJsTransformer(
         )
     }
 
-    private fun IrAndExportedDeclarations.toJsIrProxyModule(): JsIrModule {
+    private fun IrAndExportedDeclarations.toJsIrProxyModule(mainFunction: String?): JsIrModule {
         return generateProxyIrModuleWith(
             fragment.safeName,
             moduleFragmentToNameMapper.getExternalNameFor(fragment),
+            mainFunction
         )
     }
 
@@ -392,15 +406,6 @@ class IrModuleToJsTransformer(
 
         result.initializers.statements += staticContext.initializerBlock.statements
 
-        if (mainArguments != null) {
-            JsMainFunctionDetector(backendContext).getMainFunctionOrNull(fileExports.file)?.let {
-                val jsName = staticContext.getNameForStaticFunction(it)
-                val generateArgv = it.valueParameters.firstOrNull()?.isStringArrayParameter() ?: false
-                val generateContinuation = it.isLoweredSuspendFunction(backendContext)
-                result.mainFunction = JsInvocation(jsName.makeRef(), generateMainArguments(generateArgv, generateContinuation, staticContext)).makeStmt()
-            }
-        }
-
         backendContext.testFunsPerFile[fileExports.file]?.let {
             result.testFunInvocation = JsInvocation(staticContext.getNameForStaticFunction(it).makeRef()).makeStmt()
             result.suiteFn = staticContext.getNameForStaticFunction(backendContext.suiteFun!!.owner)
@@ -409,6 +414,12 @@ class IrModuleToJsTransformer(
         result.importedModules += nameGenerator.importedModules
 
         val definitionSet = fileExports.file.declarations.toSet()
+
+        if (shouldReferMainFunction) {
+            JsMainFunctionDetector(backendContext).getMainFunctionOrNull(fileExports.file)
+                ?.let { backendContext.mapping.mainFunctionToItsWrapper[it] }
+                ?.let { result.mainFunction = definitionSet.computeTag(it) }
+        }
 
         result.computeAndSaveNameBindings(definitionSet, nameGenerator)
         result.computeAndSaveImports(definitionSet, nameGenerator)
@@ -480,25 +491,6 @@ class IrModuleToJsTransformer(
                 }
             }
         }
-    }
-
-    private fun generateMainArguments(
-        generateArgv: Boolean,
-        generateContinuation: Boolean,
-        staticContext: JsStaticContext,
-    ): List<JsExpression> {
-        val mainArguments = this.mainArguments!!
-        val mainArgumentsArray =
-            if (generateArgv) JsArrayLiteral(mainArguments.map { JsStringLiteral(it) }) else null
-
-        val continuation = if (generateContinuation) {
-            backendContext.coroutineEmptyContinuation.owner
-                .let { it.getter!! }
-                .let { staticContext.getNameForStaticFunction(it) }
-                .let { JsInvocation(it.makeRef()) }
-        } else null
-
-        return listOfNotNull(mainArgumentsArray, continuation)
     }
 
     private fun IrFile.couldBeSkipped(): Boolean = declarations.all { it.origin == JsCodeOutliningLowering.OUTLINED_JS_CODE_ORIGIN }
