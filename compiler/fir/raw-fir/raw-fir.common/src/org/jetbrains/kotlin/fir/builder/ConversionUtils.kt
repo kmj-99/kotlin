@@ -50,6 +50,7 @@ import org.jetbrains.kotlin.fir.types.impl.*
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.SpecialNames
+import org.jetbrains.kotlin.realElement
 import org.jetbrains.kotlin.types.ConstantValueKind
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.types.expressions.OperatorConventions
@@ -673,3 +674,11 @@ fun AnnotationUseSiteTarget?.appliesToPrimaryConstructorParameter() = this == nu
         this == AnnotationUseSiteTarget.CONSTRUCTOR_PARAMETER ||
         this == AnnotationUseSiteTarget.RECEIVER ||
         this == AnnotationUseSiteTarget.FILE
+
+fun KtSourceElement.withForcedKindFrom(context: Context<*>): KtSourceElement {
+    return when (val forcedKind = context.forcedElementSourceKind) {
+        kind -> this
+        is KtFakeSourceElementKind -> fakeElement(forcedKind)
+        else -> this.realElement()
+    }
+}
