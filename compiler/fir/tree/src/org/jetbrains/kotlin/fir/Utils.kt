@@ -267,17 +267,21 @@ fun <T> List<T>.smartPlus(other: List<T>): List<T> = when {
 // Source element may be missing if the class came from a library
 fun FirVariable.isEnumEntries(containingClass: FirClass) = isStatic && name == StandardNames.ENUM_ENTRIES && containingClass.isEnumClass
 
-fun <R, D> FirElementInterface.accept(visitor: FirVisitor<R, D>, data: D): R {
+@Suppress("NOTHING_TO_INLINE")
+inline fun <R, D> FirElementInterface.accept(visitor: FirVisitor<R, D>, data: D): R {
     return (this as FirElement).accept(visitor, data)
 }
 
-fun FirElementInterface.accept(visitor: FirVisitorVoid) = accept(visitor, null)
+@Suppress("NOTHING_TO_INLINE")
+inline fun FirElementInterface.accept(visitor: FirVisitorVoid) = accept(visitor, null)
 
-fun <E : FirElementInterface, D> FirElementInterface.transform(transformer: FirTransformer<D>, data: D): E {
+@Suppress("NOTHING_TO_INLINE")
+inline fun <E : FirElementInterface, D> FirElementInterface.transform(transformer: FirTransformer<D>, data: D): E {
     return (this as FirElement).transform(transformer, data)
 }
 
-fun <D> FirElementInterface.transformChildren(transformer: FirTransformer<D>, data: D): FirElementInterface {
+@Suppress("NOTHING_TO_INLINE")
+inline fun <D> FirElementInterface.transformChildren(transformer: FirTransformer<D>, data: D): FirElementInterface {
     return (this as FirElement).transformChildren(transformer, data)
 }
 

@@ -14,7 +14,8 @@ fun <T : FirElement, D> T.transformSingle(transformer: FirTransformer<D>, data: 
     return (this as FirPureAbstractElement).transform<T, D>(transformer, data)
 }
 
-fun <T : FirElementInterface, D> T.transformSingle(transformer: FirTransformer<D>, data: D): T {
+@Suppress("NOTHING_TO_INLINE")
+inline fun <T : FirElementInterface, D> T.transformSingle(transformer: FirTransformer<D>, data: D): T {
     @Suppress("UNCHECKED_CAST")
     return (this as FirElement).transformSingle(transformer, data) as T
 }
@@ -31,7 +32,8 @@ fun <T : FirElement, D> MutableList<T>.transformInplace(transformer: FirTransfor
 }
 
 @JvmName("transformInplace1")
-fun <T : FirElementInterface, D> MutableList<T>.transformInplace(transformer: FirTransformer<D>, data: D) {
+@Suppress("NOTHING_TO_INLINE")
+inline fun <T : FirElementInterface, D> MutableList<T>.transformInplace(transformer: FirTransformer<D>, data: D) {
     @Suppress("UNCHECKED_CAST")
     (this as MutableList<FirElement>).transformInplace(transformer, data)
 }
@@ -41,7 +43,8 @@ fun <T : FirElement, D> MutableOrEmptyList<T>.transformInplace(transformer: FirT
 }
 
 @JvmName("transformInplace2")
-fun <T : FirElementInterface, D> MutableOrEmptyList<T>.transformInplace(transformer: FirTransformer<D>, data: D) {
+@Suppress("NOTHING_TO_INLINE")
+inline fun <T : FirElementInterface, D> MutableOrEmptyList<T>.transformInplace(transformer: FirTransformer<D>, data: D) {
     @Suppress("UNCHECKED_CAST")
     (this as MutableOrEmptyList<FirElement>).transformInplace(transformer, data)
 }
@@ -71,12 +74,4 @@ inline fun <T : FirElement, D> MutableList<T>.transformInplace(transformer: FirT
             iterator.set(result)
         }
     }
-}
-
-fun <R, D> List<FirElement>.acceptAllElements(visitor: FirVisitor<R, D>, data: D) {
-    forEach { it.accept(visitor, data) }
-}
-
-fun List<FirElement>.acceptAllElements(visitor: FirVisitorVoid) {
-    forEach { it.accept(visitor) }
 }
