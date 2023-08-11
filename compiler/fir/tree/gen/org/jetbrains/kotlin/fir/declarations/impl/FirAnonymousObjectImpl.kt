@@ -31,6 +31,7 @@ import org.jetbrains.kotlin.fir.MutableOrEmptyList
 import org.jetbrains.kotlin.fir.builder.toMutableOrEmpty
 import org.jetbrains.kotlin.fir.declarations.ResolveStateAccess
 import org.jetbrains.kotlin.fir.accept
+import org.jetbrains.kotlin.fir.transform
 
 /*
  * This file was generated automatically
@@ -63,7 +64,7 @@ internal class FirAnonymousObjectImpl(
 
     override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
         typeParameters.forEach { it.accept(visitor, data) }
-        (status as FirElement).accept(visitor, data)
+        status.accept(visitor, data)
         controlFlowGraphReference?.accept(visitor, data)
         superTypeRefs.forEach { it.accept(visitor, data) }
         declarations.forEach { it.accept(visitor, data) }
@@ -86,7 +87,7 @@ internal class FirAnonymousObjectImpl(
     }
 
     override fun <D> transformStatus(transformer: FirTransformer<D>, data: D): FirAnonymousObjectImpl {
-        status = (status as FirElement).transform(transformer, data)
+        status = status.transform(transformer, data)
         return this
     }
 

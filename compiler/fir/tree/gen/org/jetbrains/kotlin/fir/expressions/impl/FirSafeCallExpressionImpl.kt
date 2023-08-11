@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.fir.visitors.*
 import org.jetbrains.kotlin.fir.MutableOrEmptyList
 import org.jetbrains.kotlin.fir.builder.toMutableOrEmpty
 import org.jetbrains.kotlin.fir.accept
+import org.jetbrains.kotlin.fir.transform
 
 /*
  * This file was generated automatically
@@ -37,7 +38,7 @@ internal class FirSafeCallExpressionImpl(
     override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
         annotations.forEach { it.accept(visitor, data) }
         receiver.accept(visitor, data)
-        (selector as FirElement).accept(visitor, data)
+        selector.accept(visitor, data)
     }
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirSafeCallExpressionImpl {
@@ -58,7 +59,7 @@ internal class FirSafeCallExpressionImpl(
     }
 
     override fun <D> transformSelector(transformer: FirTransformer<D>, data: D): FirSafeCallExpressionImpl {
-        selector = (selector as FirElement).transform(transformer, data)
+        selector = selector.transform(transformer, data)
         return this
     }
 
