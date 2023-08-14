@@ -17,6 +17,7 @@ import kotlin.io.path.*
 import kotlin.test.assertTrue
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.testbase.TestVersions.ThirdPartyDependencies.GRADLE_ENTERPRISE_PLUGIN_VERSION
+import org.junit.jupiter.api.io.TempDir
 
 @DisplayName("Build reports")
 @JvmGradlePluginTests
@@ -263,17 +264,27 @@ class BuildReportsIT : KGPBaseTest() {
         }
     }
 
-    private val kotlinErrorPath = ".gradle/kotlin/errors"
-
     @DisplayName("Error file is created")
     @GradleTestVersions(
         additionalVersions = [TestVersions.Gradle.G_7_6, TestVersions.Gradle.G_8_0],
     )
     @GradleTest
-    fun testErrorsFileSmokeTest(gradleVersion: GradleVersion) {
-        project("simpleProject", gradleVersion) {
+    fun testErrorsFileSmokeTest(
+        gradleVersion: GradleVersion,
+        @TempDir tempDir: Path,
+    ) {
+        project(
+            projectName = "simpleProject",
+            gradleVersion = gradleVersion,
+            buildOptions = defaultBuildOptions.copy(kotlinUserHome = tempDir)
+        ) {
 
             val lookupsTab = projectPath.resolve("build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/lookups.tab")
+            fun kotlinErrorPath() = tempDir
+                .resolve("projects-1")
+                .findInPath("errors")
+                ?: throw IllegalStateException("Could not find global Kotlin errors directory!")
+
             buildGradle.appendText(
                 """
                     tasks.named("compileKotlin") {
@@ -284,20 +295,19 @@ class BuildReportsIT : KGPBaseTest() {
                 """.trimIndent()
             )
             build("compileKotlin") {
-                assertTrue { projectPath.resolve(kotlinErrorPath).listDirectoryEntries().isEmpty() }
+                assertTrue { kotlinErrorPath().listDirectoryEntries().isEmpty() }
             }
             val kotlinFile = kotlinSourcesDir().resolve("helloWorld.kt")
             kotlinFile.modify { it.replace("ArrayList", "skjfghsjk") }
             buildAndFail("compileKotlin") {
-                val buildErrorDir = projectPath.resolve(kotlinErrorPath).toFile()
-                val files = buildErrorDir.listFiles()
-                assertTrue { files?.first()?.exists() ?: false }
-                files?.first()?.bufferedReader().use { reader ->
-                    val kotlinVersion = reader?.readLine()
+                val files = kotlinErrorPath().listDirectoryEntries()
+                assertTrue { files.first().exists() }
+                files.first().bufferedReader().use { reader ->
+                    val kotlinVersion = reader.readLine()
                     assertTrue("kotlin version should be in the error file") {
                         kotlinVersion != null && kotlinVersion.trim().equals("kotlin version: ${buildOptions.kotlinVersion}")
                     }
-                    val errorMessage = reader?.readLine()
+                    val errorMessage = reader.readLine()
                     assertTrue("Error message should start with 'error message: ' to parse it on IDEA side") {
                         errorMessage != null && errorMessage.trim().startsWith("error message:")
                     }
@@ -312,15 +322,27 @@ class BuildReportsIT : KGPBaseTest() {
         additionalVersions = [TestVersions.Gradle.G_7_6, TestVersions.Gradle.G_8_0],
     )
     @GradleTest
-    fun testErrorsFileWithCompilationError(gradleVersion: GradleVersion) {
-        project("simpleProject", gradleVersion) {
+    fun testErrorsFileWithCompilationError(
+        gradleVersion: GradleVersion,
+        @TempDir tempDir: Path,
+    ) {
+        project(
+            projectName = "simpleProject",
+            gradleVersion = gradleVersion,
+            buildOptions = defaultBuildOptions.copy(kotlinUserHome = tempDir)
+        ) {
+            fun kotlinErrorPath() = tempDir
+                .resolve("projects-1")
+                .findInPath("errors")
+                ?: throw IllegalStateException("Could not find global Kotlin errors directory!")
+
             build("compileKotlin") {
-                assertTrue { projectPath.resolve(kotlinErrorPath).listDirectoryEntries().isEmpty() }
+                assertTrue { kotlinErrorPath().listDirectoryEntries().isEmpty() }
             }
             val kotlinFile = kotlinSourcesDir().resolve("helloWorld.kt")
             kotlinFile.modify { it.replace("ArrayList", "skjfghsjk") }
             buildAndFail("compileKotlin") {
-                assertTrue { projectPath.resolve(kotlinErrorPath).listDirectoryEntries().isEmpty() }
+                assertTrue { kotlinErrorPath().listDirectoryEntries().isEmpty() }
             }
         }
     }
