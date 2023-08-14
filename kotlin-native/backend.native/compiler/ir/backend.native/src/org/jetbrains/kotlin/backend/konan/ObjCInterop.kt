@@ -60,7 +60,7 @@ fun ClassDescriptor.isExternalObjCClass(): Boolean = this.isObjCClass() &&
             it.annotations.findAnnotation(externalObjCClassFqName) != null
         }
 fun IrClass.isExternalObjCClass(): Boolean = this.isObjCClass() &&
-        (this as IrDeclaration).parentDeclarationsWithSelf.filterIsInstance<IrClass>().any {
+        this.parentDeclarationsWithSelf.filterIsInstance<IrClass>().any {
             it.annotations.hasAnnotation(externalObjCClassFqName)
         }
 
