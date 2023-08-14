@@ -15,7 +15,9 @@ import org.jetbrains.kotlin.gradle.dsl.NativeCacheKind
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilerExecutionStrategy
 import org.jetbrains.kotlin.gradle.report.BuildReportType
 import org.junit.jupiter.api.condition.OS
+import java.nio.file.Path
 import java.util.*
+import kotlin.io.path.absolutePathString
 
 data class BuildOptions(
     val logLevel: LogLevel = LogLevel.INFO,
@@ -50,6 +52,7 @@ data class BuildOptions(
     val nativeOptions: NativeOptions = NativeOptions(),
     val compilerExecutionStrategy: KotlinCompilerExecutionStrategy? = null,
     val runViaBuildToolsApi: Boolean? = null,
+    val kotlinUserHome: Path? = testKitDir.resolve(".kotlin")
 ) {
     val safeAndroidVersion: String
         get() = androidVersion ?: error("AGP version is expected to be set")
@@ -197,6 +200,10 @@ data class BuildOptions(
 
         if (stacktraceMode != null) {
             arguments.add("--$stacktraceMode")
+        }
+
+        if (kotlinUserHome != null) {
+            arguments.add("-Pkotlin.user.home=${kotlinUserHome.absolutePathString()}")
         }
 
         arguments.addAll(freeArgs)

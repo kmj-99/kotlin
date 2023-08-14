@@ -143,7 +143,7 @@ open class CommonizerIT : KGPBaseTest() {
         gradleVersion: GradleVersion,
         @TempDir tempDir: Path,
     ) {
-        nativeProject("commonizeCurlInterop", gradleVersion) {
+        nativeProject("commonizeCurlInterop", gradleVersion, buildOptions = defaultBuildOptions.copy(kotlinUserHome = null)) {
 
             configureCommonizerTargets()
 
@@ -517,7 +517,7 @@ open class CommonizerIT : KGPBaseTest() {
         gradleVersion: GradleVersion,
         @TempDir tempDir: Path,
     ) {
-        nativeProject("commonizeCurlInterop", gradleVersion) {
+        nativeProject("commonizeCurlInterop", gradleVersion, buildOptions = defaultBuildOptions.copy(kotlinUserHome = null)) {
             gradleProperties.append("kotlin.user.home=${tempDir.absolutePathString()}")
 
             configureCommonizerTargets()
