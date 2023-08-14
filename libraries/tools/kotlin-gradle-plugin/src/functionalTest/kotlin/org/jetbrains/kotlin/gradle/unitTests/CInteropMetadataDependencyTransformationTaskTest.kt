@@ -135,14 +135,10 @@ class CInteropMetadataDependencyTransformationTaskTest : MultiplatformExtensionT
                 nativeMain as DefaultKotlinSourceSet
             ) ?: fail("Expected transformation task registered for '$nativeMain'")
             val cinteropTransformationTask = cinteropTransformationTaskProvider.get()
-            val projectRootDir = rootDir
             return cinteropTransformationTask
                 .outputs
                 .files
-                .map { it.relativeTo(projectRootDir) }
                 .toSet()
-                // common root directory where all transformations stored
-                .minus(File(".kotlin/kotlinTransformedCInteropMetadataLibraries"))
         }
 
         suspend fun assertTasksOutputsDoesntIntersect(a: Project, b: Project) {
@@ -152,7 +148,7 @@ class CInteropMetadataDependencyTransformationTaskTest : MultiplatformExtensionT
             val intersection = outputsA intersect outputsB
 
             assertTrue(
-                actual = intersection.isEmpty(),
+                actual = intersection.size == 1, // Shared output directory itself is always present in every task output
                 message = """CInteropMetadataDependencyTransformationTaskForIde outputs conflicts for projects $a and $b :
                     |Same output files: ${intersection.toList()}
                 """.trimMargin()
