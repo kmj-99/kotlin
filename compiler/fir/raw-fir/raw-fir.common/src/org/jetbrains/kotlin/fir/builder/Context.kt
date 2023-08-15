@@ -9,7 +9,6 @@ import org.jetbrains.kotlin.KtSourceElementKind
 import org.jetbrains.kotlin.fir.FirFunctionTarget
 import org.jetbrains.kotlin.fir.FirLabel
 import org.jetbrains.kotlin.fir.FirLoopTarget
-import org.jetbrains.kotlin.util.PrivateForInline
 import org.jetbrains.kotlin.fir.declarations.FirTypeParameterRef
 import org.jetbrains.kotlin.fir.declarations.builder.buildOuterClassTypeParameterRef
 import org.jetbrains.kotlin.fir.expressions.FirExpression
@@ -19,6 +18,7 @@ import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.util.PrivateForInline
 
 class Context<T> {
     lateinit var packageFqName: FqName
@@ -30,7 +30,26 @@ class Context<T> {
             else -> ClassId(packageFqName, className, inLocalContext)
         }
 
-    var classNameBeforeLocalContext: FqName = FqName.ROOT
+    // It represents the full fully qualified path to the current scope that is used in debug purposes
+    // It differs from className because className ignores outer classes
+
+    // Consider the following example:
+    //
+    // ```kt
+    // package testPackage
+    //
+    // class C {
+    //   fun foo() {
+    //     class D {
+    //         <caret>
+    //     }
+    //   }
+    // }
+    // ```
+    //
+    // In this case, `pathFqName` at the position of <caret> is the following: `testPackage.C.D`
+    // It differs from the `className` that is <local>/D
+    var pathFqName: FqName = FqName.ROOT
 
     val firFunctionTargets = mutableListOf<FirFunctionTarget>()
     val calleeNamesForLambda = mutableListOf<Name?>()

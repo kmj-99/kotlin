@@ -111,18 +111,23 @@ abstract class AbstractRawFirBuilder<T>(val baseSession: FirSession, val context
 
     inline fun <R> withForcedLocalContext(block: () -> R): R {
         val oldForcedLocalContext = context.inLocalContext
-        context.inLocalContext = true
-        val oldClassNameBeforeLocalContext = context.classNameBeforeLocalContext
-        if (!oldForcedLocalContext) {
-            context.classNameBeforeLocalContext = context.className
-        }
         val oldClassName = context.className
+        val oldPathFqName = context.pathFqName
+
+        context.inLocalContext = true
+        if (!oldForcedLocalContext) {
+            if (context.pathFqName.isRoot)
+                context.pathFqName = context.packageFqName
+            if (!context.className.isRoot) {
+                context.pathFqName = context.pathFqName.child(context.className.shortName())
+            }
+        }
         context.className = FqName.ROOT
         return try {
             block()
         } finally {
-            context.classNameBeforeLocalContext = oldClassNameBeforeLocalContext
             context.inLocalContext = oldForcedLocalContext
+            context.pathFqName = oldPathFqName
             context.className = oldClassName
         }
     }
@@ -159,13 +164,7 @@ abstract class AbstractRawFirBuilder<T>(val baseSession: FirSession, val context
             context.className.isRoot && !context.inLocalContext -> CallableId(context.packageFqName, name)
             context.inLocalContext -> {
                 val pathFqName =
-                    context.firFunctionTargets.fold(
-                        if (context.classNameBeforeLocalContext.isRoot) {
-                            context.packageFqName
-                        } else {
-                            ClassId(context.packageFqName, context.classNameBeforeLocalContext, false).asSingleFqName()
-                        }
-                    ) { result, firFunctionTarget ->
+                    context.firFunctionTargets.fold(context.pathFqName) { result, firFunctionTarget ->
                         if (firFunctionTarget.isLambda || firFunctionTarget.labelName == null)
                             result
                         else
