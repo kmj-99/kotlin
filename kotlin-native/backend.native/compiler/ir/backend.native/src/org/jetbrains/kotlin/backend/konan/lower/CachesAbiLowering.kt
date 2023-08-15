@@ -170,17 +170,21 @@ internal class ImportCachesAbiTransformer(val generationState: NativeGenerationS
             irClass?.isInner == true && innerClassesSupport.getOuterThisField(irClass) == field -> {
                 val accessor = cachesAbiSupport.getOuterThisAccessor(irClass)
                 dependenciesTracker.add(irClass)
-                return irCall(expression.startOffset, expression.endOffset, accessor, emptyList()).apply {
-                    putValueArgument(0, expression.receiver)
+                generationState.context.irBuiltIns.createIrBuilder(accessor.symbol, expression.startOffset, expression.endOffset).run {
+                    irCall(accessor).apply {
+                        putValueArgument(0, expression.receiver)
+                    }
                 }
             }
 
             property?.isLateinit == true -> {
                 val accessor = cachesAbiSupport.getLateinitPropertyAccessor(property)
                 dependenciesTracker.add(property)
-                return irCall(expression.startOffset, expression.endOffset, accessor, emptyList()).apply {
-                    if (irClass != null)
-                        putValueArgument(0, expression.receiver)
+                generationState.context.irBuiltIns.createIrBuilder(accessor.symbol, expression.startOffset, expression.endOffset).run {
+                    irCall(accessor).apply {
+                        if (irClass != null)
+                            putValueArgument(0, expression.receiver)
+                    }
                 }
             }
 

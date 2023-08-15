@@ -6,10 +6,12 @@
 package org.jetbrains.kotlin.backend.konan.lower
 
 import org.jetbrains.kotlin.backend.common.lower.DefaultParameterInjector
+import org.jetbrains.kotlin.backend.common.lower.createIrBuilder
 import org.jetbrains.kotlin.backend.konan.KonanBackendContext
 import org.jetbrains.kotlin.backend.konan.PrimitiveBinaryType
 import org.jetbrains.kotlin.backend.konan.computePrimitiveBinaryTypeOrNull
 import org.jetbrains.kotlin.backend.konan.getInlinedClassNative
+import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
 import org.jetbrains.kotlin.ir.types.IrType
@@ -36,17 +38,16 @@ internal class NativeDefaultParameterInjector(context: KonanBackendContext) : De
             PrimitiveBinaryType.LONG -> IrConstImpl.long(startOffset, endOffset, type, 0)
             PrimitiveBinaryType.FLOAT -> IrConstImpl.float(startOffset, endOffset, type, 0.0F)
             PrimitiveBinaryType.DOUBLE -> IrConstImpl.double(startOffset, endOffset, type, 0.0)
-            PrimitiveBinaryType.POINTER -> irCall(startOffset, endOffset, symbols.getNativeNullPtr.owner, emptyList())
+            PrimitiveBinaryType.POINTER -> with(context.irBuiltIns.createIrBuilder(symbols.getNativeNullPtr, startOffset, endOffset)) {
+                irCall(symbols.getNativeNullPtr.owner)
+            }
             PrimitiveBinaryType.VECTOR128 -> TODO()
         }
 
-        return irCall(
-                startOffset,
-                endOffset,
-                symbols.reinterpret.owner,
-                listOf(nullConstOfEquivalentType.type, type)
-        ).apply {
-            extensionReceiver = nullConstOfEquivalentType
+        return with(context.irBuiltIns.createIrBuilder(symbols.reinterpret, startOffset, endOffset)) {
+            irCall(symbols.reinterpret, listOf(nullConstOfEquivalentType.type, type)).apply {
+                extensionReceiver = nullConstOfEquivalentType
+            }
         }
     }
 }

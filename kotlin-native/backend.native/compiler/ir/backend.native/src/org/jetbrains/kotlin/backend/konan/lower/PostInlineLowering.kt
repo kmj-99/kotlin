@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.backend.konan.llvm.ConstantConstructorIntrinsicType
 import org.jetbrains.kotlin.backend.konan.llvm.tryGetConstantConstructorIntrinsicType
 import org.jetbrains.kotlin.backend.konan.renderCompilerError
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
+import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationBase
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
@@ -22,7 +23,6 @@ import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.util.file
-import org.jetbrains.kotlin.ir.util.irCall
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 
 /**

@@ -229,6 +229,16 @@ fun IrBuilderWithScope.irCall(
         }
     }
 
+fun IrBuilderWithScope.irCall(
+    callee: IrFunctionSymbol,
+    typeArguments: List<IrType>
+): IrMemberAccessExpression<*> =
+    irCall(callee).apply {
+        typeArguments.forEachIndexed { index, irType ->
+            this.putTypeArgument(index, irType)
+        }
+    }
+
 fun IrBuilderWithScope.irCallConstructor(callee: IrConstructorSymbol, typeArguments: List<IrType>): IrConstructorCall =
     IrConstructorCallImpl.fromSymbolOwner(
         startOffset,
@@ -293,6 +303,16 @@ fun IrBuilderWithScope.irCall(callee: IrFunction, origin: IrStatementOrigin? = n
         callee.typeParameters.size, callee.valueParameters.size,
         origin, superQualifierSymbol
     )
+
+fun IrBuilderWithScope.irCall(
+    callee: IrFunction,
+    typeArguments: List<IrType>
+): IrMemberAccessExpression<*> =
+    irCall(callee).apply {
+        typeArguments.forEachIndexed { index, irType ->
+            this.putTypeArgument(index, irType)
+        }
+    }
 
 fun IrBuilderWithScope.irDelegatingConstructorCall(callee: IrConstructor): IrDelegatingConstructorCall =
     IrDelegatingConstructorCallImpl(
