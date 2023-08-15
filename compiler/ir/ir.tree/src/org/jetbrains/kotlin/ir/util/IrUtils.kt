@@ -1050,10 +1050,13 @@ fun IrType.remapTypeParameters(
         else -> this
     }
 
-/* Copied from K/N */
 fun IrDeclarationContainer.addChild(declaration: IrDeclaration) {
     this.declarations += declaration
     declaration.setDeclarationsParent(this)
+}
+
+fun IrDeclarationContainer.addChildren(declarations: List<IrDeclaration>) {
+    declarations.forEach { this.addChild(it) }
 }
 
 fun <T : IrElement> T.setDeclarationsParent(parent: IrDeclarationParent): T {
