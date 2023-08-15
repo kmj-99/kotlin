@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.library.metadata.DeserializedSourceFile
 import org.jetbrains.kotlin.library.metadata.KlibMetadataDeserializedPackageFragment
 import org.jetbrains.kotlin.library.metadata.KlibMetadataProtoBuf
+import org.jetbrains.kotlin.library.metadata.impl.KlibResolvedModuleDescriptorsFactoryImpl.Companion.FORWARD_DECLARATIONS_MODULE_NAME
 import org.jetbrains.kotlin.library.metadata.kotlinLibrary
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
@@ -28,10 +29,6 @@ tailrec fun DeclarationDescriptor.findPackage(): PackageFragmentDescriptor {
     return if (this is PackageFragmentDescriptor) this
     else this.containingDeclaration!!.findPackage()
 }
-
-// This is Native specific. Try to eliminate.
-val ModuleDescriptor.isForwardDeclarationModule get() =
-    name == Name.special("<forward declarations>")
 
 private fun sourceByIndex(descriptor: CallableMemberDescriptor, index: Int): SourceFile {
     val fragment = descriptor.findPackage() as KlibMetadataDeserializedPackageFragment
