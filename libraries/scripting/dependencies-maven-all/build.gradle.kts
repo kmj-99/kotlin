@@ -18,18 +18,9 @@ plugins {
     id("jps-compatible")
 }
 
-val proguardLibraryJars by configurations.creating {
-    attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
-    }
-}
-
 dependencies {
-    api(project(":kotlin-scripting-dependencies"))
-    proguardLibraryJars(project(":kotlin-scripting-dependencies"))
-
     embedded(project(":kotlin-scripting-dependencies-maven")) { isTransitive = false }
+    embedded(project(":kotlin-scripting-dependencies")) { isTransitive = false }
 
     embedded("org.apache.maven.resolver:maven-resolver-connector-basic:1.9.2")
     embedded("org.apache.maven.resolver:maven-resolver-transport-file:1.9.2")
@@ -39,6 +30,8 @@ dependencies {
     embedded("org.apache.maven.wagon:wagon-http:3.5.3")
     embedded("commons-io:commons-io:2.11.0")
 
+    testImplementation(project(":kotlin-stdlib"))
+    testImplementation(project(":kotlin-scripting-common"))
     testImplementation(commonDependency("junit"))
     testRuntimeOnly("org.slf4j:slf4j-nop:1.7.36")
     testImplementation(project(":kotlin-scripting-dependencies-maven-all"))
@@ -127,7 +120,6 @@ val proguard by task<CacheableProguardTask> {
 
     javaLauncher.set(project.getToolchainLauncherFor(JdkMajorVersion.JDK_1_8))
 
-    libraryjars(mapOf("filter" to "!META-INF/versions/**"), proguardLibraryJars)
     libraryjars(
         files(
             javaLauncher.map {
