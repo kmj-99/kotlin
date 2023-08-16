@@ -9,7 +9,7 @@ private const val LOWER_CASE_HEX_DIGITS = "0123456789abcdef"
 private const val UPPER_CASE_HEX_DIGITS = "0123456789ABCDEF"
 
 // case-insensitive parsing
-private val HEX_DIGITS_TO_DECIMAL = IntArray(128) { -1 }.apply {
+private val HEX_DIGITS_TO_DECIMAL = IntArray(256) { -1 }.apply {
     LOWER_CASE_HEX_DIGITS.forEachIndexed { index, char -> this[char.code] = index }
     UPPER_CASE_HEX_DIGITS.forEachIndexed { index, char -> this[char.code] = index }
 }
@@ -586,8 +586,8 @@ private fun String.throwInvalidNumberOfDigits(startIndex: Int, endIndex: Int, ma
 
 private fun String.decimalFromHexDigitAt(index: Int): Int {
     val code = this[index].code
-    if (code > 127 || HEX_DIGITS_TO_DECIMAL[code] < 0) {
-        throw NumberFormatException("Expected a hexadecimal digit at index $index, but was ${this[index]}")
+    if (code ushr 8 == 0 && HEX_DIGITS_TO_DECIMAL[code] >= 0) {
+        return HEX_DIGITS_TO_DECIMAL[code]
     }
-    return HEX_DIGITS_TO_DECIMAL[code]
+    throw NumberFormatException("Expected a hexadecimal digit at index $index, but was ${this[index]}")
 }
