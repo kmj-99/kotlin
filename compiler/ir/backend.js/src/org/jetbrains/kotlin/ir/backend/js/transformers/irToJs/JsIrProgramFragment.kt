@@ -23,8 +23,8 @@ class JsIrProgramFragment(val name: String, val packageFqn: String) {
     val classes = mutableMapOf<JsName, JsIrIcClassModel>()
     val initializers = JsCompositeBlock()
     var mainFunction: JsStatement? = null
-    var testFunInvocation: JsStatement? = null
-    var suiteFn: JsName? = null
+    var testFunction: String? = null
+    var suiteFunction: String? = null
     val definitions = mutableSetOf<String>()
     val polyfills = JsCompositeBlock()
 }

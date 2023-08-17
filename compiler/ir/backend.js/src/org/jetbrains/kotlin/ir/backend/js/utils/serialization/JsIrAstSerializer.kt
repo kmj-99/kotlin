@@ -149,8 +149,12 @@ private class JsIrAstSerializer {
             writeIrIcModel(model)
         }
 
-        ifNotNull(fragment.testFunInvocation) {
-            writeStatement(it)
+        ifNotNull(fragment.testFunction) {
+            writeInt(internalizeString(it))
+        }
+
+        ifNotNull(fragment.suiteFunction) {
+            writeInt(internalizeString(it))
         }
 
         ifNotNull(fragment.mainFunction) {
@@ -159,10 +163,6 @@ private class JsIrAstSerializer {
 
         ifNotNull(fragment.dts) {
             writeString(it.raw)
-        }
-
-        ifNotNull(fragment.suiteFn) {
-            writeInt(internalizeName(it))
         }
 
         writeCollection(fragment.definitions) {

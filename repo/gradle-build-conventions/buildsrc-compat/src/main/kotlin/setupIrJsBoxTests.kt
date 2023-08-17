@@ -22,4 +22,5 @@ fun Test.useJsIrBoxTests(
     systemProperty("kotlin.js.reduced.stdlib.path", reducedStdlibPath)
     systemProperty("kotlin.js.kotlin.test.path", kotlinJsTestPath)
     systemProperty("kotlin.js.stdlib.klib.path", "libraries/stdlib/build/libs/kotlin-stdlib-js-$version.klib")
+    systemProperty("kotlin.js.kotlin.test.klib.path", "libraries/kotlin.test/js-ir/build/libs/kotlin-test-js-ir-js-$version.klib")
 }

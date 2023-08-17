@@ -58,8 +58,6 @@ class Merger(
 
                 rename(f.initializers)
                 f.mainFunction?.let { rename(it) }
-                f.testFunInvocation?.let { rename(it) }
-                f.suiteFn?.let { f.suiteFn = rename(it) }
             }
         }
 
@@ -224,22 +222,9 @@ class Merger(
         moduleBody.addWithComment("block: init", initializerBlock.statements)
 
         // Merge test function invocations
-        if (fragments.any { it.testFunInvocation != null }) {
-            val testFunBody = JsBlock()
-            val testFun = JsFunction(emptyScope, testFunBody, "root test fun")
-            val suiteFunRef = fragments.firstNotNullOf { it.suiteFn }.makeRef()
-
-            val tests = fragments.filter { it.testFunInvocation != null }
-                .groupBy({ it.packageFqn }) { it.testFunInvocation } // String -> [IrSimpleFunction]
-
-            for ((pkg, testCalls) in tests) {
-                val pkgTestFun = JsFunction(emptyScope, JsBlock(), "test fun for $pkg")
-                pkgTestFun.body.statements += testCalls
-                testFun.body.statements += JsInvocation(suiteFunRef, JsStringLiteral(pkg), JsBooleanLiteral(false), pkgTestFun).makeStmt()
-            }
-
+        JsTestFunctionTransformer.generateTestFunctionCall(fragments.asTestFunctionContainers())?.let {
             moduleBody.startRegion("block: tests")
-            moduleBody += JsInvocation(testFun).makeStmt()
+            moduleBody += it.makeStmt()
             moduleBody.endRegion()
         }
 

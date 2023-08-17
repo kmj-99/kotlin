@@ -235,3 +235,12 @@ internal fun CrossModuleReferences.crossModuleReferencesHashForIC() = HashCalcul
         }
     }
 }.finalizeAndGetHash()
+
+internal fun Map<String, List<String>>.testFunctionsHashForIC() = HashCalculatorForIC().apply {
+    updateForEach(keys.sorted()) { packageFqn ->
+        update(packageFqn)
+        updateForEach(getValue(packageFqn).sorted()) { tag ->
+            update(tag)
+        }
+    }
+}.finalizeAndGetHash()
