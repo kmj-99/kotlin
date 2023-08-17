@@ -275,8 +275,7 @@ inline fun <R, D> FirElementInterface.accept(visitor: FirVisitor<R, D>, data: D)
 @Suppress("NOTHING_TO_INLINE")
 inline fun FirElementInterface.accept(visitor: FirVisitorVoid) = accept(visitor, null)
 
-@Suppress("NOTHING_TO_INLINE")
-inline fun <E : FirElementInterface, D> FirElementInterface.transform(transformer: FirTransformer<D>, data: D): E {
+inline fun <reified E : FirElementInterface, D> FirElementInterface.transform(transformer: FirTransformer<D>, data: D): E {
     return (this as FirElement).transform(transformer, data)
 }
 

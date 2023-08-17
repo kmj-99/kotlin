@@ -14,10 +14,8 @@ fun <T : FirElement, D> T.transformSingle(transformer: FirTransformer<D>, data: 
     return (this as FirPureAbstractElement).transform<T, D>(transformer, data)
 }
 
-@Suppress("NOTHING_TO_INLINE")
-inline fun <T : FirElementInterface, D> T.transformSingle(transformer: FirTransformer<D>, data: D): T {
-    @Suppress("UNCHECKED_CAST")
-    return (this as FirElement).transformSingle(transformer, data) as T
+inline fun <reified TElement : FirElementInterface, D> TElement.transformSingle(transformer: FirTransformer<D>, data: D): TElement {
+    return (this as FirElement).transformSingle(transformer, data) as TElement
 }
 
 fun <T : FirElement, D> MutableList<T>.transformInplace(transformer: FirTransformer<D>, data: D) {
@@ -32,8 +30,7 @@ fun <T : FirElement, D> MutableList<T>.transformInplace(transformer: FirTransfor
 }
 
 @JvmName("transformInplace1")
-@Suppress("NOTHING_TO_INLINE")
-inline fun <T : FirElementInterface, D> MutableList<T>.transformInplace(transformer: FirTransformer<D>, data: D) {
+inline fun <reified T : FirElementInterface, D> MutableList<T>.transformInplace(transformer: FirTransformer<D>, data: D) {
     @Suppress("UNCHECKED_CAST")
     (this as MutableList<FirElement>).transformInplace(transformer, data)
 }
@@ -43,8 +40,7 @@ fun <T : FirElement, D> MutableOrEmptyList<T>.transformInplace(transformer: FirT
 }
 
 @JvmName("transformInplace2")
-@Suppress("NOTHING_TO_INLINE")
-inline fun <T : FirElementInterface, D> MutableOrEmptyList<T>.transformInplace(transformer: FirTransformer<D>, data: D) {
+inline fun <reified T : FirElementInterface, D> MutableOrEmptyList<T>.transformInplace(transformer: FirTransformer<D>, data: D) {
     @Suppress("UNCHECKED_CAST")
     (this as MutableOrEmptyList<FirElement>).transformInplace(transformer, data)
 }
@@ -55,7 +51,7 @@ sealed class TransformData<out D> {
 }
 
 @JvmName("transformInplace3")
-inline fun <T : FirElementInterface, D> MutableList<T>.transformInplace(transformer: FirTransformer<D>, dataProducer: (Int) -> TransformData<D>) {
+inline fun <reified T : FirElementInterface, D> MutableList<T>.transformInplace(transformer: FirTransformer<D>, dataProducer: (Int) -> TransformData<D>) {
     @Suppress("UNCHECKED_CAST")
     (this as MutableList<FirElement>).transformInplace(transformer, dataProducer)
 }
