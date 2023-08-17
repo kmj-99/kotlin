@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.fir.types.FirTypeProjection
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.fir.visitors.*
+import org.jetbrains.kotlin.fir.FirElement
 
 /*
  * This file was generated automatically
@@ -38,7 +39,7 @@ abstract class FirResolvedQualifier : FirExpression() {
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitResolvedQualifier(this, data)
 
     @Suppress("UNCHECKED_CAST")
-    override fun <E : FirElementInterface, D> transform(transformer: FirTransformer<D>, data: D): E =
+    override fun <E : FirElement, D> transform(transformer: FirTransformer<D>, data: D): E =
         transformer.transformResolvedQualifier(this, data) as E
 
     abstract override fun replaceConeTypeOrNull(newConeTypeOrNull: ConeKotlinType?)

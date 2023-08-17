@@ -12,8 +12,7 @@ import org.jetbrains.kotlin.fir.visitors.FirVisitorVoid
 abstract class FirElement : FirElementInterface {
     abstract fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R // = visitor.visitElementInterface(this, data)
 
-    @Suppress("UNCHECKED_CAST")
-    abstract fun <E : FirElementInterface, D> transform(transformer: FirTransformer<D>, data: D): E // = transformer.transformElementInterface(this, data) as E
+    abstract fun <E : FirElement, D> transform(transformer: FirTransformer<D>, data: D): E // = transformer.transformElementInterface(this, data) as E
 
     fun accept(visitor: FirVisitorVoid) = accept(visitor, null)
 

@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.fir.expressions.FirBlock
 import org.jetbrains.kotlin.fir.symbols.impl.FirCodeFragmentSymbol
 import org.jetbrains.kotlin.fir.visitors.*
 import org.jetbrains.kotlin.fir.declarations.ResolveStateAccess
+import org.jetbrains.kotlin.fir.FirElement
 
 /*
  * This file was generated automatically
@@ -31,7 +32,7 @@ abstract class FirCodeFragment : FirDeclaration() {
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitCodeFragment(this, data)
 
     @Suppress("UNCHECKED_CAST")
-    override fun <E : FirElementInterface, D> transform(transformer: FirTransformer<D>, data: D): E =
+    override fun <E : FirElement, D> transform(transformer: FirTransformer<D>, data: D): E =
         transformer.transformCodeFragment(this, data) as E
 
     abstract override fun replaceAnnotations(newAnnotations: List<FirAnnotation>)

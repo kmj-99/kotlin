@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.fir.FirPureAbstractElement
 import org.jetbrains.kotlin.fir.expressions.FirAnnotation
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.visitors.*
+import org.jetbrains.kotlin.fir.FirElement
 
 /*
  * This file was generated automatically
@@ -26,7 +27,7 @@ abstract class FirReceiverParameter : FirPureAbstractElement(), FirAnnotationCon
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitReceiverParameter(this, data)
 
     @Suppress("UNCHECKED_CAST")
-    override fun <E : FirElementInterface, D> transform(transformer: FirTransformer<D>, data: D): E =
+    override fun <E : FirElement, D> transform(transformer: FirTransformer<D>, data: D): E =
         transformer.transformReceiverParameter(this, data) as E
 
     abstract fun replaceTypeRef(newTypeRef: FirTypeRef)

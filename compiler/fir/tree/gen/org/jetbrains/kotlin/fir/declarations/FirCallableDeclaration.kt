@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 import org.jetbrains.kotlin.fir.visitors.*
 import org.jetbrains.kotlin.fir.declarations.ResolveStateAccess
+import org.jetbrains.kotlin.fir.FirElement
 
 /*
  * This file was generated automatically
@@ -40,7 +41,7 @@ sealed class FirCallableDeclaration : FirMemberDeclaration() {
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitCallableDeclaration(this, data)
 
     @Suppress("UNCHECKED_CAST")
-    override fun <E : FirElementInterface, D> transform(transformer: FirTransformer<D>, data: D): E =
+    override fun <E : FirElement, D> transform(transformer: FirTransformer<D>, data: D): E =
         transformer.transformCallableDeclaration(this, data) as E
 
     abstract override fun replaceAnnotations(newAnnotations: List<FirAnnotation>)

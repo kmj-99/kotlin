@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.fir.declarations
 import org.jetbrains.kotlin.KtSourceElement
 import org.jetbrains.kotlin.fir.FirElementInterface
 import org.jetbrains.kotlin.fir.visitors.*
+import org.jetbrains.kotlin.fir.FirElement
 
 /*
  * This file was generated automatically

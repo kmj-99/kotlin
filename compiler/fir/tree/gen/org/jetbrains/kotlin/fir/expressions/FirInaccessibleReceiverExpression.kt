@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.fir.references.FirReference
 import org.jetbrains.kotlin.fir.references.FirThisReference
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.visitors.*
+import org.jetbrains.kotlin.fir.FirElement
 
 /*
  * This file was generated automatically
@@ -26,7 +27,7 @@ abstract class FirInaccessibleReceiverExpression : FirExpression(), FirResolvabl
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitInaccessibleReceiverExpression(this, data)
 
     @Suppress("UNCHECKED_CAST")
-    override fun <E : FirElementInterface, D> transform(transformer: FirTransformer<D>, data: D): E =
+    override fun <E : FirElement, D> transform(transformer: FirTransformer<D>, data: D): E =
         transformer.transformInaccessibleReceiverExpression(this, data) as E
 
     abstract override fun replaceConeTypeOrNull(newConeTypeOrNull: ConeKotlinType?)

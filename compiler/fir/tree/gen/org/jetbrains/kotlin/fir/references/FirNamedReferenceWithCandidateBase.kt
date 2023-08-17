@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.fir.FirElementInterface
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.fir.visitors.*
+import org.jetbrains.kotlin.fir.FirElement
 
 /*
  * This file was generated automatically
@@ -24,6 +25,6 @@ abstract class FirNamedReferenceWithCandidateBase : FirNamedReference() {
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitNamedReferenceWithCandidateBase(this, data)
 
     @Suppress("UNCHECKED_CAST")
-    override fun <E : FirElementInterface, D> transform(transformer: FirTransformer<D>, data: D): E =
+    override fun <E : FirElement, D> transform(transformer: FirTransformer<D>, data: D): E =
         transformer.transformNamedReferenceWithCandidateBase(this, data) as E
 }

@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.fir.FirElementInterface
 import org.jetbrains.kotlin.fir.references.FirReference
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.visitors.*
+import org.jetbrains.kotlin.fir.FirElement
 
 /*
  * This file was generated automatically
@@ -31,7 +32,7 @@ abstract class FirMultiDelegatedConstructorCall : FirDelegatedConstructorCall() 
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitMultiDelegatedConstructorCall(this, data)
 
     @Suppress("UNCHECKED_CAST")
-    override fun <E : FirElementInterface, D> transform(transformer: FirTransformer<D>, data: D): E =
+    override fun <E : FirElement, D> transform(transformer: FirTransformer<D>, data: D): E =
         transformer.transformMultiDelegatedConstructorCall(this, data) as E
 
     abstract override fun replaceAnnotations(newAnnotations: List<FirAnnotation>)

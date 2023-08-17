@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 import org.jetbrains.kotlin.fir.visitors.*
 import org.jetbrains.kotlin.fir.declarations.ResolveStateAccess
+import org.jetbrains.kotlin.fir.FirElement
 
 /*
  * This file was generated automatically
@@ -51,7 +52,7 @@ abstract class FirPropertyAccessor : FirFunction(), FirContractDescriptionOwner,
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitPropertyAccessor(this, data)
 
     @Suppress("UNCHECKED_CAST")
-    override fun <E : FirElementInterface, D> transform(transformer: FirTransformer<D>, data: D): E =
+    override fun <E : FirElement, D> transform(transformer: FirTransformer<D>, data: D): E =
         transformer.transformPropertyAccessor(this, data) as E
 
     abstract override fun replaceStatus(newStatus: FirDeclarationStatus)

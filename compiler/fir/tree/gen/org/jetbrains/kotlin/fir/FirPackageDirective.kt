@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.fir
 import org.jetbrains.kotlin.KtSourceElement
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.fir.visitors.*
+import org.jetbrains.kotlin.fir.FirElement
 
 /*
  * This file was generated automatically
@@ -21,6 +22,6 @@ abstract class FirPackageDirective : FirPureAbstractElement(), FirElementInterfa
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitPackageDirective(this, data)
 
     @Suppress("UNCHECKED_CAST")
-    override fun <E : FirElementInterface, D> transform(transformer: FirTransformer<D>, data: D): E =
+    override fun <E : FirElement, D> transform(transformer: FirTransformer<D>, data: D): E =
         transformer.transformPackageDirective(this, data) as E
 }

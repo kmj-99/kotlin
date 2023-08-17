@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.fir.declarations.FirResolveState
 import org.jetbrains.kotlin.fir.declarations.asResolveState
 import org.jetbrains.kotlin.fir.visitors.*
 import org.jetbrains.kotlin.fir.declarations.ResolveStateAccess
+import org.jetbrains.kotlin.fir.FirElement
 
 /*
  * This file was generated automatically
@@ -27,6 +28,6 @@ abstract class FirElementWithResolveState : FirPureAbstractElement(), FirElement
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitElementWithResolveState(this, data)
 
     @Suppress("UNCHECKED_CAST")
-    override fun <E : FirElementInterface, D> transform(transformer: FirTransformer<D>, data: D): E =
+    override fun <E : FirElement, D> transform(transformer: FirTransformer<D>, data: D): E =
         transformer.transformElementWithResolveState(this, data) as E
 }

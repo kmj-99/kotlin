@@ -39,7 +39,7 @@ object FirStubStatement : FirPureAbstractElement(), FirStatement {
         return visitor.visitStubStatement(this, data)
     }
 
-    override fun <E : FirElementInterface, D> transform(transformer: FirTransformer<D>, data: D): E {
+    override fun <E : FirElement, D> transform(transformer: FirTransformer<D>, data: D): E {
         @Suppress("UNCHECKED_CAST")
         return transformer.transformStubStatement(this, data) as E
     }

@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.fir.diagnostics.ConeDiagnostic
 import org.jetbrains.kotlin.fir.diagnostics.FirDiagnosticHolder
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.fir.visitors.*
+import org.jetbrains.kotlin.fir.FirElement
 
 /*
  * This file was generated automatically
@@ -25,6 +26,6 @@ abstract class FirErrorNamedReference : FirNamedReference(), FirDiagnosticHolder
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitErrorNamedReference(this, data)
 
     @Suppress("UNCHECKED_CAST")
-    override fun <E : FirElementInterface, D> transform(transformer: FirTransformer<D>, data: D): E =
+    override fun <E : FirElement, D> transform(transformer: FirTransformer<D>, data: D): E =
         transformer.transformErrorNamedReference(this, data) as E
 }
