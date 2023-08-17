@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.backend.konan.llvm.tryGetConstantConstructorIntrinsi
 import org.jetbrains.kotlin.backend.konan.renderCompilerError
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.irCall
+import org.jetbrains.kotlin.ir.builders.irCallWithSubstitutedType
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationBase
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
@@ -58,7 +59,7 @@ internal class PostInlineLowering(val context: Context) : BodyLoweringPass {
                 expression.transformChildren(this, data)
 
                 return data.at(expression).run {
-                    irCall(symbols.kClassImplConstructor, listOf(expression.argument.type)).apply {
+                    irCallWithSubstitutedType(symbols.kClassImplConstructor, listOf(expression.argument.type)).apply {
                         val typeInfo = irCall(symbols.getObjectTypeInfo).apply {
                             putValueArgument(0, expression.argument)
                         }

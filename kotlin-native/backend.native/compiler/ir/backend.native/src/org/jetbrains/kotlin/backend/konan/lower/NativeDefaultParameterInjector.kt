@@ -12,10 +12,10 @@ import org.jetbrains.kotlin.backend.konan.PrimitiveBinaryType
 import org.jetbrains.kotlin.backend.konan.computePrimitiveBinaryTypeOrNull
 import org.jetbrains.kotlin.backend.konan.getInlinedClassNative
 import org.jetbrains.kotlin.ir.builders.irCall
+import org.jetbrains.kotlin.ir.builders.irCallWithSubstitutedType
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
 import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.util.irCall
 
 internal class NativeDefaultParameterInjector(context: KonanBackendContext) : DefaultParameterInjector<KonanBackendContext>(
         context = context,
@@ -45,7 +45,7 @@ internal class NativeDefaultParameterInjector(context: KonanBackendContext) : De
         }
 
         return with(context.irBuiltIns.createIrBuilder(symbols.reinterpret, startOffset, endOffset)) {
-            irCall(symbols.reinterpret, listOf(nullConstOfEquivalentType.type, type)).apply {
+            irCallWithSubstitutedType(symbols.reinterpret, listOf(nullConstOfEquivalentType.type, type)).apply {
                 extensionReceiver = nullConstOfEquivalentType
             }
         }

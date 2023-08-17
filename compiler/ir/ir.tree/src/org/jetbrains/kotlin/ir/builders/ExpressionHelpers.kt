@@ -12,10 +12,7 @@ import org.jetbrains.kotlin.ir.expressions.impl.*
 import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.typeWith
-import org.jetbrains.kotlin.ir.util.isImmutable
-import org.jetbrains.kotlin.ir.util.parentAsClass
-import org.jetbrains.kotlin.ir.util.primaryConstructor
-import org.jetbrains.kotlin.ir.util.render
+import org.jetbrains.kotlin.ir.util.*
 
 val IrBuilderWithScope.parent get() = scope.getLocalDeclarationParent()
 
@@ -229,16 +226,6 @@ fun IrBuilderWithScope.irCall(
         }
     }
 
-fun IrBuilderWithScope.irCall(
-    callee: IrFunctionSymbol,
-    typeArguments: List<IrType>
-): IrMemberAccessExpression<*> =
-    irCall(callee).apply {
-        typeArguments.forEachIndexed { index, irType ->
-            this.putTypeArgument(index, irType)
-        }
-    }
-
 fun IrBuilderWithScope.irCallConstructor(callee: IrConstructorSymbol, typeArguments: List<IrType>): IrConstructorCall =
     IrConstructorCallImpl.fromSymbolOwner(
         startOffset,
@@ -304,15 +291,14 @@ fun IrBuilderWithScope.irCall(callee: IrFunction, origin: IrStatementOrigin? = n
         origin, superQualifierSymbol
     )
 
-fun IrBuilderWithScope.irCall(
-    callee: IrFunction,
-    typeArguments: List<IrType>
-): IrMemberAccessExpression<*> =
-    irCall(callee).apply {
-        typeArguments.forEachIndexed { index, irType ->
-            this.putTypeArgument(index, irType)
-        }
-    }
+fun IrBuilderWithScope.irCallWithSubstitutedType(callee: IrFunction, typeArguments: List<IrType>): IrMemberAccessExpression<*> {
+    val argsMap = callee.typeParameters.map { it.symbol }.zip(typeArguments).toMap()
+    return irCall(callee.symbol, callee.returnType.substitute(argsMap), typeArguments)
+}
+
+fun IrBuilderWithScope.irCallWithSubstitutedType(callee: IrFunctionSymbol, typeArguments: List<IrType>): IrMemberAccessExpression<*> {
+    return irCallWithSubstitutedType(callee, typeArguments)
+}
 
 fun IrBuilderWithScope.irDelegatingConstructorCall(callee: IrConstructor): IrDelegatingConstructorCall =
     IrDelegatingConstructorCallImpl(
