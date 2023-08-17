@@ -467,7 +467,23 @@ private fun String.checkNewLineAt(index: Int, endIndex: Int): Int {
  */
 @ExperimentalStdlibApi
 @SinceKotlin("1.9")
-public fun Byte.toHexString(format: HexFormat = HexFormat.Default): String = toLong().toHexStringImpl(format, bits = 8)
+public fun Byte.toHexString(format: HexFormat = HexFormat.Default): String {
+    val prefix = format.number.prefix
+    val suffix = format.number.suffix
+    val removeLeadingZeros = format.number.removeLeadingZeros
+
+    // Optimize for the default format
+    if (prefix.isEmpty() && suffix.isEmpty() && !removeLeadingZeros) {
+        val charArray = CharArray(2)
+        val digits = if (format.upperCase) UPPER_CASE_HEX_DIGITS else LOWER_CASE_HEX_DIGITS
+        val value = this.toInt()
+        charArray[0] = digits[(value shr 4) and 0xF]
+        charArray[1] = digits[value and 0xF]
+        return charArray.concatToString()
+    }
+
+    return toLong().toHexStringImpl(format, bits = 8)
+}
 
 /**
  * Parses a `Byte` value from this string using the specified [format].
@@ -513,7 +529,25 @@ private fun String.hexToByte(startIndex: Int = 0, endIndex: Int = length, format
  */
 @ExperimentalStdlibApi
 @SinceKotlin("1.9")
-public fun Short.toHexString(format: HexFormat = HexFormat.Default): String = toLong().toHexStringImpl(format, bits = 16)
+public fun Short.toHexString(format: HexFormat = HexFormat.Default): String {
+    val prefix = format.number.prefix
+    val suffix = format.number.suffix
+    val removeLeadingZeros = format.number.removeLeadingZeros
+
+    // Optimize for the default format
+    if (prefix.isEmpty() && suffix.isEmpty() && !removeLeadingZeros) {
+        val charArray = CharArray(4)
+        val digits = if (format.upperCase) UPPER_CASE_HEX_DIGITS else LOWER_CASE_HEX_DIGITS
+        val value = this.toInt()
+        charArray[0] = digits[(value shr 12) and 0xF]
+        charArray[1] = digits[(value shr 8) and 0xF]
+        charArray[2] = digits[(value shr 4) and 0xF]
+        charArray[3] = digits[value and 0xF]
+        return charArray.concatToString()
+    }
+
+    return toLong().toHexStringImpl(format, bits = 16)
+}
 
 /**
  * Parses a `Short` value from this string using the specified [format].
@@ -559,7 +593,29 @@ private fun String.hexToShort(startIndex: Int = 0, endIndex: Int = length, forma
  */
 @ExperimentalStdlibApi
 @SinceKotlin("1.9")
-public fun Int.toHexString(format: HexFormat = HexFormat.Default): String = toLong().toHexStringImpl(format, bits = 32)
+public fun Int.toHexString(format: HexFormat = HexFormat.Default): String {
+    val prefix = format.number.prefix
+    val suffix = format.number.suffix
+    val removeLeadingZeros = format.number.removeLeadingZeros
+
+    // Optimize for the default format
+    if (prefix.isEmpty() && suffix.isEmpty() && !removeLeadingZeros) {
+        val charArray = CharArray(8)
+        val digits = if (format.upperCase) UPPER_CASE_HEX_DIGITS else LOWER_CASE_HEX_DIGITS
+        val value = this
+        charArray[0] = digits[(value shr 28) and 0xF]
+        charArray[1] = digits[(value shr 24) and 0xF]
+        charArray[2] = digits[(value shr 20) and 0xF]
+        charArray[3] = digits[(value shr 16) and 0xF]
+        charArray[4] = digits[(value shr 12) and 0xF]
+        charArray[5] = digits[(value shr 8) and 0xF]
+        charArray[6] = digits[(value shr 4) and 0xF]
+        charArray[7] = digits[value and 0xF]
+        return charArray.concatToString()
+    }
+
+    return toLong().toHexStringImpl(format, bits = 32)
+}
 
 /**
  * Parses an `Int` value from this string using the specified [format].
@@ -605,7 +661,37 @@ private fun String.hexToInt(startIndex: Int = 0, endIndex: Int = length, format:
  */
 @ExperimentalStdlibApi
 @SinceKotlin("1.9")
-public fun Long.toHexString(format: HexFormat = HexFormat.Default): String = toHexStringImpl(format, bits = 64)
+public fun Long.toHexString(format: HexFormat = HexFormat.Default): String {
+    val prefix = format.number.prefix
+    val suffix = format.number.suffix
+    val removeLeadingZeros = format.number.removeLeadingZeros
+
+    // Optimize for the default format
+    if (prefix.isEmpty() && suffix.isEmpty() && !removeLeadingZeros) {
+        val charArray = CharArray(16)
+        val digits = if (format.upperCase) UPPER_CASE_HEX_DIGITS else LOWER_CASE_HEX_DIGITS
+        val value = this
+        charArray[0] = digits[((value shr 60) and 0xF).toInt()]
+        charArray[1] = digits[((value shr 56) and 0xF).toInt()]
+        charArray[2] = digits[((value shr 52) and 0xF).toInt()]
+        charArray[3] = digits[((value shr 48) and 0xF).toInt()]
+        charArray[4] = digits[((value shr 44) and 0xF).toInt()]
+        charArray[5] = digits[((value shr 40) and 0xF).toInt()]
+        charArray[6] = digits[((value shr 36) and 0xF).toInt()]
+        charArray[7] = digits[((value shr 32) and 0xF).toInt()]
+        charArray[8] = digits[((value shr 28) and 0xF).toInt()]
+        charArray[9] = digits[((value shr 24) and 0xF).toInt()]
+        charArray[10] = digits[((value shr 20) and 0xF).toInt()]
+        charArray[11] = digits[((value shr 16) and 0xF).toInt()]
+        charArray[12] = digits[((value shr 12) and 0xF).toInt()]
+        charArray[13] = digits[((value shr 8) and 0xF).toInt()]
+        charArray[14] = digits[((value shr 4) and 0xF).toInt()]
+        charArray[15] = digits[(value and 0xF).toInt()]
+        return charArray.concatToString()
+    }
+
+    return toHexStringImpl(format, bits = 64)
+}
 
 /**
  * Parses a `Long` value from this string using the specified [format].
@@ -653,18 +739,6 @@ private fun Long.toHexStringImpl(format: HexFormat, bits: Int): String {
     val prefix = format.number.prefix
     val suffix = format.number.suffix
     var removeZeros = format.number.removeLeadingZeros
-
-    // Optimize for the default format
-    if (prefix.isEmpty() && suffix.isEmpty() && !removeZeros) {
-        val charArray = CharArray(numberOfHexDigits)
-        var shift = bits - 4
-        for (i in 0 until numberOfHexDigits) {
-            val decimal = ((value shr shift) and 0xF).toInt()
-            charArray[i] = digits[decimal]
-            shift -= 4
-        }
-        return charArray.concatToString()
-    }
 
     val formatLength = prefix.length.toLong() + numberOfHexDigits + suffix.length
     val charArray = CharArray(checkFormatLength(formatLength))
