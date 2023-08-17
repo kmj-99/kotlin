@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.fir.containingClassForLocalAttr
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.utils.*
 import org.jetbrains.kotlin.fir.expressions.FirAnonymousObjectExpression
+import org.jetbrains.kotlin.fir.hasEnumEntries
 import org.jetbrains.kotlin.fir.lazy.Fir2IrLazyClass
 import org.jetbrains.kotlin.fir.resolve.getSymbolByLookupTag
 import org.jetbrains.kotlin.fir.resolve.providers.firProvider
@@ -363,7 +364,8 @@ class Fir2IrClassifierStorage(
                     isData = regularClass.isData,
                     isValue = regularClass.isInline,
                     isExpect = regularClass.isExpect,
-                    isFun = regularClass.isFun
+                    isFun = regularClass.isFun,
+                    hasEnumEntries = regularClass.hasEnumEntries,
                 ).apply {
                     metadata = FirMetadataSource.Class(regularClass)
                 }
@@ -428,7 +430,8 @@ class Fir2IrClassifierStorage(
                     isData = false,
                     isValue = false,
                     isExpect = false,
-                    isFun = false
+                    isFun = false,
+                    hasEnumEntries = false,
                 ).apply {
                     metadata = FirMetadataSource.CodeFragment(codeFragment)
                     parent = containingFile

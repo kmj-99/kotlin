@@ -51,6 +51,8 @@ abstract class IrClass : IrDeclarationBase(), IrPossiblyExternalDeclaration,
 
     abstract var isFun: Boolean
 
+    abstract var hasEnumEntries: Boolean
+
     abstract val source: SourceElement
 
     abstract var superTypes: List<IrType>

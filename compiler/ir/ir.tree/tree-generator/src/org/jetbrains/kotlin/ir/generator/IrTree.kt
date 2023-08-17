@@ -272,6 +272,9 @@ object IrTree : AbstractTreeBuilder() {
         +field("isFun", boolean) {
             useFieldInIrFactory(defaultValue = false)
         }
+        +field("hasEnumEntries", boolean) {
+            useFieldInIrFactory(defaultValue = false)
+        }
         +field("source", type<SourceElement>(), mutable = false) {
             useFieldInIrFactory(defaultValue = code("%T.NO_SOURCE", SourceElement::class))
         }
