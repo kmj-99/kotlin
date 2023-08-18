@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.js.sourceMap.SourceMapBuilderConsumer
 import org.jetbrains.kotlin.js.util.TextOutputImpl
 import org.jetbrains.kotlin.serialization.js.ModuleKind
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
+import org.jetbrains.kotlin.utils.putWithoutOverriding
 import org.jetbrains.kotlin.utils.addToStdlib.runIf
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.io.File
@@ -264,29 +265,32 @@ class IrModuleToJsTransformer(
     }
 
     private fun generateJsIrProgramPerFile(exportData: List<IrAndExportedDeclarations>, mode: TranslationMode): JsIrProgram {
-        val modulesPerFile = buildList {
+        val nameToModulePerFile = buildMap {
             for (module in exportData) {
                 var hasFileWithJsExportedDeclaration = false
 
                 for (fileExports in module.files) {
                     if (fileExports.file.couldBeSkipped()) continue
                     val programFragments = generateProgramFragment(fileExports, mode)
+                    val mainProgramFragmentMainModule = fileExports.toJsIrModule(programFragments.mainFragment)
 
-                    add(fileExports.toJsIrModule(programFragments.mainFragment))
+                    putWithoutOverriding(mainProgramFragmentMainModule.externalModuleName, mainProgramFragmentMainModule)
 
                     programFragments.exportFragment?.let {
-                        add(fileExports.toJsIrModuleForExport(module, it))
+                        val exportedProgramFragmentModule = fileExports.toJsIrModuleForExport(module, it)
+                        putWithoutOverriding(exportedProgramFragmentModule.externalModuleName, exportedProgramFragmentModule)
                         hasFileWithJsExportedDeclaration = true
                     }
                 }
 
                 if (hasFileWithJsExportedDeclaration) {
-                    add(module.toJsIrProxyModule())
+                    val proxyModule = module.toJsIrProxyModule()
+                    putWithoutOverriding(proxyModule.externalModuleName, proxyModule)
                 }
             }
         }
 
-        return JsIrProgram(modulesPerFile)
+        return JsIrProgram(nameToModulePerFile.values.map { it.merge() })
     }
 
     private fun IrFileExports.toJsIrModule(programFragment: JsIrProgramFragment): JsIrModule {

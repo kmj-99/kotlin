@@ -359,3 +359,38 @@ class Merger(
         }
     }
 }
+
+fun List<JsIrModule>.merge(): JsIrModule {
+    assert(isNotEmpty()) { "Can't merge empty list of modules" }
+    val firstModule = first()
+
+    return if (size == 1) {
+        firstModule
+    } else {
+        JsIrModule(
+            firstModule.moduleName,
+            firstModule.externalModuleName,
+            flatMap { it.fragments },
+            firstNotNullOfOrNull { it.reexportedInModuleWithName }
+        )
+    }
+}
+
+fun List<JsIrModuleHeader>.merge(): JsIrModuleHeader {
+    assert(isNotEmpty()) { "Can't merge empty list of module headers" }
+    val firstModule = first()
+
+    return if (size == 1) {
+        firstModule
+    } else {
+        JsIrModuleHeader(
+            firstModule.moduleName,
+            firstModule.externalModuleName,
+            flatMap { it.definitions }.toSet(),
+            flatMap { it.nameBindings.entries }.associate { it.toPair() },
+            flatMap { it.optionalCrossModuleImports }.toSet(),
+            firstNotNullOfOrNull { it.reexportedInModuleWithName },
+            null
+        )
+    }
+}

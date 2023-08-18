@@ -47,3 +47,8 @@ inline fun <reified T, reified R, C : MutableCollection<in R>> Iterable<*>.filte
     }
     return destination
 }
+
+fun <K, V> MutableMap<K, MutableList<V>>.putWithoutOverriding(key: K, value: V) {
+    val list = getOrPut(key) { mutableListOf() }
+    list.add(value)
+}
