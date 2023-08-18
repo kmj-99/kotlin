@@ -2,15 +2,10 @@ import kotlin.test.Test
 import kotlin.test.BeforeTest
 import kotlin.test.AfterTest
 
-class Test1 {
+class Test2 {
     @BeforeTest
     fun before() {
         call("before")
-    }
-
-    @AfterTest
-    fun after() {
-        call("after")
     }
 
     @Test

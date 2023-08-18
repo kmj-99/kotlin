@@ -17,4 +17,11 @@ class Test1 {
     fun foo() {
         call("foo")
     }
+
+    @Test
+    fun withException() {
+        call("withException")
+        raise("some exception")
+        call("never happens")
+    }
 }

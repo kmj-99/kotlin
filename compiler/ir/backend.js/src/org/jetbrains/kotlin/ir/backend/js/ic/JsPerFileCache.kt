@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.ir.backend.js.ic
 
 import org.jetbrains.kotlin.backend.common.serialization.cityHash64
 import org.jetbrains.kotlin.ir.backend.js.transformers.irToJs.*
+import org.jetbrains.kotlin.library.encodings.WobblyTF8
 import org.jetbrains.kotlin.protobuf.CodedInputStream
 import org.jetbrains.kotlin.protobuf.CodedOutputStream
 import org.jetbrains.kotlin.utils.addToStdlib.runIf
@@ -97,12 +98,12 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
 
             class Merged(private val cachedFileInfos: List<MainFileCachedInfo>) :
                 MainFileCachedInfo(cachedFileInfos.first().moduleArtifact, cachedFileInfos.first().fileArtifact) {
+                override fun loadJsIrModule(): JsIrModule = cachedFileInfos.map { it.loadJsIrModule() }.merge()
+
                 override val filePrefix by lazy(LazyThreadSafetyMode.NONE) {
                     val hash = cachedFileInfos.map { it.fileArtifact.srcFilePath }.sorted().joinToString().cityHash64()
                     fileArtifact.srcFilePath.run { "${substringAfterLast('/')}.$hash.merged" }
                 }
-
-                override fun loadJsIrModule(): JsIrModule = cachedFileInfos.map { it.loadJsIrModule() }.merge()
 
                 init {
                     assert(cachedFileInfos.size > 1) { "Merge is unnecessary" }
@@ -114,6 +115,8 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
                     val (mainHeaders, exportHeaders) = mainAndExportHeaders.map(LoadedJsIrModuleHeaders::toPair).unzip()
 
                     jsIrHeader = mainHeaders.merge()
+                    testFunction = cachedFileInfos.firstNotNullOfOrNull { it.testFunction }
+                    suiteFunction = cachedFileInfos.firstNotNullOfOrNull { it.suiteFunction }
                     exportFileCachedInfo = exportHeaders.filterNotNull().takeIf { it.isNotEmpty() }
                         ?.let {
                             ExportFileCachedInfo.Merged(
@@ -185,16 +188,16 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
 
         when (it) {
             is CachedFileInfo.MainFileCachedInfo -> {
-                it.testFunction = runIf(readBool()) { readString() }
-                it.suiteFunction = runIf(readBool()) { readString() }
+                it.testFunction = ifTrue { readString() }
+                it.suiteFunction = ifTrue { readString() }
             }
             is CachedFileInfo.ExportFileCachedInfo -> {
-                it.tsDeclarationsHash = runIf(readBool()) { readInt64() }
+                it.tsDeclarationsHash = ifTrue { readInt64() }
                 reexportedIn = cachedFileInfo.moduleArtifact.moduleExternalName
             }
             is CachedFileInfo.ModuleProxyFileCachedInfo -> {
                 it.suiteFunction = ifTrue { readString() }
-                it.packagesToItsTestFunctions = loadTestFunctions()
+                it.packagesToItsTestFunctions = ifTrue { loadTestFunctions() }
             }
         }
 
@@ -394,10 +397,9 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
                 }
 
                 if (hasFileWithJsExportedDeclaration || suiteFunction != null) {
-                    val fetchedProxyFileInfo = moduleArtifact.fetchModuleProxyFileInfo()?.takeIf {
+                    moduleArtifact.fetchModuleProxyFileInfo()?.takeIf {
                         suiteFunction == it.suiteFunction && it.testFunctionsHash == testFunctions.testFunctionsHashForIC()
-                    }
-                    fetchedProxyFileInfo ?: moduleArtifact.generateModuleProxyFileCachedInfo(suiteFunction, testFunctions)
+                    } ?: moduleArtifact.generateModuleProxyFileCachedInfo(suiteFunction, testFunctions.takeIf { it.isNotEmpty() })
                 } else null
             }
 

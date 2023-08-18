@@ -1,5 +1,3 @@
-package common
-
 import kotlin.test.FrameworkAdapter
 import kotlin.collections.*
 
