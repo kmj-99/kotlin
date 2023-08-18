@@ -760,6 +760,7 @@ private fun Long.toHexStringImpl(format: HexFormat, bits: Int): String {
     return if (i == charArray.size) charArray.concatToString() else charArray.concatToString(endIndex = i)
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 private fun String.toCharArrayIfNotEmpty(destination: CharArray, destinationOffset: Int): Int {
     when (length) {
         0 -> { /* do nothing */ }
