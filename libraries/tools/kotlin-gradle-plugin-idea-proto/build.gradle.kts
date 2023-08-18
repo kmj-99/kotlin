@@ -94,7 +94,7 @@ run {
         implicitDependencies("com.google.protobuf:protoc:3.21.9:windows-x86_64@exe")
     }
 
-    val protocExecutable = buildDir.resolve("protoc/bin")
+    val protocExecutable = layout.buildDirectory.get().asFile.resolve("protoc/bin")
     val setupProtoc = tasks.register("setupProtoc") {
         doFirst {
             protoc.files.single().copyTo(protocExecutable, overwrite = true)

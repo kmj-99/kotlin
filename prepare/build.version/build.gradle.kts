@@ -2,7 +2,7 @@
 
 import java.io.File
 
-val buildVersionFilePath = "$buildDir/build.txt"
+val buildVersionFilePath = "${layout.buildDirectory.get().asFile}/build.txt"
 val buildVersion by configurations.creating
 val buildNumber: String by rootProject.extra
 val kotlinVersion: String by rootProject.extra

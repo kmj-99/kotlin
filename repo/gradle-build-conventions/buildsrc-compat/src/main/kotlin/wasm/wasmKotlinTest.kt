@@ -19,7 +19,7 @@ private fun Project.createCommonMainSources() = tasks.register("commonMainSource
         "$rootDir/libraries/kotlin.test/annotations-common/src",
         "$rootDir/libraries/kotlin.test/wasm/src"
     )
-    into("$buildDir/commonMainSources")
+    into(layout.buildDirectory.dir("commonMainSources"))
 }
 
 fun Project.configureWasmKotlinTest(

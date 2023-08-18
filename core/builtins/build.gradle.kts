@@ -13,9 +13,9 @@ val kotlinReflectJvm = fileFrom(rootDir, "libraries/stdlib/jvm/src/kotlin/reflec
 val kotlinRangesCommon = fileFrom(rootDir, "libraries/stdlib/src/kotlin/ranges")
 val kotlinCollectionsCommon = fileFrom(rootDir, "libraries/stdlib/src/kotlin/collections")
 val kotlinAnnotationsCommon = fileFrom(rootDir, "libraries/stdlib/src/kotlin/annotations")
-val builtinsCherryPicked = fileFrom(buildDir, "src/reflect")
-val rangesCherryPicked = fileFrom(buildDir, "src/ranges")
-val builtinsCherryPickedJvm = fileFrom(buildDir, "src-jvm/reflect")
+val builtinsCherryPicked = fileFrom(layout.buildDirectory.get().asFile, "src/reflect")
+val rangesCherryPicked = fileFrom(layout.buildDirectory.get().asFile, "src/ranges")
+val builtinsCherryPickedJvm = fileFrom(layout.buildDirectory.get().asFile, "src-jvm/reflect")
 
 val runtimeElements by configurations.creating {
     isCanBeResolved = false
@@ -75,7 +75,7 @@ val prepareSourcesJvm by tasks.registering(Sync::class) {
 fun serializeTask(name: String, sourcesTask: TaskProvider<*>, inDirs: List<File>) =
     tasks.register(name, NoDebugJavaExec::class) {
         dependsOn(sourcesTask, prepareRangeSources)
-        val outDir = buildDir.resolve(this.name)
+        val outDir = layout.buildDirectory.get().asFile.resolve(this.name)
         inDirs.forEach { inputs.dir(it).withPathSensitivity(RELATIVE) }
         outputs.dir(outDir)
         outputs.cacheIf { true }
@@ -99,14 +99,14 @@ val serializeJvm = serializeTask("serializeJvm", prepareSourcesJvm, listOf(built
 val builtinsJar by task<Jar> {
     dependsOn(serialize)
     from(serialize) { include("kotlin/**") }
-    destinationDirectory.set(File(buildDir, "libs"))
+    destinationDirectory.set(layout.buildDirectory.dir("libs"))
 }
 
 val builtinsJvmJar by task<Jar> {
     dependsOn(serializeJvm)
     from(serializeJvm) { include("kotlin/**") }
     archiveClassifier.set("jvm")
-    destinationDirectory.set(File(buildDir, "libs"))
+    destinationDirectory.set(layout.buildDirectory.dir("libs"))
 }
 
 val assemble by tasks.getting {
@@ -125,6 +125,6 @@ publishing {
     }
 
     repositories {
-        maven("${rootProject.buildDir}/internal/repo")
+        maven("${rootProject.layout.buildDirectory.get().asFile}/internal/repo")
     }
 }

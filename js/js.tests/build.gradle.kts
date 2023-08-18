@@ -14,7 +14,7 @@ plugins {
     id("com.github.node-gradle.node") version "5.0.0"
 }
 
-val nodeDir = buildDir.resolve("node")
+val nodeDir = layout.buildDirectory.get().asFile.resolve("node")
 
 node {
     download.set(true)
@@ -360,8 +360,8 @@ val test = projectTest(jUnitMode = JUnitMode.JUnit5) {
     inputs.dir(rootDir.resolve("dist"))
     inputs.dir(rootDir.resolve("compiler/testData"))
 
-    outputs.dir("$buildDir/out")
-    outputs.dir("$buildDir/out-min")
+    outputs.dir(layout.buildDirectory.dir("out"))
+    outputs.dir(layout.buildDirectory.dir("out-min"))
 
     configureTestDistribution()
 }
@@ -475,7 +475,7 @@ val runMocha by tasks.registering {
 projectTest("invalidationTest", jUnitMode = JUnitMode.JUnit5) {
     workingDir = rootDir
 
-    useJsIrBoxTests(version = version, buildDir = "$buildDir/")
+    useJsIrBoxTests(version = version, buildDir = "${layout.buildDirectory.get().asFile}/")
     include("org/jetbrains/kotlin/incremental/*")
     dependsOn(":dist")
     forwardProperties()

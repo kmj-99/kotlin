@@ -111,7 +111,7 @@ fun Test.setupGradlePropertiesForwarding() {
     }
 }
 
-val downloadedTools = File(buildDir, "tools")
+val downloadedTools = File(layout.buildDirectory.get().asFile, "tools")
 
 val unzipJsShell by task<Copy> {
     dependsOn(jsShell)
@@ -151,7 +151,7 @@ fun Project.wasmProjectTest(
         setupWasmStdlib("js")
         setupWasmStdlib("wasi")
         setupGradlePropertiesForwarding()
-        systemProperty("kotlin.wasm.test.root.out.dir", "$buildDir/")
+        systemProperty("kotlin.wasm.test.root.out.dir", "${layout.buildDirectory.get().asFile}/")
         body()
     }
 }

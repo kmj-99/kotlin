@@ -171,8 +171,8 @@ val compileTestKotlinJs by tasks.existing(KotlinCompile::class) {
 
 val packFullRuntimeKLib by tasks.registering(Jar::class) {
     dependsOn(compileKotlinJs)
-    from(buildDir.resolve("classes/kotlin/js/main"))
-    destinationDirectory.set(rootProject.buildDir.resolve("js-ir-runtime"))
+    from(layout.buildDirectory.dir("classes/kotlin/js/main"))
+    destinationDirectory.set(rootProject.layout.buildDirectory.get().asFile.resolve("js-ir-runtime"))
     archiveFileName.set("full-runtime.klib")
 }
 

@@ -22,7 +22,7 @@ plugins {
 
 val libclangextProject = project(":kotlin-native:libclangext")
 val libclangextTask = libclangextProject.path + ":build"
-val libclangextDir = libclangextProject.buildDir
+val libclangextDir = libclangextProject.layout.buildDirectory.get().asFile
 val libclangextIsEnabled = libclangextProject.findProperty("isEnabled")!! as Boolean
 val llvmDir = project.findProperty("llvmDir")
 
@@ -149,8 +149,8 @@ val nativelibs = project.tasks.register<Copy>("nativelibs") {
     val clangstubsSolib = solib("clangstubs")
     dependsOn(clangstubsSolib)
 
-    from("$buildDir/$clangstubsSolib")
-    into("$buildDir/nativelibs/")
+    from("${layout.buildDirectory.get().asFile}/$clangstubsSolib")
+    into("${layout.buildDirectory.get().asFile}/nativelibs/")
 }
 
 kotlinNativeInterop {
@@ -183,7 +183,7 @@ tasks.withType<Test>().configureEach {
     )
     dependsOn(projectsWithNativeLibs.map { "${it.path}:nativelibs" })
     systemProperty("java.library.path", projectsWithNativeLibs.joinToString(File.pathSeparator) {
-        File(it.buildDir, "nativelibs").absolutePath
+        File(it.layout.buildDirectory.get().asFile, "nativelibs").absolutePath
     })
 
     systemProperty("kotlin.native.llvm.libclang", "$llvmDir/" + if (HostManager.hostIsMingw) {
@@ -192,7 +192,7 @@ tasks.withType<Test>().configureEach {
         "lib/${System.mapLibraryName("clang")}"
     })
 
-    systemProperty("kotlin.native.interop.indexer.temp", File(buildDir, "testTemp"))
+    systemProperty("kotlin.native.interop.indexer.temp", File(layout.buildDirectory.get().asFile, "testTemp"))
 }
 
 // Please note that list of headers should be fixed manually.
@@ -202,14 +202,14 @@ tasks.register("updatePrebuilt") {
 
     doLast {
         copy {
-            from("$buildDir/nativeInteropStubs/clang/kotlin") {
+            from("${layout.buildDirectory.get().asFile}/nativeInteropStubs/clang/kotlin") {
                 include("clang/clang.kt")
             }
             into("prebuilt/nativeInteropStubs/kotlin")
         }
 
         copy {
-            from("$buildDir/interopTemp") {
+            from("${layout.buildDirectory.get().asFile}/interopTemp") {
                 include("clangstubs.c")
             }
             into("prebuilt/nativeInteropStubs/c")

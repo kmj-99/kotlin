@@ -45,8 +45,8 @@ dependencies {
 }
 
 val builtinsDir = "${rootDir}/core/builtins"
-val builtinsSrcDir = "${buildDir}/src/builtin-sources"
-val builtinsRuntimeSrcDir = "${buildDir}/src/builtin-sources-for-runtime"
+val builtinsSrcDir = "${layout.buildDirectory.get().asFile}/src/builtin-sources"
+val builtinsRuntimeSrcDir = "${layout.buildDirectory.get().asFile}/src/builtin-sources-for-runtime"
 
 val jsCommonDir = "${projectDir}/js"
 val jsCommonSrcDir = "${jsCommonDir}/src"
@@ -57,7 +57,7 @@ val jsSrcJsDir = "${jsSrcDir}/js"
 
 // for js-ir
 val jsIrDir = "${projectDir}/js-ir"
-val jsIrMainSources = "${buildDir}/src/jsMainSources"
+val jsIrMainSources = "${layout.buildDirectory.get().asFile}/src/jsMainSources"
 lateinit var jsIrTarget: KotlinJsTargetDsl
 lateinit var jsV1Target: KotlinJsTargetDsl
 
@@ -527,9 +527,9 @@ tasks {
         ownPackages.set(listOf("kotlin"))
     }
 
-    val jsOutputFileName = "${buildDir}/classes/js-v1/kotlin.js"
+    val jsOutputFileName = "${layout.buildDirectory.get().asFile}/classes/js-v1/kotlin.js"
     val jsOutputMapFileName = "${jsOutputFileName}.map"
-    val jsOutputMetaFileName = "${buildDir}/classes/js-v1/kotlin.meta.js"
+    val jsOutputMetaFileName = "${layout.buildDirectory.get().asFile}/classes/js-v1/kotlin.meta.js"
 
     val mergeJsV1 by registering(NoDebugJavaExec::class) {
         val compileKotlinJsV1 by getting(org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile::class)
@@ -633,7 +633,7 @@ tasks {
     val jsResultingJar by registering(Jar::class) {
         archiveClassifier.set("js")
         archiveVersion.set("")
-        destinationDirectory.set(file("$buildDir/lib"))
+        destinationDirectory.set(layout.buildDirectory.dir("libs"))
 
         includeEmptyDirs = false
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
@@ -656,7 +656,7 @@ tasks {
         from(jsJar)
         rename { _ -> "full-runtime.klib" }
         // some tests expect stdlib-js klib in this location
-        into(rootProject.buildDir.resolve("js-ir-runtime"))
+        into(rootProject.layout.buildDirectory.dir("js-ir-runtime"))
     }
 
     val jsV1Jar by existing(Jar::class) {
@@ -670,7 +670,7 @@ tasks {
     val jsRearrangedSourcesJar by registering(Jar::class) {
         archiveClassifier.set("js-sources")
         archiveVersion.set("")
-        destinationDirectory.set(file("$buildDir/lib"))
+        destinationDirectory.set(layout.buildDirectory.dir("lib"))
 
         includeEmptyDirs = false
         duplicatesStrategy = DuplicatesStrategy.FAIL

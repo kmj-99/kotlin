@@ -119,7 +119,7 @@ val cleanTestKitCacheTask = tasks.register<Delete>("cleanTestKitCache") {
     group = "Build"
     description = "Deletes temporary Gradle TestKit cache"
 
-    delete(project.buildDir.resolve("testKitCache"))
+    delete(layout.buildDirectory.dir("testKitCache"))
 }
 
 fun Test.includeMppAndAndroid(include: Boolean) = includeTestsWithPattern(include) {

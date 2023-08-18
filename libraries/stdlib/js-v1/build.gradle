@@ -18,8 +18,8 @@ configurations {
     distLibrary
 }
 
-def builtinsSrcDir = "${buildDir}/builtin-sources"
-def builtinsSrcDir2 = "${buildDir}/builtin-sources-for-builtins"
+def builtinsSrcDir = "${layout.buildDirectory.get().asFile}/builtin-sources"
+def builtinsSrcDir2 = "${layout.buildDirectory.get().asFile}/builtin-sources-for-builtins"
 def jsCommonDir = "${projectDir}/../js"
 
 def builtinsDir = "${rootDir}/core/builtins"
@@ -30,15 +30,15 @@ def jsTestSrcDir = "test"
 def jsCommonTestSrcDir = "${jsCommonDir}/test"
 
 def jsSrcJsDir = "${jsSrcDir}/js"
-def jsOutputFileName = "${buildDir}/classes/kotlin.js"
+def jsOutputFileName = "${layout.buildDirectory.get().asFile}/classes/kotlin.js"
 def jsOutputMapFileName = "${jsOutputFileName}.map"
-def jsOutputMetaFileName = "${buildDir}/classes/kotlin.meta.js"
+def jsOutputMetaFileName = "${layout.buildDirectory.get().asFile}/classes/kotlin.meta.js"
 
-def kotlinTestJsOutputFile = "${project(':kotlin-test:kotlin-test-js').buildDir}/classes/main/kotlin-test.js"
+def kotlinTestJsOutputFile = "${project(':kotlin-test:kotlin-test-js').layout.buildDirectory.get().asFile}/classes/main/kotlin-test.js"
 
 // TODO: take from sourcesets' outputs
-def jsTestOutputFile = "${buildDir}/classes/kotlin/test/kotlin-stdlib-js_test.js"
-def kotlinTestJsTestOutputFile = "${project(':kotlin-test:kotlin-test-js').buildDir}/classes/kotlin/test/kotlin-test-js_test.js"
+def jsTestOutputFile = "${layout.buildDirectory.get().asFile}/classes/kotlin/test/kotlin-stdlib-js_test.js"
+def kotlinTestJsTestOutputFile = "${project(':kotlin-test:kotlin-test-js').layout.buildDirectory.get().asFile}/classes/kotlin/test/kotlin-test-js_test.js"
 
 sourceSets {
     builtins {

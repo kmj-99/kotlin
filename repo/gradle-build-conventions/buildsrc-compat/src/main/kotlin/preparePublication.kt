@@ -29,7 +29,7 @@ fun Project.preparePublication() {
 
         val deployRepoUrl = properties["deployRepoUrl"]?.toString() ?: properties["deploy-url"]?.toString()
         val deployFolder = properties["deployRepoFolder"]?.toString()
-            ?.let { "file://${rootProject.buildDir}/$it" }
+            ?.let { "file://${rootProject.layout.buildDirectory.get().asFile}/$it" }
         val sonatypeSnapshotsUrl = if (isSonatypePublish && !isRelease) {
             "https://oss.sonatype.org/content/repositories/snapshots/"
         } else {
@@ -39,7 +39,7 @@ fun Project.preparePublication() {
 
         val isDeployStagingRepoGenerationRequired: Boolean by extra(isSonatypeRelease && deployUrlFromParameters == null)
 
-        var repoUrl: String by extra((deployUrlFromParameters ?: "file://${rootProject.buildDir}/repo").toString())
+        var repoUrl: String by extra((deployUrlFromParameters ?: "file://${rootProject.layout.buildDirectory.get().asFile}/repo").toString())
         logger.info("Deployment repository preliminary url: $repoUrl ($repoProvider)")
 
         val username: String? by extra(

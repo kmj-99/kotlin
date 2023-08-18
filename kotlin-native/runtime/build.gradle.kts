@@ -489,9 +489,7 @@ val hostAssemble by tasks.registering {
 }
 
 tasks.named("clean") {
-    doFirst {
-        delete(buildDir)
-    }
+    delete(layout.buildDirectory)
 }
 
 val generateJsMath by tasks.registering {
@@ -500,7 +498,7 @@ val generateJsMath by tasks.registering {
         val distDir: File by project
         val jsinteropScript = if (PlatformInfo.isWindows()) "jsinterop.bat" else "jsinterop"
         val jsinterop = "$distDir/bin/$jsinteropScript"
-        val targetDir = "$buildDir/generated"
+        val targetDir = "${layout.buildDirectory.get().asFile}/generated"
 
         project.exec {
             commandLine(
@@ -549,7 +547,7 @@ lateinit var stdlibBuildTask: TaskProvider<Task>
 
 konanArtifacts {
     library("stdlib") {
-        baseDir(project.buildDir.resolve("stdlib"))
+        baseDir(project.layout.buildDirectory.get().asFile.resolve("stdlib"))
 
         enableMultiplatform(true)
         noStdLib(true)
@@ -590,9 +588,9 @@ targetList.forEach { targetName ->
         dependsOn(stdlibBuildTask)
         dependsOn("${targetName}Runtime")
 
-        destinationDir = project.buildDir.resolve("${targetName}Stdlib")
+        destinationDir = project.layout.buildDirectory.get().asFile.resolve("${targetName}Stdlib")
 
-        from(project.buildDir.resolve("stdlib/${hostName}/stdlib"))
+        from(project.layout.buildDirectory.get().asFile.resolve("stdlib/${hostName}/stdlib"))
         val runtimeFiles = runtimeBitcode.incoming.artifactView {
             attributes {
                 attribute(TargetWithSanitizer.TARGET_ATTRIBUTE, project.platformManager.targetByName(targetName).withSanitizer())
@@ -620,9 +618,9 @@ targetList.forEach { targetName ->
     if (targetName in cacheableTargetNames) {
         tasks.register("${targetName}StdlibCache", KonanCacheTask::class.java) {
             target = targetName
-            originalKlib = project.buildDir.resolve("${targetName}Stdlib")
+            originalKlib = project.layout.buildDirectory.get().asFile.resolve("${targetName}Stdlib")
             klibUniqName = "stdlib"
-            cacheRoot = project.buildDir.resolve("cache/$targetName").absolutePath
+            cacheRoot = project.layout.buildDirectory.get().asFile.resolve("cache/$targetName").absolutePath
 
             dependsOn("${targetName}Stdlib")
             dependsOn(":kotlin-native:${targetName}CrossDistRuntime")

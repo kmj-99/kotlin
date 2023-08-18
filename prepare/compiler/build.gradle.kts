@@ -81,7 +81,7 @@ val distJSContents by configurations.creating
 
 val compilerBaseName = name
 
-val outputJar = fileFrom(buildDir, "libs", "$compilerBaseName.jar")
+val outputJar = fileFrom(layout.buildDirectory.get().asFile, "libs", "$compilerBaseName.jar")
 
 val compilerModules: Array<String> by rootProject.extra
 
@@ -265,7 +265,7 @@ val distSbomTask = configureSbom(
 
 val packCompiler by task<Jar> {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    destinationDirectory.set(File(buildDir, "libs"))
+    destinationDirectory.set(layout.buildDirectory.dir("libs"))
     archiveClassifier.set("before-proguard")
 
     dependsOn(fatJarContents)
@@ -319,7 +319,7 @@ val proguard by task<CacheableProguardTask> {
         provider { packCompiler.get().outputs.files.singleFile }
     )
 
-    outjars(fileFrom(buildDir, "libs", "$compilerBaseName-after-proguard.jar"))
+    outjars(fileFrom(layout.buildDirectory.get().asFile, "libs", "$compilerBaseName-after-proguard.jar"))
 
     libraryjars(mapOf("filter" to "!META-INF/versions/**"), proguardLibraries)
     libraryjars(
@@ -344,7 +344,7 @@ val proguard by task<CacheableProguardTask> {
         )
     )
 
-    printconfiguration("$buildDir/compiler.pro.dump")
+    printconfiguration("${layout.buildDirectory.get().asFile}/compiler.pro.dump")
 }
 
 val pack = if (kotlinBuildProperties.proguard) proguard else packCompiler

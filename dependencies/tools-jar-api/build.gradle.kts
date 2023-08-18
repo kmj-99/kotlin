@@ -20,7 +20,7 @@ val toolsJarStubs by tasks.registering {
     val toolsJarFile = toolsJar().singleFile
     inputs.file(toolsJarFile)
 
-    val outDir = buildDir.resolve(name)
+    val outDir = layout.buildDirectory.get().asFile.resolve(name)
     outputs.dir(outDir)
 
     val usedInternalApiPackages = listOf(

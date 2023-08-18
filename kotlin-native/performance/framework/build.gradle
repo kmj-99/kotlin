@@ -103,7 +103,7 @@ task konanJsonReport {
                                                       'compileTime'    : [nativeCompileTime],
                                                       'codeSize'       : MPPTools.getCodeSizeBenchmark(applicationName, nativeExecutable)]
             def output = MPPTools.createJsonReport(properties)
-            new File("${buildDir.absolutePath}/${nativeJson}").write(output)
+            new File("${layout.buildDirectory.get().asFile.absolutePath}/${nativeJson}").write(output)
         }
     }
 }

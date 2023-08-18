@@ -37,7 +37,7 @@ native {
         tool(*platformManager.hostPlatform.clangForJni.clangCXX("").toTypedArray())
         flags("-shared",
               "-o",ruleOut(), *ruleInAll(),
-              "-L${project(":kotlin-native:libclangext").buildDir}",
+              "-L${project(":kotlin-native:libclangext").layout.buildDirectory.get().asFile}",
               "$hostLibffiDir/lib/libffi.$lib",
               "-lclangext")
     }
@@ -71,6 +71,6 @@ val nativelibs = project.tasks.create<Copy>("nativelibs") {
     val callbacksSolib = solib("callbacks")
     dependsOn(callbacksSolib)
 
-    from("$buildDir/$callbacksSolib")
-    into("$buildDir/nativelibs/")
+    from(layout.buildDirectory.dir(callbacksSolib))
+    into(layout.buildDirectory.dir("nativelibs"))
 }

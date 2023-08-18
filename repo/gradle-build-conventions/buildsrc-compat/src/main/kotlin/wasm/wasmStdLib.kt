@@ -36,7 +36,7 @@ private fun Project.createBuiltInsSources() = tasks.register("builtInsSources", 
         }
     }
 
-    into("$buildDir/builtInsSources")
+    into(layout.buildDirectory.dir("builtInsSources"))
 }
 
 private fun Project.createCommonMainSources() = tasks.register("commonMainSources", Sync::class.java) {
@@ -58,7 +58,7 @@ private fun Project.createCommonMainSources() = tasks.register("commonMainSource
         }
     }
 
-    into("$buildDir/commonMainSources")
+    into(layout.buildDirectory.dir("commonMainSources"))
 
     dependsOn(":prepare:build.version:writeStdlibVersion")
 }
@@ -80,7 +80,7 @@ private fun Project.createCommonTestSources() = tasks.register("commonTestSource
         }
     }
 
-    into("$buildDir/commonTestSources")
+    into(layout.buildDirectory.dir("commonTestSources"))
 }
 
 fun Project.configureWasmStdLib(

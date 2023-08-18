@@ -82,10 +82,10 @@ tasks.register<JavaExec>("runBenchmark") {
 
     // jmhArgs example: -PjmhArgs='CommonCalls -p size=500 -p isIR=true -p useNI=true -f 1'
     val jmhArgs = if (project.hasProperty("jmhArgs")) project.property("jmhArgs").toString() else ""
-    val resultFilePath = "$buildDir/benchmarks/jmh-result.json"
+    val resultFilePath = project.layout.buildDirectory.file("benchmarks/jmh-result.json").get().asFile.toString()
     val ideaHome = ideaHomePathForTests().canonicalPath
 
-    val benchmarkJarPath = "$buildDir/benchmarks/main/jars/benchmarks.jar"
+    val benchmarkJarPath = project.layout.buildDirectory.file("benchmarks/main/jars/benchmarks.jar").get().asFile.toString()
     args = mutableListOf("-Didea.home.path=$ideaHome", benchmarkJarPath, "-rf", "json", "-rff", resultFilePath) + jmhArgs.split("\\s".toRegex())
     mainClass.set("-jar")
 

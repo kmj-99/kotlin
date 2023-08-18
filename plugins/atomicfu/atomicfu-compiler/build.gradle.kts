@@ -171,7 +171,7 @@ projectTest(jUnitMode = JUnitMode.JUnit5) {
         // Exclude all tests with the "atomicfu-native" tag. They should be launched by another test task.
         excludeTags("atomicfu-native")
     }
-    useJsIrBoxTests(version = version, buildDir = "$buildDir/")
+    useJsIrBoxTests(version = version, buildDir = "${layout.buildDirectory.get().asFile}/")
 
     workingDir = rootDir
 

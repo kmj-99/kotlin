@@ -587,7 +587,8 @@ tasks.register("createIdeaHomeForTests") {
 
 tasks {
     named<Delete>("clean") {
-        delete += setOf("$buildDir/repo", distDir)
+        delete(distDir)
+        delete(layout.buildDirectory.dir("repo"))
     }
 
     register<Delete>("cleanupArtifacts") {
@@ -930,7 +931,7 @@ val zipCompilerWithSignature by secureZipTask(zipCompiler)
 configure<IdeaModel> {
     module {
         excludeDirs = files(
-            project.buildDir,
+            project.layout.buildDirectory.get().asFile,
             commonLocalDataDir,
             ".gradle",
             "dependencies",

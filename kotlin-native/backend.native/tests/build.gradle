@@ -3768,14 +3768,14 @@ linkTest("inline_innerInlineFunCapturesOuter_linkTest") {
 }
 
 def generateWithSpaceDefFile() {
-    def mapOption = "--Map \"${buildDir}/cutom map.map\""
+    def mapOption = "--Map \"${layout.buildDirectory.get().asFile}/cutom map.map\""
     if (isAppleTarget(project)) {
-        mapOption = "-map \"${buildDir}/cutom map.map\""
+        mapOption = "-map \"${layout.buildDirectory.get().asFile}/cutom map.map\""
     } else if (isWindowsTarget(project)) {
-        mapOption = "\"-Wl,--Map,${buildDir}/cutom map.map\""
+        mapOption = "\"-Wl,--Map,${layout.buildDirectory.get().asFile}/cutom map.map\""
     }
 
-    buildDir.mkdirs()
+    layout.buildDirectory.get().asFile.mkdirs()
     def file = new File("${buildDir}/withSpaces.def")
     file.write """
 headers = stdio.h "${projectDir}/interop/basics/custom headers/custom.h"
@@ -5172,7 +5172,7 @@ interopTest("interop_exceptions_cCallback") {
 tasks.register("library_ir_provider_mismatch", KonanDriverTest) {
     disabled = isAggressiveGC // No need to test with different GC schedulers
 
-    def dir = buildDir.absolutePath
+    def dir = layout.buildDirectory.get().asFile.absolutePath
     def lib = "$projectDir/link/ir_providers/library/empty.kt"
     def invalidManifest = "$projectDir/link/ir_providers/library/manifest.properties"
 
@@ -5203,7 +5203,7 @@ standaloneTest("kt51302") {
 
 standaloneTest("fake_override_0") {
     def sources = "$projectDir/link/fake_overrides"
-    def dir = buildDir.absolutePath
+    def dir = layout.buildDirectory.get().asFile.absolutePath
     doBeforeBuild {
         konanc("$sources/base.kt -p library -target ${target.name} -o $dir/base")
         konanc("$sources/move.kt -p library -target ${target.name} -o $dir/move -r $dir -l base")
@@ -5222,7 +5222,7 @@ standaloneTest("split_compilation_pipeline") {
     // Also, it is failing for some reason on Windows CI, but since MinGW targets are not inteneded
     // to use this mode, we can disable it for these targets.
     enabled = !twoStageEnabled && project.target.name != "mingw_x64" && project.target.name != "mingw_x86"
-    def dir = buildDir.absolutePath
+    def dir = layout.buildDirectory.get().asFile.absolutePath
     source = "link/private_fake_overrides/override_main.kt"
     doBeforeBuild {
         konanc("$projectDir/link/private_fake_overrides/override_lib.kt -p library -target ${target.name} -o $dir/lib")

@@ -112,7 +112,7 @@ projectTest(parallel = true, jUnitMode = JUnitMode.JUnit5) {
 val generateTests by generator("org.jetbrains.kotlinx.serialization.TestGeneratorKt")
 
 fun Test.setUpJsIrBoxTests() {
-    useJsIrBoxTests(version = version, buildDir = "$buildDir/")
+    useJsIrBoxTests(version = version, buildDir = "${layout.buildDirectory.get().asFile}/")
 
     val localJsCoreRuntimeForTests: FileCollection = coreJsIrRuntimeForTests
     val localJsJsonRuntimeForTests: FileCollection = jsonJsIrRuntimeForTests

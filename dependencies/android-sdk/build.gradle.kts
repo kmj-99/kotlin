@@ -54,8 +54,8 @@ val androidPlatform by configurations.creating
 val buildTools by configurations.creating
 val androidEmulator by configurations.creating
 
-val libsDestDir = File(buildDir, "androidSdk/platforms/android-26")
-val sdkDestDir = File(buildDir, "androidSdk")
+val libsDestDir = File(layout.buildDirectory.get().asFile, "androidSdk/platforms/android-26")
+val sdkDestDir = File(layout.buildDirectory.get().asFile, "androidSdk")
 
 val toolsOs = when {
     OperatingSystem.current().isWindows -> "windows"
@@ -159,7 +159,7 @@ unzipSdkTask("armeabi-v7a", "19", "system-images/android-19/default","r05", prep
 unzipSdkTask("x86", "19", "system-images/android-19/default", "r06", prepareTask = prepareEmulator)
 
 val clean by task<Delete> {
-    delete(buildDir)
+    delete(layout.buildDirectory)
 }
 
 artifacts.add(androidSdk.name, file("$sdkDestDir")) {
