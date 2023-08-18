@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.analysis.low.level.api.fir.project.structure
 
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.kotlin.analysis.api.resolve.extensions.KtResolveExtensionProvider
 import org.jetbrains.kotlin.analysis.low.level.api.fir.IdeSessionComponents
@@ -44,9 +45,17 @@ internal fun LLFirSession.registerIdeComponents(project: Project) {
     register(SealedClassInheritorsProvider::class, project.createSealedInheritorsProvider())
     register(FirExceptionHandler::class, LLFirExceptionHandler)
     register(CodeFragmentScopeProvider::class, CodeFragmentScopeProvider(this))
-    createResolveExtensionTool()?.let {
-        register(LLFirResolveExtensionTool::class, it)
-    }
+    registerResolveExtensionTool()
+}
+
+@SessionConfiguration
+private fun LLFirSession.registerResolveExtensionTool() {
+    val resolveExtensionTool = createResolveExtensionTool() ?: return
+
+    // `KtResolveExtension`s are disposables meant to be tied to the lifetime of the `LLFirSession`.
+    resolveExtensionTool.extensions.forEach { Disposer.register(requestDisposable(), it) }
+
+    register(LLFirResolveExtensionTool::class, resolveExtensionTool)
 }
 
 private fun LLFirSession.createResolveExtensionTool(): LLFirResolveExtensionTool? {
