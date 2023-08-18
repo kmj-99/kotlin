@@ -14,7 +14,7 @@ STEP 2:
     dirty js files:   lib/foo/f1, lib/foo/f1.export, lib
 STEP 3:
     libs: lib, main
-    dirty js modules: lib
+    dirty js modules: lib, main
     dirty js files:   lib/foo/f1, lib/foo/f1.export, main/m
 STEP 4:
     libs: lib, main
