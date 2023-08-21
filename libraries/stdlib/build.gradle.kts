@@ -639,10 +639,10 @@ tasks {
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         manifestAttributes(manifest, "Main", multiRelease = true)
         manifest.attributes(mapOf("Implementation-Title" to "kotlin-stdlib-js"))
-        from(jsOutputFileName)
-        from(jsOutputMetaFileName)
-        from(jsOutputMapFileName)
-        from(jsV1Target.compilations["main"].output.allOutputs)
+//        from(jsOutputFileName)
+//        from(jsOutputMetaFileName)
+//        from(jsOutputMapFileName)
+//        from(jsV1Target.compilations["main"].output.allOutputs)
         from(jsIrTarget.compilations["main"].output.allOutputs)
         filesMatching("*.*") { mode = 0b110100100 } // KTI-401
     }
