@@ -5,7 +5,9 @@
 
 package org.jetbrains.kotlin.backend.jvm.codegen
 
-import org.jetbrains.kotlin.backend.common.ir.*
+import org.jetbrains.kotlin.backend.common.ir.getDefaultAdditionalStatementsFromInlinedBlock
+import org.jetbrains.kotlin.backend.common.ir.getNonDefaultAdditionalStatementsFromInlinedBlock
+import org.jetbrains.kotlin.backend.common.ir.getOriginalStatementsFromInlinedBlock
 import org.jetbrains.kotlin.backend.common.lower.BOUND_RECEIVER_PARAMETER
 import org.jetbrains.kotlin.backend.common.lower.LoweredStatementOrigins
 import org.jetbrains.kotlin.backend.jvm.*
@@ -434,8 +436,8 @@ class ExpressionCodegen(
             }
         }
 
-        info.variables.reversed().forEach {
-            frameMap.leave(it.declaration.symbol)
+        for (i in info.variables.size - 1 downTo 0) {
+            frameMap.leave(info.variables[i].declaration.symbol)
         }
     }
 
