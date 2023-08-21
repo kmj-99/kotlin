@@ -6,6 +6,8 @@
 package org.jetbrains.kotlin.gradle.targets.js.npm.tasks
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.RegularFile
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
 import org.gradle.work.DisableCachingByDefault
 import org.gradle.work.NormalizeLineEndings
@@ -46,8 +48,8 @@ abstract class RootPackageJsonTask :
     }
 
     @get:OutputFile
-    val rootPackageJson: File by lazy {
-        nodeJs.rootPackageDir.resolve(NpmProject.PACKAGE_JSON)
+    val rootPackageJson: Provider<RegularFile> by lazy {
+        nodeJs.rootPackageDir.map { it.file(NpmProject.PACKAGE_JSON) }
     }
 
     @get:PathSensitive(PathSensitivity.RELATIVE)

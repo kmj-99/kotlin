@@ -7,14 +7,11 @@ package org.jetbrains.kotlin.gradle.targets.js.yarn
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskProvider
-import org.jetbrains.kotlin.gradle.utils.markResolvable
 import org.jetbrains.kotlin.gradle.targets.js.MultiplePluginDeclarationDetector
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin.Companion.kotlinNodeJsExtension
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin.Companion.kotlinNpmResolutionManager
-import org.jetbrains.kotlin.gradle.targets.js.npm.KotlinNpmResolutionManager
 import org.jetbrains.kotlin.gradle.targets.js.npm.RequiresNpmDependencies
 import org.jetbrains.kotlin.gradle.targets.js.npm.resolver.implementing
 import org.jetbrains.kotlin.gradle.targets.js.npm.tasks.KotlinNpmInstallTask
@@ -24,6 +21,7 @@ import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockCopyTask.Companion.ST
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockCopyTask.Companion.UPGRADE_YARN_LOCK
 import org.jetbrains.kotlin.gradle.tasks.CleanDataTask
 import org.jetbrains.kotlin.gradle.tasks.registerTask
+import org.jetbrains.kotlin.gradle.utils.markResolvable
 import org.jetbrains.kotlin.gradle.utils.onlyIfCompat
 
 open class YarnPlugin : Plugin<Project> {
@@ -91,7 +89,7 @@ open class YarnPlugin : Plugin<Project> {
 
         tasks.register(STORE_YARN_LOCK_NAME, YarnLockStoreTask::class.java) { task ->
             task.dependsOn(kotlinNpmInstall)
-            task.inputFile.set(nodeJs.rootPackageDir.resolve("yarn.lock"))
+            task.inputFile.set(nodeJs.rootPackageDir.map { it.file("yarn.lock") })
             task.outputDirectory.set(yarnRootExtension.lockFileDirectory)
             task.fileName.set(yarnRootExtension.lockFileName)
 
@@ -102,7 +100,7 @@ open class YarnPlugin : Plugin<Project> {
 
         tasks.register(UPGRADE_YARN_LOCK, YarnLockCopyTask::class.java) { task ->
             task.dependsOn(kotlinNpmInstall)
-            task.inputFile.set(nodeJs.rootPackageDir.resolve("yarn.lock"))
+            task.inputFile.set(nodeJs.rootPackageDir.map { it.file("yarn.lock") })
             task.outputDirectory.set(yarnRootExtension.lockFileDirectory)
             task.fileName.set(yarnRootExtension.lockFileName)
         }
@@ -131,7 +129,7 @@ open class YarnPlugin : Plugin<Project> {
     // https://youtrack.jetbrains.com/issue/KT-48241
     private fun configureRequiresNpmDependencies(
         project: Project,
-        rootPackageJson: TaskProvider<RootPackageJsonTask>
+        rootPackageJson: TaskProvider<RootPackageJsonTask>,
     ) {
         val fn: (Project) -> Unit = {
             it.tasks.implementing(RequiresNpmDependencies::class)

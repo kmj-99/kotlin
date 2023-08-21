@@ -21,8 +21,6 @@ class KotlinCompilationNpmResolution(
     var externalNpmDependencies: Collection<NpmDependencyDeclaration>,
     var fileCollectionDependencies: Collection<FileCollectionExternalGradleDependency>,
     val projectPath: String,
-    val projectPackagesDir: File,
-    val rootDir: File,
     val compilationDisambiguatedName: String,
     val npmProjectName: String,
     val npmProjectVersion: String,

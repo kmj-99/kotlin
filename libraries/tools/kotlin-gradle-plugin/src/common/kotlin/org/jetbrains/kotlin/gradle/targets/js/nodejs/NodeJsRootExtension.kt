@@ -7,6 +7,8 @@ package org.jetbrains.kotlin.gradle.targets.js.nodejs
 
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.file.Directory
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskProvider
 import org.jetbrains.kotlin.gradle.internal.ConfigurationPhaseAware
 import org.jetbrains.kotlin.gradle.logging.kotlinInfo
@@ -74,13 +76,13 @@ open class NodeJsRootExtension(
 
     lateinit var resolver: KotlinRootNpmResolver
 
-    val rootPackageDir: File = project.buildDir.resolve("js")
+    val rootPackageDir: Provider<Directory> = project.layout.buildDirectory.dir("js")
 
-    val projectPackagesDir: File
-        get() = rootPackageDir.resolve("packages")
+    val projectPackagesDir: Provider<Directory>
+        get() = rootPackageDir.map { it.dir("packages") }
 
-    val nodeModulesGradleCacheDir: File
-        get() = rootPackageDir.resolve("packages_imported")
+    val nodeModulesGradleCacheDir: Provider<Directory>
+        get() = rootPackageDir.map { it.dir("packages_imported") }
 
     internal val platform: org.gradle.api.provider.Property<Platform> = project.objects.property<Platform>()
 
@@ -108,7 +110,7 @@ open class NodeJsRootExtension(
 
         return NodeJsEnv(
             cleanableStore = cleanableStore,
-            rootPackageDir = rootPackageDir,
+            rootPackageDir = rootPackageDir.get().asFile,
             nodeDir = nodeDir,
             nodeBinDir = nodeBinDir,
             nodeExecutable = getExecutable("node", nodeCommand, "exe"),

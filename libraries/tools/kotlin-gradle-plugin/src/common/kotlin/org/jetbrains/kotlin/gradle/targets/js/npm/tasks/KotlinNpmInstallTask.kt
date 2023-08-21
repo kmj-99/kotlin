@@ -6,6 +6,9 @@
 package org.jetbrains.kotlin.gradle.targets.js.npm.tasks
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.Directory
+import org.gradle.api.file.RegularFile
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
 import org.gradle.work.DisableCachingByDefault
 import org.gradle.work.NormalizeLineEndings
@@ -72,15 +75,15 @@ abstract class KotlinNpmInstallTask :
     }
 
     @get:OutputFile
-    val yarnLock: File by lazy {
-        nodeJs.rootPackageDir.resolve("yarn.lock")
+    val yarnLock: Provider<RegularFile> by lazy {
+        nodeJs.rootPackageDir.map { it.file("yarn.lock") }
     }
 
     // node_modules as OutputDirectory is performance problematic
     // so input will only be existence of its directory
     @get:Internal
-    val nodeModules: File by lazy {
-        nodeJs.rootPackageDir.resolve("node_modules")
+    val nodeModules: Provider<Directory> by lazy {
+        nodeJs.rootPackageDir.map { it.dir("node_modules") }
     }
 
     @TaskAction

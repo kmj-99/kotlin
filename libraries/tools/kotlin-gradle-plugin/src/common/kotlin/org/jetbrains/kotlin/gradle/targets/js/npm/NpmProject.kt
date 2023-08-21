@@ -6,6 +6,9 @@
 package org.jetbrains.kotlin.gradle.targets.js.npm
 
 import org.gradle.api.Project
+import org.gradle.api.file.Directory
+import org.gradle.api.file.RegularFile
+import org.gradle.api.provider.Provider
 import org.gradle.process.ExecSpec
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
@@ -42,8 +45,8 @@ open class NpmProject(@Transient val compilation: KotlinJsCompilation) : Seriali
         project.rootProject.kotlinNodeJsExtension
     }
 
-    val dir: File by lazy {
-        nodeJs.projectPackagesDir.resolve(name)
+    val dir: Provider<Directory> by lazy {
+        nodeJs.projectPackagesDir.map { it.dir(name) }
     }
 
     val target: KotlinJsTargetDsl
@@ -53,10 +56,10 @@ open class NpmProject(@Transient val compilation: KotlinJsCompilation) : Seriali
         get() = target.project
 
     val nodeModulesDir
-        get() = dir.resolve(NODE_MODULES)
+        get() = dir.map { it.dir(NODE_MODULES) }
 
-    val packageJsonFile: File
-        get() = dir.resolve(PACKAGE_JSON)
+    val packageJsonFile: Provider<RegularFile>
+        get() = dir.map { it.file(PACKAGE_JSON) }
 
     val packageJsonTaskName: String
         get() = compilation.disambiguateName("packageJson")
@@ -68,8 +71,8 @@ open class NpmProject(@Transient val compilation: KotlinJsCompilation) : Seriali
         packageJsonTask.path
     }
 
-    val dist: File
-        get() = dir.resolve(DIST_FOLDER)
+    val dist: Provider<Directory>
+        get() = dir.map { it.dir(DIST_FOLDER) }
 
     val main: String
         get() = "$DIST_FOLDER${File.separator}$name$extension"
@@ -78,7 +81,7 @@ open class NpmProject(@Transient val compilation: KotlinJsCompilation) : Seriali
         get() = compilation.disambiguateName(PublicPackageJsonTask.NAME)
 
     internal val modules by lazy {
-        NpmProjectModules(dir)
+        NpmProjectModules(dir.get().asFile)
     }
 
     private val nodeExecutable by lazy {
@@ -91,7 +94,7 @@ open class NpmProject(@Transient val compilation: KotlinJsCompilation) : Seriali
         nodeArgs: List<String> = listOf(),
         args: List<String>
     ) {
-        exec.workingDir = dir
+        exec.workingDir = dir.get().asFile
         exec.executable = nodeExecutable
         exec.args = nodeArgs + require(tool) + args
     }

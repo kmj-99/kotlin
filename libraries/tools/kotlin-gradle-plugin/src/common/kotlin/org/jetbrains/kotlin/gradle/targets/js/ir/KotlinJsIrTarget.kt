@@ -196,7 +196,7 @@ constructor(
 
             task.from.from(project.tasks.named(compilation.processResourcesTaskName))
 
-            task.destinationDirectory.set(npmProject.dist)
+            task.destinationDirectory.set(npmProject.dist.map { it.asFile })
         }
     }
 

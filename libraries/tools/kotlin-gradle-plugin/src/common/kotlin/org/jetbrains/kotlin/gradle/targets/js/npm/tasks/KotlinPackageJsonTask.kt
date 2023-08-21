@@ -146,7 +146,7 @@ abstract class KotlinPackageJsonTask :
                 task.gradleNodeModules.value(gradleNodeModules)
                     .disallowChanges()
 
-                task.packageJson.set(compilation.npmProject.packageJsonFile)
+                task.packageJson.set(compilation.npmProject.packageJsonFile.map { it.asFile })
 
                 task.onlyIf {
                     it as KotlinPackageJsonTask

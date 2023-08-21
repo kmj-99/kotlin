@@ -286,7 +286,7 @@ constructor(
             runner.copy(
                 config = runner.config.copy(
                     progressReporter = true,
-                    progressReporterPathFilter = rootPackageDir
+                    progressReporterPathFilter = rootPackageDir.get().asFile
                 )
             ).execute(services)
 
