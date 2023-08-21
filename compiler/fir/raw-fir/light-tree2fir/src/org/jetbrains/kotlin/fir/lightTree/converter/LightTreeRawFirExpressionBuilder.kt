@@ -70,15 +70,18 @@ class LightTreeRawFirExpressionBuilder(
         val converted = expression?.let { convertExpression(it, errorReason) }
 
         return when {
-            converted is R -> when {
-                !converted.isCallToStatementLikeFunction || converted.isArraySet && allowArraySetExpression -> {
-                    converted
+            converted is R -> {
+                val isExpressionAnAllowedArraySet = converted.isArraySet && allowArraySetExpression
+                when {
+                    converted.isCallToStatementLikeFunction && !isExpressionAnAllowedArraySet -> {
+                        buildErrorExpression(
+                            sourceWhenStatementLike?.toFirSourceElement(),
+                            ConeSimpleDiagnostic(errorReason, DiagnosticKind.ExpressionExpected),
+                            converted,
+                        )
+                    }
+                    else -> converted
                 }
-                else -> buildErrorExpression(
-                    sourceWhenStatementLike?.toFirSourceElement(),
-                    ConeSimpleDiagnostic(errorReason, DiagnosticKind.ExpressionExpected),
-                    converted,
-                )
             }
             else -> buildErrorExpression(
                 converted?.source?.withForcedKindFrom(context) ?: expression?.toFirSourceElement(),

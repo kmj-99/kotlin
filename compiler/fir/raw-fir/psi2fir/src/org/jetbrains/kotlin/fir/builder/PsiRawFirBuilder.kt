@@ -287,14 +287,17 @@ open class PsiRawFirBuilder(
             val fir = convertElement(this, null)
 
             return when {
-                fir is FirExpression -> when {
-                    !fir.isCallToStatementLikeFunction || fir.isArraySet && allowArraySetExpression -> {
-                        toFirExpression(fir)
-                    }
-                    else -> buildErrorExpression {
-                        nonExpressionElement = fir
-                        diagnostic = diagnosticFn()
-                        source = sourceWhenStatementLike?.toFirSourceElement()
+                fir is FirExpression -> {
+                    val isExpressionAnAllowedArraySet = fir.isArraySet && allowArraySetExpression
+                    when {
+                        fir.isCallToStatementLikeFunction && !isExpressionAnAllowedArraySet -> {
+                            buildErrorExpression {
+                                nonExpressionElement = fir
+                                diagnostic = diagnosticFn()
+                                source = sourceWhenStatementLike?.toFirSourceElement()
+                            }
+                        }
+                        else -> toFirExpression(fir)
                     }
                 }
                 else -> buildErrorExpression {
