@@ -227,6 +227,8 @@ public class HexFormat internal constructor(
         val removeLeadingZeros: Boolean
     ) {
 
+        internal val isDefault: Boolean = prefix.isEmpty() && suffix.isEmpty() && !removeLeadingZeros
+
         override fun toString(): String = buildString {
             append("NumberHexFormat(").appendLine()
             appendOptionsTo(this, indent = "    ").appendLine()

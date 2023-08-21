@@ -468,12 +468,8 @@ private fun String.checkNewLineAt(index: Int, endIndex: Int): Int {
 @ExperimentalStdlibApi
 @SinceKotlin("1.9")
 public fun Byte.toHexString(format: HexFormat = HexFormat.Default): String {
-    val prefix = format.number.prefix
-    val suffix = format.number.suffix
-    val removeLeadingZeros = format.number.removeLeadingZeros
-
     // Optimize for the default format
-    if (prefix.isEmpty() && suffix.isEmpty() && !removeLeadingZeros) {
+    if (format.number.isDefault) {
         val charArray = CharArray(2)
         val digits = if (format.upperCase) UPPER_CASE_HEX_DIGITS else LOWER_CASE_HEX_DIGITS
         val value = this.toInt()
@@ -530,12 +526,8 @@ private fun String.hexToByte(startIndex: Int = 0, endIndex: Int = length, format
 @ExperimentalStdlibApi
 @SinceKotlin("1.9")
 public fun Short.toHexString(format: HexFormat = HexFormat.Default): String {
-    val prefix = format.number.prefix
-    val suffix = format.number.suffix
-    val removeLeadingZeros = format.number.removeLeadingZeros
-
     // Optimize for the default format
-    if (prefix.isEmpty() && suffix.isEmpty() && !removeLeadingZeros) {
+    if (format.number.isDefault) {
         val charArray = CharArray(4)
         val digits = if (format.upperCase) UPPER_CASE_HEX_DIGITS else LOWER_CASE_HEX_DIGITS
         val value = this.toInt()
@@ -594,12 +586,8 @@ private fun String.hexToShort(startIndex: Int = 0, endIndex: Int = length, forma
 @ExperimentalStdlibApi
 @SinceKotlin("1.9")
 public fun Int.toHexString(format: HexFormat = HexFormat.Default): String {
-    val prefix = format.number.prefix
-    val suffix = format.number.suffix
-    val removeLeadingZeros = format.number.removeLeadingZeros
-
     // Optimize for the default format
-    if (prefix.isEmpty() && suffix.isEmpty() && !removeLeadingZeros) {
+    if (format.number.isDefault) {
         val charArray = CharArray(8)
         val digits = if (format.upperCase) UPPER_CASE_HEX_DIGITS else LOWER_CASE_HEX_DIGITS
         val value = this
@@ -662,12 +650,8 @@ private fun String.hexToInt(startIndex: Int = 0, endIndex: Int = length, format:
 @ExperimentalStdlibApi
 @SinceKotlin("1.9")
 public fun Long.toHexString(format: HexFormat = HexFormat.Default): String {
-    val prefix = format.number.prefix
-    val suffix = format.number.suffix
-    val removeLeadingZeros = format.number.removeLeadingZeros
-
     // Optimize for the default format
-    if (prefix.isEmpty() && suffix.isEmpty() && !removeLeadingZeros) {
+    if (format.number.isDefault) {
         val charArray = CharArray(16)
         val digits = if (format.upperCase) UPPER_CASE_HEX_DIGITS else LOWER_CASE_HEX_DIGITS
         val value = this
