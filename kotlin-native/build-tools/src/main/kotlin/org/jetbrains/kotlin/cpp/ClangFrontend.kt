@@ -163,7 +163,7 @@ abstract class ClangFrontend @Inject constructor(
      */
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
-    protected val headers: Provider<Collection<File>> = providers.provider {
+    protected val headers: Provider<FileTree> = providers.provider {
         // Not using clang's -M* flags because there's a problem with our current include system:
         // We allow includes relative to the current directory and also pass -I for each imported module
         // Given file tree:
@@ -188,7 +188,7 @@ abstract class ClangFrontend @Inject constructor(
         dirs.addAll(headersDirs.files)
         layout.files(dirs).asFileTree.matching {
             include("**/*.h", "**/*.hpp")
-        }.files
+        }
     }
 
     private val platformManager = project.extensions.getByType<PlatformManager>()
