@@ -116,7 +116,7 @@ abstract class ClangFrontend @Inject constructor(
      * Currently only `clang` and `clang++` are supported.
      */
     @get:Input
-    abstract val compiler: Property<String>
+    val compiler: Property<String> = objects.property(String::class.java)
 
     /**
      * Extra arguments for [compiler].
@@ -151,7 +151,7 @@ abstract class ClangFrontend @Inject constructor(
      * All inputs will be passed to the compiler as relative paths to this directory.
      */
     @get:Internal
-    abstract val workingDirectory: DirectoryProperty
+    val workingDirectory: DirectoryProperty = objects.directoryProperty()
 
     @get:Input
     protected val workingDirectoryPath: Provider<String> = workingDirectory.map {
