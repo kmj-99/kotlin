@@ -55,7 +55,8 @@ tasks.withType<KotlinCompile> {
             "-Xallow-kotlin-package",
             "-Xmulti-platform",
             "-opt-in=kotlin.RequiresOptIn",
-            "-opt-in=kotlin.contracts.ExperimentalContracts"
+            "-opt-in=kotlin.contracts.ExperimentalContracts",
+            "-opt-in=kotlin.ExperimentalMultiplatform",
         )
         moduleName = "kotlin-stdlib"
     }
