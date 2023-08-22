@@ -771,7 +771,7 @@ private fun String.toCharArrayIfNotEmpty(destination: CharArray, destinationOffs
 }
 
 @ExperimentalStdlibApi
-private fun String.hexToIntImpl(startIndex: Int = 0, endIndex: Int = length, format: HexFormat, maxDigits: Int): Int {
+private fun String.hexToIntImpl(startIndex: Int, endIndex: Int, format: HexFormat, maxDigits: Int): Int {
     AbstractList.checkBoundsIndexes(startIndex, endIndex, length)
 
     val prefix = format.number.prefix
@@ -799,7 +799,7 @@ private fun String.hexToIntImpl(startIndex: Int = 0, endIndex: Int = length, for
 }
 
 @ExperimentalStdlibApi
-private fun String.hexToLongImpl(startIndex: Int = 0, endIndex: Int = length, format: HexFormat, maxDigits: Int): Long {
+private fun String.hexToLongImpl(startIndex: Int, endIndex: Int, format: HexFormat, maxDigits: Int): Long {
     AbstractList.checkBoundsIndexes(startIndex, endIndex, length)
 
     val prefix = format.number.prefix
