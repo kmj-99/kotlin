@@ -42,6 +42,7 @@ internal abstract class CopyCommonizeCInteropForIdeTask @Inject constructor(
     @TaskAction
     protected fun copy() {
         val metricReporter = metrics.get()
+        //Does not use compiler so no language version
         addBuildMetricsForTaskAction(metricsReporter = metricReporter, languageVersion = null) {
             outputDirectory.mkdirs()
             for (group in commonizeCInteropTask.get().allInteropGroups.getOrThrow()) {

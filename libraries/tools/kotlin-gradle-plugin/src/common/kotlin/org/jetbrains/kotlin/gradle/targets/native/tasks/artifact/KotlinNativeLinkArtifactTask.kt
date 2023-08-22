@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.compilerRunner.KotlinToolRunner
 import org.jetbrains.kotlin.compilerRunner.konanDataDir
 import org.jetbrains.kotlin.compilerRunner.konanHome
 import org.jetbrains.kotlin.compilerRunner.addBuildMetricsForTaskAction
+import org.jetbrains.kotlin.compilerRunner.parseLanguageVersion
 import org.jetbrains.kotlin.gradle.dsl.*
 import org.jetbrains.kotlin.gradle.internal.ensureParentDirsCreated
 import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider
@@ -205,7 +206,7 @@ abstract class KotlinNativeLinkArtifactTask @Inject constructor(
     fun link() {
         val metricReporter = metrics.get()
 
-        addBuildMetricsForTaskAction(metricsReporter = metricReporter, languageVersion = null) {
+        addBuildMetricsForTaskAction(metricsReporter = metricReporter, languageVersion = parseLanguageVersion(toolOptions.freeCompilerArgs.get())) {
 
             val outFile = outputFile.get()
             outFile.ensureParentDirsCreated()

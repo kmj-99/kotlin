@@ -102,7 +102,7 @@ internal abstract class NativeDistributionCommonizerTask
     protected fun run() {
         val metricsReporter = metrics.get()
 
-        addBuildMetricsForTaskAction(metricsReporter = metricsReporter, languageVersion = null) {
+        addBuildMetricsForTaskAction(metricsReporter = metricsReporter, languageVersion = parseLanguageVersion(customJvmArgs.get())) {
             val commonizerRunner = KotlinNativeCommonizerToolRunner(
                 context = KotlinToolRunner.GradleExecutionContext.fromTaskContext(objectFactory, execOperations, logger),
                 settings = runnerSettings.get(),
