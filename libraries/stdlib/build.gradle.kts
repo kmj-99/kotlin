@@ -6,6 +6,8 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinUsages
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsTargetDsl
 import org.jetbrains.kotlin.gradle.targets.js.KotlinWasmTargetAttribute
+import org.jetbrains.kotlin.gradle.targets.js.d8.D8RootPlugin
+import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.tasks.UsesKotlinJavaToolchain
 import plugins.configureDefaultPublishing
 import plugins.configureKotlinPomAttributes
@@ -239,7 +241,6 @@ kotlin {
             browser {}
         }
         nodejs {
-            @Suppress("DEPRECATION")
             testTask {
                 useMocha {
                     timeout = "10s"
@@ -261,6 +262,35 @@ kotlin {
                         allWarningsAsErrors = true
                     }
                 }
+            }
+        }
+    }
+
+    D8RootPlugin.apply(rootProject).version = v8Version
+
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        nodejs()
+        compilations {
+            all {
+                kotlinOptions.freeCompilerArgs += "-Xallow-kotlin-package"
+            }
+            val main by getting
+            main.apply {
+                kotlinOptions.freeCompilerArgs += "-Xir-module-name=kotlin"
+            }
+        }
+    }
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmWasi {
+        nodejs()
+        compilations {
+            all {
+                kotlinOptions.freeCompilerArgs += "-Xallow-kotlin-package"
+            }
+            val main by getting
+            main.apply {
+                kotlinOptions.freeCompilerArgs += "-Xir-module-name=kotlin"
             }
         }
     }
@@ -452,6 +482,96 @@ kotlin {
                 api(project(":kotlin-test:kotlin-test-js-ir"))
             }
             kotlin.srcDir(jsCommonTestSrcDir)
+        }
+
+        val wasmCommonMain by creating {
+            dependsOn(commonMain.get())
+            val prepareWasmBuiltinSources by tasks.registering(Sync::class)
+            kotlin {
+                srcDir(prepareWasmBuiltinSources)
+                srcDir("wasm/builtins")
+                srcDir("wasm/internal")
+                srcDir("wasm/runtime")
+                srcDir("wasm/src")
+                srcDir("wasm/stubs")
+                srcDir("native-wasm/src")
+            }
+            prepareWasmBuiltinSources.configure {
+                val unimplementedNativeBuiltIns =
+                    (file("$rootDir/core/builtins/native/kotlin/").list().toSortedSet() - file("wasm/builtins/kotlin/").list())
+                        .map { "core/builtins/native/kotlin/$it" }
+
+                val sources = listOf(
+                    "core/builtins/src/kotlin/"
+                ) + unimplementedNativeBuiltIns
+
+
+
+                val excluded = listOf(
+                    // included in commonMain
+                    "internal/InternalAnnotations.kt",
+                    // JS-specific optimized version of emptyArray() already defined
+                    "ArrayIntrinsics.kt",
+                    // Included with K/N collections
+                    "Collections.kt", "Iterator.kt", "Iterators.kt"
+                )
+
+                sources.forEach { path ->
+                    from("$rootDir/$path") {
+                        into(path.dropLastWhile { it != '/' })
+                        excluded.forEach {
+                            exclude(it)
+                        }
+                    }
+                }
+
+                into("$buildDir/src/wasm-builtin-sources")
+            }
+
+        }
+        val wasmCommonTest by creating {
+            dependsOn(commonTest.get())
+            kotlin {
+                srcDir("wasm/test")
+                srcDir("native-wasm/test")
+            }
+        }
+
+        val wasmJsMain by getting {
+            dependsOn(wasmCommonMain)
+            kotlin {
+                srcDir("wasm/js/builtins")
+                srcDir("wasm/js/internal")
+                srcDir("wasm/js/src")
+            }
+        }
+        val wasmJsTest by getting {
+            dependsOn(wasmCommonTest)
+            dependencies {
+                api(project(":kotlin-test:kotlin-test-wasm-js"))
+            }
+            kotlin {
+                srcDir("wasm/js/test")
+            }
+        }
+        val wasmWasiMain by getting {
+            dependsOn(wasmCommonMain)
+            kotlin {
+                srcDir("wasm/wasi/builtins")
+                srcDir("wasm/wasi/src")
+            }
+            languageSettings {
+                optIn("kotlin.wasm.unsafe.UnsafeWasmMemoryApi")
+            }
+        }
+        val wasmWasiTest by getting {
+            dependsOn(wasmCommonTest)
+            dependencies {
+                api(project(":kotlin-test:kotlin-test-wasm-wasi"))
+            }
+            kotlin {
+                srcDir("wasm/wasi/test")
+            }
         }
 
         all sourceSet@ {
@@ -714,6 +834,13 @@ tasks {
         }
     }
 
+    val wasmJsJar by existing(Jar::class) {
+        manifestAttributes(manifest, "Main")
+    }
+    val wasmWasiJar by existing(Jar::class) {
+        manifestAttributes(manifest, "Main")
+    }
+
     artifacts {
         val distJsJar = configurations.create("distJsJar")
         val distJsSourcesJar = configurations.create("distJsSourcesJar")
@@ -828,8 +955,8 @@ fun wasmOutgoingConfigurations(target: KotlinWasmTargetAttribute) {
     }
 }
 
-wasmOutgoingConfigurations(KotlinWasmTargetAttribute.js)
-wasmOutgoingConfigurations(KotlinWasmTargetAttribute.wasi)
+//wasmOutgoingConfigurations(KotlinWasmTargetAttribute.js)
+//wasmOutgoingConfigurations(KotlinWasmTargetAttribute.wasi)
 
 
 // region ==== Publishing ====
