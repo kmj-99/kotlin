@@ -14,6 +14,12 @@ private val HEX_DIGITS_TO_DECIMAL = IntArray(256) { -1 }.apply {
     UPPER_CASE_HEX_DIGITS.forEachIndexed { index, char -> this[char.code] = index }
 }
 
+// case-insensitive parsing
+private val HEX_DIGITS_TO_LONG_DECIMAL = LongArray(256) { -1 }.apply {
+    LOWER_CASE_HEX_DIGITS.forEachIndexed { index, char -> this[char.code] = index.toLong() }
+    UPPER_CASE_HEX_DIGITS.forEachIndexed { index, char -> this[char.code] = index.toLong() }
+}
+
 // -------------------------- format and parse ByteArray --------------------------
 
 /**
@@ -835,7 +841,7 @@ private fun String.parseInt(startIndex: Int, endIndex: Int): Int {
 private fun String.parseLong(startIndex: Int, endIndex: Int): Long {
     var result = 0L
     for (i in startIndex until endIndex) {
-        result = (result shl 4) or decimalFromHexDigitAt(i).toLong()
+        result = (result shl 4) or longDecimalFromHexDigitAt(i)
     }
     return result
 }
@@ -866,6 +872,15 @@ private inline fun String.decimalFromHexDigitAt(index: Int): Int {
     val code = this[index].code
     if (code ushr 8 == 0 && HEX_DIGITS_TO_DECIMAL[code] >= 0) {
         return HEX_DIGITS_TO_DECIMAL[code]
+    }
+    throw NumberFormatException("Expected a hexadecimal digit at index $index, but was ${this[index]}")
+}
+
+@Suppress("NOTHING_TO_INLINE")
+private inline fun String.longDecimalFromHexDigitAt(index: Int): Long {
+    val code = this[index].code
+    if (code ushr 8 == 0 && HEX_DIGITS_TO_LONG_DECIMAL[code] >= 0) {
+        return HEX_DIGITS_TO_LONG_DECIMAL[code]
     }
     throw NumberFormatException("Expected a hexadecimal digit at index $index, but was ${this[index]}")
 }
