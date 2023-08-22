@@ -93,7 +93,7 @@ internal class NativeEnumWhenLowering constructor(context: Context) : EnumWhenLo
     }
 }
 
-internal class EnumUsageLowering(val context: Context) : IrElementTransformer<IrBuilderWithScope?>, FileLoweringPass {
+internal class EnumUsageLowering(val context: Context) : IrElementTransformer<IrBuilderWithScope?>(), FileLoweringPass {
     private val enumsSupport = context.enumsSupport
 
     override fun lower(irFile: IrFile) {
