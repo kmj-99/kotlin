@@ -14,17 +14,18 @@ import org.jetbrains.kotlin.fir.languageVersionSettings
 import org.jetbrains.kotlin.fir.declarations.FirAnnotationsPlatformSpecificSupportComponent
 import org.jetbrains.kotlin.fir.expressions.FirAnnotation
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.JvmStandardClassIds
 import org.jetbrains.kotlin.name.StandardClassIds
 
 object FirJvmAnnotationsPlatformSpecificSupportComponent : FirAnnotationsPlatformSpecificSupportComponent() {
-    override val requiredAnnotationsWithArguments = setOf(
+    override val requiredAnnotationsWithArguments: Set<ClassId> = setOf(
         StandardClassIds.Annotations.Deprecated,
         StandardClassIds.Annotations.Target,
         JvmStandardClassIds.Annotations.Java.Target,
     )
 
-    override val requiredAnnotations = requiredAnnotationsWithArguments + setOf(
+    override val requiredAnnotations: Set<ClassId> = requiredAnnotationsWithArguments + setOf(
         JvmStandardClassIds.Annotations.Java.Deprecated,
         StandardClassIds.Annotations.DeprecatedSinceKotlin,
         StandardClassIds.Annotations.SinceKotlin,
@@ -32,12 +33,17 @@ object FirJvmAnnotationsPlatformSpecificSupportComponent : FirAnnotationsPlatfor
         JvmStandardClassIds.Annotations.JvmRecord,
     )
 
-    override val volatileAnnotations = setOf(
+    override val volatileAnnotations: Set<ClassId> = setOf(
         StandardClassIds.Annotations.Volatile,
         JvmStandardClassIds.Annotations.JvmVolatile,
     )
 
-    override val deprecationAnnotationsWithOverridesPropagation = mapOf(
+    /**
+     * Maps deprecation annotation ClassIds to the flag
+     * which is true iff the corresponding annotation must
+     * be propagated to overrides.
+     */
+    override val deprecationAnnotationsWithOverridesPropagation: Map<ClassId, Boolean> = mapOf(
         StandardClassIds.Annotations.Deprecated to true,
         JvmStandardClassIds.Annotations.Java.Deprecated to false,
         StandardClassIds.Annotations.SinceKotlin to true,

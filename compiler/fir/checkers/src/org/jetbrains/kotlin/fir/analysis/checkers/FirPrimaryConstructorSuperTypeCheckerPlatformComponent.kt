@@ -14,7 +14,7 @@ abstract class FirPrimaryConstructorSuperTypeCheckerPlatformComponent : FirSessi
     abstract val supertypesThatDontNeedInitializationInSubtypesConstructors: Set<ClassId>
 
     object Default : FirPrimaryConstructorSuperTypeCheckerPlatformComponent() {
-        override val supertypesThatDontNeedInitializationInSubtypesConstructors = setOf(StandardClassIds.Enum)
+        override val supertypesThatDontNeedInitializationInSubtypesConstructors: Set<ClassId> = setOf(StandardClassIds.Enum)
     }
 }
 

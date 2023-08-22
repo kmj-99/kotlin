@@ -27,14 +27,6 @@ abstract class FirAnnotationsPlatformSpecificSupportComponent : FirSessionCompon
 
     abstract val deprecationAnnotationsWithOverridesPropagation: Map<ClassId, Boolean>
 
-    val deprecationAnnotations by lazy {
-        deprecationAnnotationsWithOverridesPropagation.keys
-    }
-
-    val deprecationAnnotationsSimpleNames: Set<String> by lazy {
-        requiredAnnotations.mapTo(mutableSetOf()) { it.shortClassName.asString() }
-    }
-
     abstract fun symbolContainsRepeatableAnnotation(symbol: FirClassLikeSymbol<*>, session: FirSession): Boolean
 
     abstract fun extractBackingFieldAnnotationsFromProperty(
