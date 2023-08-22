@@ -8,7 +8,6 @@ package org.jetbrains.kotlin.ir.interpreter.transformer
 import org.jetbrains.kotlin.constant.EvaluatedConstTracker
 import org.jetbrains.kotlin.incremental.components.InlineConstTracker
 import org.jetbrains.kotlin.ir.IrElement
-import org.jetbrains.kotlin.ir.declarations.IrAnnotationContainer
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.*
@@ -17,8 +16,8 @@ import org.jetbrains.kotlin.ir.interpreter.IrInterpreter
 import org.jetbrains.kotlin.ir.interpreter.checker.EvaluationMode
 import org.jetbrains.kotlin.ir.interpreter.checker.IrInterpreterChecker
 import org.jetbrains.kotlin.ir.interpreter.isPrimitiveArray
-import org.jetbrains.kotlin.ir.util.toIrConst
 import org.jetbrains.kotlin.ir.types.*
+import org.jetbrains.kotlin.ir.util.toIrConst
 
 internal abstract class IrConstAnnotationTransformer(
     interpreter: IrInterpreter,
@@ -33,8 +32,8 @@ internal abstract class IrConstAnnotationTransformer(
 ) : IrConstTransformer(
     interpreter, irFile, mode, checker, evaluatedConstTracker, inlineConstTracker, onWarning, onError, suppressExceptions
 ) {
-    protected fun transformAnnotations(annotationContainer: IrAnnotationContainer) {
-        annotationContainer.annotations.forEach { annotation ->
+    protected fun transformAnnotations(annotations: List<IrConstructorCall>) {
+        annotations.forEach { annotation ->
             transformAnnotation(annotation)
         }
     }
