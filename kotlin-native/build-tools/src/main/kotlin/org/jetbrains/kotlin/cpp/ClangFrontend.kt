@@ -194,6 +194,7 @@ abstract class ClangFrontend @Inject constructor(
     private val platformManager = project.extensions.getByType<PlatformManager>()
     private val execClang by lazy { ExecClang.create(objects, platformManager) }
 
+    // TODO: Consider configuring full clang execution from the plugin instead.  
     @get:InputFile
     @get:PathSensitive(PathSensitivity.NONE)
     val executable: Provider<RegularFile> = layout.file(compiler.map {
