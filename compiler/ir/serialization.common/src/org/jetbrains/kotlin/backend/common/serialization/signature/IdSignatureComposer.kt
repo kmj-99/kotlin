@@ -188,7 +188,7 @@ class PublicIdSignatureComputer(val mangler: KotlinMangler.IrMangler) : IdSignat
     }
 }
 
-class IdSignatureSerializer(
+class IdSignatureComposer(
     private val publicSignatureBuilder: PublicIdSignatureComputer,
     private val table: DeclarationTable,
     startIndex: Int

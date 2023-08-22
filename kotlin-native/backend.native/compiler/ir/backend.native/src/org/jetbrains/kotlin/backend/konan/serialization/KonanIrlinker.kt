@@ -26,6 +26,15 @@ import org.jetbrains.kotlin.backend.common.serialization.*
 import org.jetbrains.kotlin.backend.common.serialization.encodings.BinaryNameAndType
 import org.jetbrains.kotlin.backend.common.serialization.encodings.BinarySymbolData
 import org.jetbrains.kotlin.backend.common.serialization.encodings.FunctionFlags
+import org.jetbrains.kotlin.backend.common.serialization.proto.IrExpression
+import org.jetbrains.kotlin.backend.common.serialization.proto.IrStatement
+import org.jetbrains.kotlin.backend.common.serialization.proto.IrType
+import org.jetbrains.kotlin.backend.common.serialization.IdSignatureSerializer
+import org.jetbrains.kotlin.backend.common.serialization.proto.AccessorIdSignature as ProtoAccessorIdSignature
+import org.jetbrains.kotlin.backend.common.serialization.proto.CommonIdSignature as ProtoCommonIdSignature
+import org.jetbrains.kotlin.backend.common.serialization.proto.CompositeSignature as ProtoCompositeSignature
+import org.jetbrains.kotlin.backend.common.serialization.proto.FileSignature as ProtoFileSignature
+import org.jetbrains.kotlin.backend.common.serialization.proto.IdSignature as ProtoIdSignature
 import org.jetbrains.kotlin.backend.konan.*
 import org.jetbrains.kotlin.backend.konan.descriptors.ClassLayoutBuilder
 import org.jetbrains.kotlin.backend.konan.descriptors.findPackage
@@ -52,8 +61,12 @@ import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
+import org.jetbrains.kotlin.library.encodings.WobblyTF8
 import org.jetbrains.kotlin.library.KotlinAbiVersion
 import org.jetbrains.kotlin.library.KotlinLibrary
+import org.jetbrains.kotlin.library.impl.IrArrayMemoryReader
+import org.jetbrains.kotlin.library.impl.IrMemoryArrayWriter
+import org.jetbrains.kotlin.library.impl.IrMemoryStringWriter
 import org.jetbrains.kotlin.library.metadata.DeserializedKlibModuleOrigin
 import org.jetbrains.kotlin.library.metadata.klibModuleOrigin
 import org.jetbrains.kotlin.name.ClassId
@@ -247,11 +260,34 @@ class SerializedClassFieldInfo(val name: Int, val binaryType: Int, val type: Int
     }
 }
 
-class SerializedClassFields(val file: SerializedFileReference, val classSignature: Int, val typeParameterSigs: IntArray,
+class SerializedClassFields(val file: SerializedFileReference, val classSignature: IdSignature, val typeParameterSigs: IntArray,
                             val outerThisIndex: Int, val fields: Array<SerializedClassFieldInfo>)
 
 internal object ClassFieldsSerializer {
+
+    private val protoStringMap = hashMapOf<String, Int>()
+    private val protoStringArray = arrayListOf<String>()
+    private val protoIdSignatureMap = mutableMapOf<IdSignature, Int>()
+    private val protoIdSignatureArray = arrayListOf<ProtoIdSignature>()
+
+    private fun serializeString(value: String): Int = protoStringMap.getOrPut(value) {
+        protoStringArray.add(value)
+        protoStringArray.size - 1
+    }
+
+    private val idSignatureSerializer = IdSignatureSerializer(
+        ::serializeString,
+        null,
+        protoIdSignatureMap,
+        protoIdSignatureArray
+    )
+
     fun serialize(classFields: List<SerializedClassFields>): ByteArray {
+        classFields.forEach {
+            idSignatureSerializer.protoIdSignature(it.classSignature)
+        }
+        val signatures = IrMemoryArrayWriter(protoIdSignatureArray.map { it.toByteArray() }).writeIntoMemory()
+        val signatureStrings = IrMemoryStringWriter(protoStringArray).writeIntoMemory()
         val stringTable = buildStringTable {
             classFields.forEach {
                 +it.file.fqName
@@ -264,7 +300,7 @@ internal object ClassFieldsSerializer {
         classFields.forEach {
             stream.writeInt(stringTable.indices[it.file.fqName]!!)
             stream.writeInt(stringTable.indices[it.file.path]!!)
-            stream.writeInt(it.classSignature)
+            stream.writeInt(protoIdSignatureMap[it.classSignature]!!)
             stream.writeIntArray(it.typeParameterSigs)
             stream.writeInt(it.outerThisIndex)
             stream.writeInt(it.fields.size)
@@ -276,16 +312,36 @@ internal object ClassFieldsSerializer {
                 stream.writeInt(field.alignment)
             }
         }
-        return stream.buf
+//        return stream.buf
+        return IrMemoryArrayWriter(listOf(signatures, signatureStrings, stream.buf)).writeIntoMemory()
     }
 
     fun deserializeTo(data: ByteArray, result: MutableList<SerializedClassFields>) {
-        val stream = ByteArrayStream(data)
+        val reader = IrArrayMemoryReader(data)
+        val signatures = IrArrayMemoryReader(reader.tableItemBytes(0))
+        val signatureStrings = IrArrayMemoryReader(reader.tableItemBytes(1))
+        val libFile: IrLibraryFile = object: IrLibraryFile() {
+            override fun declaration(index: Int) = TODO()
+            override fun type(index: Int): IrType = TODO()
+
+            override fun signature(index: Int): ProtoIdSignature {
+                val bytes = signatures.tableItemBytes(index)
+                return ProtoIdSignature.parseFrom(bytes.codedInputStream)
+            }
+
+            override fun string(index: Int): String = WobblyTF8.decode(signatureStrings.tableItemBytes(index))
+
+            override fun expressionBody(index: Int): IrExpression = TODO()
+            override fun statementBody(index: Int): IrStatement = TODO()
+            override fun debugInfo(index: Int): String? = null
+        }
+        val interner = IrInterningService()
+        val stream = ByteArrayStream(reader.tableItemBytes(2))
         val stringTable = StringTable.deserialize(stream)
         while (stream.hasData()) {
             val fileFqName = stringTable[stream.readInt()]
             val filePath = stringTable[stream.readInt()]
-            val classSignature = stream.readInt()
+            val signatureIndex = stream.readInt()
             val typeParameterSigs = stream.readIntArray()
             val outerThisIndex = stream.readInt()
             val fieldsCount = stream.readInt()
@@ -296,7 +352,15 @@ internal object ClassFieldsSerializer {
                 val flags = stream.readInt()
                 val alignment = stream.readInt()
                 SerializedClassFieldInfo(name, binaryType, type, flags, alignment)
+
             }
+            val fileSignature = IdSignature.FileSignature(
+                id = Any(),
+                fqName = FqName(fileFqName),
+                fileName = filePath
+            )
+            val idSignatureDeserializer = IdSignatureDeserializer(libFile, fileSignature, interner)
+            val classSignature = idSignatureDeserializer.deserializeIdSignature(signatureIndex)
             result.add(SerializedClassFields(
                     SerializedFileReference(fileFqName, filePath), classSignature, typeParameterSigs, outerThisIndex, fields)
             )
@@ -753,11 +817,12 @@ internal class KonanIrLinker(
             val outerThisIndex = fields.indexOfFirst { it.irField?.origin == IrDeclarationOrigin.FIELD_FOR_OUTER_THIS }
             val compatibleMode = CompatibilityMode(libraryAbiVersion).oldSignatures
             return SerializedClassFields(
-                    SerializedFileReference(fileDeserializationState.file),
-                    BinarySymbolData.decode(protoClass.base.symbol).signatureId,
-                    typeParameterSigs.toIntArray(),
-                    outerThisIndex,
-                    Array(fields.size) {
+                SerializedFileReference(fileDeserializationState.file),
+                irClass.symbol.signature!!,
+                    // BinarySymbolData.decode(protoClass.base.symbol).signatureId,
+                typeParameterSigs.toIntArray(),
+                outerThisIndex,
+                Array(fields.size) {
                         val field = fields[it]
                         val irField = field.irField ?: error("No IR for field ${field.name} of ${irClass.render()}")
                         if (it == outerThisIndex) {
@@ -950,7 +1015,7 @@ internal class KonanIrLinker(
         private val classesFields by lazy {
             val cache = cachedLibraries.getLibraryCache(klib)!! // ?: error("No cache for ${klib.libraryName}") // KT-54668
             cache.serializedClassFields.associateBy {
-                it.file.deserializationState.declarationDeserializer.symbolDeserializer.deserializeIdSignature(it.classSignature)
+                it.classSignature
             }
         }
 
