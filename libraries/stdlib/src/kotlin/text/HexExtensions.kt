@@ -774,37 +774,37 @@ private fun String.toCharArrayIfNotEmpty(destination: CharArray, destinationOffs
 private fun String.hexToIntImpl(startIndex: Int, endIndex: Int, format: HexFormat, maxDigits: Int): Int {
     AbstractList.checkBoundsIndexes(startIndex, endIndex, length)
 
-    val prefix = format.number.prefix
-    val suffix = format.number.suffix
-
-    if (endIndex - startIndex - prefix.length <= suffix.length) {
-        throw NumberFormatException(
-            "Expected a hexadecimal number with prefix \"$prefix\" and suffix \"$suffix\", but was ${substring(startIndex, endIndex)}"
-        )
+    // Optimize for digits-only formats
+    val numberFormat = format.number
+    if (numberFormat.isDigitsOnly) {
+        checkMaxDigits(startIndex, endIndex, maxDigits)
+        return parseInt(startIndex, endIndex)
     }
 
-    val digitsStartIndex = checkContainsAt(prefix, startIndex, endIndex, "prefix")
-    val digitsEndIndex = endIndex - suffix.length
-    checkContainsAt(suffix, digitsEndIndex, endIndex, "suffix")
-
-    if (digitsEndIndex - digitsStartIndex > maxDigits) {
-        throwInvalidNumberOfDigits(digitsStartIndex, digitsEndIndex, maxDigits, requireMaxLength = false)
-    }
-
-    var result = 0
-    for (i in digitsStartIndex until digitsEndIndex) {
-        result = (result shl 4) or decimalFromHexDigitAt(i)
-    }
-    return result
+    val prefix = numberFormat.prefix
+    val suffix = numberFormat.suffix
+    checkPrefixSuffixMaxDigits(startIndex, endIndex, prefix, suffix, maxDigits)
+    return parseInt(startIndex + prefix.length, endIndex - suffix.length)
 }
 
 @ExperimentalStdlibApi
 private fun String.hexToLongImpl(startIndex: Int, endIndex: Int, format: HexFormat, maxDigits: Int): Long {
     AbstractList.checkBoundsIndexes(startIndex, endIndex, length)
 
-    val prefix = format.number.prefix
-    val suffix = format.number.suffix
+    // Optimize for digits-only formats
+    val numberFormat = format.number
+    if (numberFormat.isDigitsOnly) {
+        checkMaxDigits(startIndex, endIndex, maxDigits)
+        return parseLong(startIndex, endIndex)
+    }
 
+    val prefix = numberFormat.prefix
+    val suffix = numberFormat.suffix
+    checkPrefixSuffixMaxDigits(startIndex, endIndex, prefix, suffix, maxDigits)
+    return parseLong(startIndex + prefix.length, endIndex - suffix.length)
+}
+
+private fun String.checkPrefixSuffixMaxDigits(startIndex: Int, endIndex: Int, prefix: String, suffix: String, maxDigits: Int) {
     if (endIndex - startIndex - prefix.length <= suffix.length) {
         throw NumberFormatException(
             "Expected a hexadecimal number with prefix \"$prefix\" and suffix \"$suffix\", but was ${substring(startIndex, endIndex)}"
@@ -815,12 +815,26 @@ private fun String.hexToLongImpl(startIndex: Int, endIndex: Int, format: HexForm
     val digitsEndIndex = endIndex - suffix.length
     checkContainsAt(suffix, digitsEndIndex, endIndex, "suffix")
 
-    if (digitsEndIndex - digitsStartIndex > maxDigits) {
-        throwInvalidNumberOfDigits(digitsStartIndex, digitsEndIndex, maxDigits, requireMaxLength = false)
-    }
+    checkMaxDigits(digitsStartIndex, digitsEndIndex, maxDigits)
+}
 
+private fun String.checkMaxDigits(startIndex: Int, endIndex: Int, maxDigits: Int) {
+    if (startIndex >= endIndex || endIndex - startIndex > maxDigits) {
+        throwInvalidNumberOfDigits(startIndex, endIndex, maxDigits, requireMaxLength = false)
+    }
+}
+
+private fun String.parseInt(startIndex: Int, endIndex: Int): Int {
+    var result = 0
+    for (i in startIndex until endIndex) {
+        result = (result shl 4) or decimalFromHexDigitAt(i)
+    }
+    return result
+}
+
+private fun String.parseLong(startIndex: Int, endIndex: Int): Long {
     var result = 0L
-    for (i in digitsStartIndex until digitsEndIndex) {
+    for (i in startIndex until endIndex) {
         result = (result shl 4) or decimalFromHexDigitAt(i).toLong()
     }
     return result
