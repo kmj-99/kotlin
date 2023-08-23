@@ -309,10 +309,11 @@ open class FirFrontendFacade(
             testServices.lightTreeSyntaxDiagnosticsReporterHolder?.reporter,
         )
         val firFiles = firAnalyzerFacade.runResolution()
-        val filesMap = firFiles.mapNotNull { firFile ->
-            val testFile = module.files.firstOrNull { it.name == firFile.name } ?: return@mapNotNull null
-            testFile to firFile
-        }.toMap()
+        val filesMap = module.files
+            .filter { testFile -> firFiles.any { testFile.name == it.name } }
+            .zip(firFiles)
+            .onEach { assert(it.first.name == it.second.name) }
+            .toMap()
 
         return FirOutputPartForDependsOnModule(module, moduleBasedSession, firAnalyzerFacade, filesMap)
     }
