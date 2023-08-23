@@ -1,16 +1,10 @@
 /*
- * Copyright 2010-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license
- * that can be found in the LICENSE file.
+ * Copyright 2010-2023 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
-package org.jetbrains.kotlin.backend.konan
+package org.jetbrains.kotlin.ir.objcinterop
 
-import org.jetbrains.kotlin.backend.konan.descriptors.findPackage
-import org.jetbrains.kotlin.backend.konan.descriptors.getAnnotationStringValue
-import org.jetbrains.kotlin.backend.konan.descriptors.getAnnotationValueOrNull
-import org.jetbrains.kotlin.backend.konan.descriptors.getStringValue
-import org.jetbrains.kotlin.backend.konan.ir.getAnnotationArgumentValue
-import org.jetbrains.kotlin.backend.konan.ir.parentDeclarationsWithSelf
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
@@ -34,16 +28,26 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.parentsWithSelf
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.typeUtil.supertypes
+import org.jetbrains.kotlin.utils.atMostOne
 
-internal val interopPackageName = InteropFqNames.packageName
+internal val interopPackageName = NativeStandardInteropNames.cInteropPackage
 internal val objCObjectFqName = NativeStandardInteropNames.objCObjectClassId.asSingleFqName()
 private val objCClassFqName = interopPackageName.child(Name.identifier("ObjCClass"))
 private val objCProtocolFqName = interopPackageName.child(Name.identifier("ObjCProtocol"))
-internal val externalObjCClassFqName = NativeStandardInteropNames.externalObjCClassClassId.asSingleFqName()
-internal val objCDirectFqName = NativeStandardInteropNames.objCDirectClassId.asSingleFqName()
-internal val objCMethodFqName = NativeStandardInteropNames.objCMethodClassId.asSingleFqName()
-internal val objCConstructorFqName = NativeStandardInteropNames.objCConstructorClassId.asSingleFqName()
-internal val objCFactoryFqName = NativeStandardInteropNames.objCFactoryClassId.asSingleFqName()
+val externalObjCClassFqName = NativeStandardInteropNames.externalObjCClassClassId.asSingleFqName()
+val objCDirectFqName = NativeStandardInteropNames.objCDirectClassId.asSingleFqName()
+val objCMethodFqName = NativeStandardInteropNames.objCMethodClassId.asSingleFqName()
+val objCConstructorFqName = NativeStandardInteropNames.objCConstructorClassId.asSingleFqName()
+val objCFactoryFqName = NativeStandardInteropNames.objCFactoryClassId.asSingleFqName()
+
+private fun AnnotationDescriptor.getStringValueOrNull(name: String): String? {
+    val constantValue = this.allValueArguments.entries.atMostOne {
+        it.key.asString() == name
+    }?.value
+    return constantValue?.value as String?
+}
+
+private fun AnnotationDescriptor.getStringValue(name: String): String = this.getStringValueOrNull(name)!!
 
 fun ClassDescriptor.isObjCClass(): Boolean =
                 this.containingDeclaration.fqNameSafe != interopPackageName &&
@@ -58,7 +62,7 @@ private fun IrClass.selfOrAnySuperClass(pred: (IrClass) -> Boolean): Boolean {
     return superTypes.any { it.classOrNull!!.owner.selfOrAnySuperClass(pred) }
 }
 
-internal fun IrClass.isObjCClass() = this.packageFqName != interopPackageName &&
+fun IrClass.isObjCClass() = this.packageFqName != interopPackageName &&
         selfOrAnySuperClass { it.hasEqualFqName(objCObjectFqName) }
 
 fun ClassDescriptor.isExternalObjCClass(): Boolean = this.isObjCClass() &&
@@ -103,14 +107,14 @@ fun IrFunction.isObjCClassMethod() =
 fun FunctionDescriptor.isExternalObjCClassMethod() =
         this.containingDeclaration.let { it is ClassDescriptor && it.isExternalObjCClass() }
 
-internal fun IrFunction.isExternalObjCClassMethod() =
+fun IrFunction.isExternalObjCClassMethod() =
     this.parent.let {it is IrClass && it.isExternalObjCClass()}
 
 // Special case: methods from Kotlin Objective-C classes can be called virtually from bridges.
 fun FunctionDescriptor.canObjCClassMethodBeCalledVirtually(overriddenDescriptor: FunctionDescriptor) =
         overriddenDescriptor.isOverridable && this.kind.isReal && !this.isExternalObjCClassMethod()
 
-internal fun IrFunction.canObjCClassMethodBeCalledVirtually(overridden: IrFunction) =
+fun IrFunction.canObjCClassMethodBeCalledVirtually(overridden: IrFunction) =
     overridden.isOverridable && !this.isFakeOverride && !this.isExternalObjCClassMethod()
 
 fun ClassDescriptor.isKotlinObjCClass(): Boolean = this.isObjCClass() && !this.isExternalObjCClass()
