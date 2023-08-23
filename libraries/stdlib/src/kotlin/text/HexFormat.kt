@@ -79,6 +79,13 @@ public class HexFormat internal constructor(
         val byteSuffix: String
     ) {
 
+        internal val noLineAndGroupSeparator: Boolean =
+            bytesPerLine == Int.MAX_VALUE && bytesPerGroup == Int.MAX_VALUE
+
+        internal val shortByteSeparatorNoPrefixAndSuffix: Boolean =
+            bytePrefix.isEmpty() && byteSuffix.isEmpty() && byteSeparator.length <= 1
+
+
         override fun toString(): String = buildString {
             append("BytesHexFormat(").appendLine()
             appendOptionsTo(this, indent = "    ").appendLine()

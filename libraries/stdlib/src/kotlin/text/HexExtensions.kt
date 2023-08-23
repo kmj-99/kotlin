@@ -62,19 +62,106 @@ public fun ByteArray.toHexString(
     }
 
     val digits = if (format.upperCase) UPPER_CASE_HEX_DIGITS else LOWER_CASE_HEX_DIGITS
-
     val bytesFormat = format.bytes
+
+    // Optimize for formats with unspecified bytesPerLine and bytesPerGroup
+    if (bytesFormat.noLineAndGroupSeparator) {
+        return toHexStringNoLineAndGroupSeparator(startIndex, endIndex, bytesFormat, digits)
+    }
+
+    return toHexStringSlowPath(startIndex, endIndex, bytesFormat, digits)
+}
+
+@ExperimentalStdlibApi
+private fun ByteArray.toHexStringNoLineAndGroupSeparator(
+    startIndex: Int,
+    endIndex: Int,
+    bytesFormat: HexFormat.BytesHexFormat,
+    digits: String
+): String {
+    // Optimize for formats with a short byteSeparator and no bytePrefix/Suffix
+    if (bytesFormat.shortByteSeparatorNoPrefixAndSuffix) {
+        return toHexStringShortByteSeparatorNoPrefixAndSuffix(startIndex, endIndex, bytesFormat, digits)
+    }
+
+    return toHexStringNoLineAndGroupSeparatorSlowPath(startIndex, endIndex, bytesFormat, digits)
+}
+
+@ExperimentalStdlibApi
+private fun ByteArray.toHexStringShortByteSeparatorNoPrefixAndSuffix(
+    startIndex: Int,
+    endIndex: Int,
+    bytesFormat: HexFormat.BytesHexFormat,
+    digits: String
+): String {
+    val byteSeparatorLength = bytesFormat.byteSeparator.length
+    require(byteSeparatorLength <= 1)
+
+    val numberOfBytes = endIndex - startIndex
+    var charIndex = 0
+
+    if (byteSeparatorLength == 0) {
+        val charArray = CharArray(checkFormatLength(2L * numberOfBytes))
+        for (i in startIndex until endIndex) {
+            charIndex = formatByteAt(i, digits, charArray, charIndex)
+        }
+        return charArray.concatToString()
+    } else {
+        val charArray = CharArray(checkFormatLength(3L * numberOfBytes - 1))
+        val byteSeparatorChar = bytesFormat.byteSeparator[0]
+
+        charIndex = formatByteAt(startIndex, digits, charArray, charIndex)
+        for (i in startIndex + 1 until endIndex) {
+            charArray[charIndex++] = byteSeparatorChar
+            charIndex = formatByteAt(i, digits, charArray, charIndex)
+        }
+
+        return charArray.concatToString()
+    }
+}
+
+@ExperimentalStdlibApi
+private fun ByteArray.toHexStringNoLineAndGroupSeparatorSlowPath(
+    startIndex: Int,
+    endIndex: Int,
+    bytesFormat: HexFormat.BytesHexFormat,
+    digits: String
+): String {
+    val bytePrefix = bytesFormat.bytePrefix
+    val byteSuffix = bytesFormat.byteSuffix
+    val byteSeparator = bytesFormat.byteSeparator
+
+    val formatLength = formattedStringLength(
+        numberOfBytes = endIndex - startIndex,
+        byteSeparator.length,
+        bytePrefix.length,
+        byteSuffix.length
+    )
+    val charArray = CharArray(formatLength)
+    var charIndex = 0
+
+    charIndex = formatByteAt(startIndex, bytePrefix, byteSuffix, digits, charArray, charIndex)
+    for (i in startIndex + 1 until endIndex) {
+        charIndex = byteSeparator.toCharArrayIfNotEmpty(charArray, charIndex)
+        charIndex = formatByteAt(i, bytePrefix, byteSuffix, digits, charArray, charIndex)
+    }
+
+    return charArray.concatToString()
+}
+
+@ExperimentalStdlibApi
+private fun ByteArray.toHexStringSlowPath(
+    startIndex: Int,
+    endIndex: Int,
+    bytesFormat: HexFormat.BytesHexFormat,
+    digits: String
+): String {
     val bytesPerLine = bytesFormat.bytesPerLine
     val bytesPerGroup = bytesFormat.bytesPerGroup
     val bytePrefix = bytesFormat.bytePrefix
     val byteSuffix = bytesFormat.byteSuffix
     val byteSeparator = bytesFormat.byteSeparator
     val groupSeparator = bytesFormat.groupSeparator
-
-    // Optimize for formats with unspecified bytesPerLine and bytesPerGroup
-    if (bytesPerLine == Int.MAX_VALUE && bytesPerGroup == Int.MAX_VALUE) {
-        return toHexString(startIndex, endIndex, bytePrefix, byteSuffix, byteSeparator, digits)
-    }
 
     val formatLength = formattedStringLength(
         numberOfBytes = endIndex - startIndex,
@@ -85,12 +172,11 @@ public fun ByteArray.toHexString(
         bytePrefix.length,
         byteSuffix.length
     )
+    val charArray = CharArray(formatLength)
+    var charIndex = 0
 
     var indexInLine = 0
     var indexInGroup = 0
-
-    val charArray = CharArray(formatLength)
-    var charIndex = 0
 
     for (i in startIndex until endIndex) {
         if (indexInLine == bytesPerLine) {
@@ -115,50 +201,6 @@ public fun ByteArray.toHexString(
     return charArray.concatToString()
 }
 
-private fun ByteArray.toHexString(
-    startIndex: Int,
-    endIndex: Int,
-    bytePrefix: String,
-    byteSuffix: String,
-    byteSeparator: String,
-    digits: String
-): String {
-    val numberOfBytes = endIndex - startIndex
-    val byteSeparatorLength = byteSeparator.length
-    val bytePrefixLength = bytePrefix.length
-    val byteSuffixLength = byteSuffix.length
-    val charsPerByte = 2L + bytePrefixLength + byteSuffixLength + byteSeparatorLength
-    val formatLength = numberOfBytes * charsPerByte - byteSeparatorLength
-    val charArray = CharArray(checkFormatLength(formatLength))
-
-    var charIndex = 0
-
-    if (bytePrefixLength == 0 && byteSuffixLength == 0) {
-        if (byteSeparatorLength == 0) {
-            for (i in startIndex until endIndex) {
-                charIndex = formatByteAt(i, digits, charArray, charIndex)
-            }
-            return charArray.concatToString()
-        } else if (byteSeparatorLength == 1) {
-            val byteSeparatorChar = byteSeparator[0]
-            charIndex = formatByteAt(startIndex, digits, charArray, charIndex)
-            for (i in startIndex + 1 until endIndex) {
-                charArray[charIndex++] = byteSeparatorChar
-                charIndex = formatByteAt(i, digits, charArray, charIndex)
-            }
-            return charArray.concatToString()
-        }
-    }
-
-    charIndex = formatByteAt(startIndex, bytePrefix, byteSuffix, digits, charArray, charIndex)
-    for (i in startIndex + 1 until endIndex) {
-        charIndex = byteSeparator.toCharArrayIfNotEmpty(charArray, charIndex)
-        charIndex = formatByteAt(i, bytePrefix, byteSuffix, digits, charArray, charIndex)
-    }
-
-    return charArray.concatToString()
-}
-
 private fun ByteArray.formatByteAt(
     index: Int,
     bytePrefix: String,
@@ -172,14 +214,24 @@ private fun ByteArray.formatByteAt(
     return byteSuffix.toCharArrayIfNotEmpty(destination, i)
 }
 
-@Suppress("NOTHING_TO_INLINE")
-private inline fun ByteArray.formatByteAt(index: Int, digits: String, destination: CharArray, destinationOffset: Int): Int {
+private fun ByteArray.formatByteAt(index: Int, digits: String, destination: CharArray, destinationOffset: Int): Int {
     val byte = this[index].toInt() and 0xFF
-    val high = byte shr 4
-    val low = byte and 0xF
-    destination[destinationOffset] = digits[high]
-    destination[destinationOffset + 1] = digits[low]
+    destination[destinationOffset] = digits[byte shr 4]
+    destination[destinationOffset + 1] = digits[byte and 0xF]
     return destinationOffset + 2
+}
+
+private fun formattedStringLength(
+    numberOfBytes: Int,
+    byteSeparatorLength: Int,
+    bytePrefixLength: Int,
+    byteSuffixLength: Int
+): Int {
+    require(numberOfBytes > 0)
+
+    val charsPerByte = 2L + bytePrefixLength + byteSuffixLength + byteSeparatorLength
+    val formatLength = numberOfBytes * charsPerByte - byteSeparatorLength
+    return checkFormatLength(formatLength)
 }
 
 // Declared internal for testing
