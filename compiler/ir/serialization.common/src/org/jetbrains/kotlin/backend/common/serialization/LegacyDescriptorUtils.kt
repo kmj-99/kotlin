@@ -24,11 +24,6 @@ internal val DeclarationDescriptor.isExpectMember: Boolean
 internal val DeclarationDescriptor.isSerializableExpectClass: Boolean
     get() = this is ClassDescriptor && OptionalAnnotationUtil.shouldGenerateExpectClass(this)
 
-tailrec fun DeclarationDescriptor.findPackage(): PackageFragmentDescriptor {
-    return if (this is PackageFragmentDescriptor) this
-    else this.containingDeclaration!!.findPackage()
-}
-
 // This is Native specific. Try to eliminate.
 val ModuleDescriptor.isForwardDeclarationModule get() =
     name == Name.special("<forward declarations>")
