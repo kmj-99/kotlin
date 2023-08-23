@@ -297,7 +297,7 @@ fun IrBuilderWithScope.irCallWithSubstitutedType(callee: IrFunction, typeArgumen
 }
 
 fun IrBuilderWithScope.irCallWithSubstitutedType(callee: IrFunctionSymbol, typeArguments: List<IrType>): IrMemberAccessExpression<*> {
-    return irCallWithSubstitutedType(callee, typeArguments)
+    return irCallWithSubstitutedType(callee.owner, typeArguments)
 }
 
 fun IrBuilderWithScope.irDelegatingConstructorCall(callee: IrConstructor): IrDelegatingConstructorCall =
