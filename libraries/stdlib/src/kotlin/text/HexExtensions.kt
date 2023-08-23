@@ -321,6 +321,108 @@ private fun String.hexToByteArray(
     }
 
     val bytesFormat = format.bytes
+
+    // Optimize for formats with unspecified bytesPerLine and bytesPerGroup
+    if (bytesFormat.noLineAndGroupSeparator) {
+        hexToByteArrayNoLineAndGroupSeparator(startIndex, endIndex, bytesFormat)?.let { return it }
+    }
+
+    return hexToByteArraySlowPath(startIndex, endIndex, bytesFormat)
+}
+
+@ExperimentalStdlibApi
+private fun String.hexToByteArrayNoLineAndGroupSeparator(
+    startIndex: Int,
+    endIndex: Int,
+    bytesFormat: HexFormat.BytesHexFormat
+): ByteArray? {
+    // Optimize for formats with a short byteSeparator and no bytePrefix/Suffix
+    if (bytesFormat.shortByteSeparatorNoPrefixAndSuffix) {
+        return hexToByteArrayShortByteSeparatorNoPrefixAndSuffix(startIndex, endIndex, bytesFormat)
+    }
+
+    return hexToByteArrayNoLineAndGroupSeparatorSlowPath(startIndex, endIndex, bytesFormat)
+}
+
+@ExperimentalStdlibApi
+private fun String.hexToByteArrayShortByteSeparatorNoPrefixAndSuffix(
+    startIndex: Int,
+    endIndex: Int,
+    bytesFormat: HexFormat.BytesHexFormat
+): ByteArray? {
+    val byteSeparatorLength = bytesFormat.byteSeparator.length
+    require(byteSeparatorLength <= 1)
+
+    val numberOfChars = endIndex - startIndex
+    var i = 0
+
+    if (byteSeparatorLength == 0) {
+        if (numberOfChars and 1 != 0) return null
+        val numberOfBytes = numberOfChars shr 1
+        val byteArray = ByteArray(numberOfBytes)
+        for (index in 0 until numberOfBytes) {
+            byteArray[index] = parseByteAt(i)
+            i += 2
+        }
+        return byteArray
+    } else {
+        if (numberOfChars % 3 != 2) return null
+        val numberOfBytes = numberOfChars / 3 + 1
+        val byteArray = ByteArray(numberOfBytes)
+        val byteSeparatorChar = bytesFormat.byteSeparator[0]
+        byteArray[0] = parseByteAt(i)
+        i += 2
+        for (index in 1 until numberOfBytes) {
+            if (this[i] != byteSeparatorChar) {
+                checkContainsAt(bytesFormat.byteSeparator, i, endIndex, "byte separator")
+            }
+            byteArray[index] = parseByteAt(i + 1)
+            i += 3
+        }
+        return byteArray
+    }
+}
+
+@ExperimentalStdlibApi
+private fun String.hexToByteArrayNoLineAndGroupSeparatorSlowPath(
+    startIndex: Int,
+    endIndex: Int,
+    bytesFormat: HexFormat.BytesHexFormat
+): ByteArray? {
+    val numberOfChars = (endIndex - startIndex).toLong()
+    val bytePrefix = bytesFormat.bytePrefix
+    val byteSuffix = bytesFormat.byteSuffix
+    val byteSeparator = bytesFormat.byteSeparator
+    val byteSeparatorLength = byteSeparator.length
+    val charsPerByte = 2L + bytePrefix.length + byteSuffix.length + byteSeparatorLength
+    val numberOfBytes = ((numberOfChars + byteSeparatorLength) / charsPerByte).toInt()
+
+    // Go to the default implementation when the string length doesn't match
+    if (numberOfBytes * charsPerByte - byteSeparatorLength != numberOfChars) {
+        return null
+    }
+
+    val byteArray = ByteArray(numberOfBytes)
+    var i = startIndex
+
+    i = checkContainsAt(bytePrefix, i, endIndex, "byte prefix")
+    val between = byteSuffix + byteSeparator + bytePrefix
+    for (index in 0 until numberOfBytes - 1) {
+        byteArray[index] = parseByteAt(i)
+        i = checkContainsAt(between, i + 2, endIndex, "byte suffix + byte separator + byte prefix")
+    }
+    byteArray[numberOfBytes - 1] = parseByteAt(i)
+    checkContainsAt(byteSuffix, i + 2, endIndex, "byte suffix")
+
+    return byteArray
+}
+
+@ExperimentalStdlibApi
+private fun String.hexToByteArraySlowPath(
+    startIndex: Int,
+    endIndex: Int,
+    bytesFormat: HexFormat.BytesHexFormat
+): ByteArray {
     val bytesPerLine = bytesFormat.bytesPerLine
     val bytesPerGroup = bytesFormat.bytesPerGroup
     val bytePrefix = bytesFormat.bytePrefix
@@ -328,12 +430,7 @@ private fun String.hexToByteArray(
     val byteSeparator = bytesFormat.byteSeparator
     val groupSeparator = bytesFormat.groupSeparator
 
-    // Optimize for formats with unspecified bytesPerLine and bytesPerGroup
-    if (bytesPerLine == Int.MAX_VALUE && bytesPerGroup == Int.MAX_VALUE) {
-        hexToByteArray(startIndex, endIndex, bytePrefix, byteSuffix, byteSeparator)?.let { return it }
-    }
-
-    val resultCapacity = parsedByteArrayMaxSize(
+    val parseMaxSize = parsedByteArrayMaxSize(
         stringLength = endIndex - startIndex,
         bytesPerLine,
         bytesPerGroup,
@@ -342,7 +439,7 @@ private fun String.hexToByteArray(
         bytePrefix.length,
         byteSuffix.length
     )
-    val result = ByteArray(resultCapacity)
+    val byteArray = ByteArray(parseMaxSize)
 
     var i = startIndex
     var byteIndex = 0
@@ -367,67 +464,11 @@ private fun String.hexToByteArray(
         if (endIndex - 2 < i) {
             throwInvalidNumberOfDigits(i, endIndex, maxDigits = 2, requireMaxLength = true)
         }
-        result[byteIndex++] = parseByteAt(i)
+        byteArray[byteIndex++] = parseByteAt(i)
         i = checkContainsAt(byteSuffix, i + 2, endIndex, "byte suffix")
     }
 
-    return if (byteIndex == result.size) result else result.copyOf(byteIndex)
-}
-
-private fun String.hexToByteArray(
-    startIndex: Int,
-    endIndex: Int,
-    bytePrefix: String,
-    byteSuffix: String,
-    byteSeparator: String
-): ByteArray? {
-    val numberOfChars = (endIndex - startIndex).toLong()
-    val byteSeparatorLength = byteSeparator.length
-    val bytePrefixLength = bytePrefix.length
-    val byteSuffixLength = byteSuffix.length
-    val charsPerByte = 2L + bytePrefixLength + byteSuffixLength + byteSeparatorLength
-    val numberOfBytes = ((numberOfChars + byteSeparatorLength) / charsPerByte).toInt()
-
-    // Go to the default implementation when the string length doesn't match
-    if (numberOfBytes * charsPerByte - byteSeparatorLength != numberOfChars) {
-        return null
-    }
-
-    val result = ByteArray(numberOfBytes)
-    var i = startIndex
-
-    if (bytePrefixLength == 0 && byteSuffixLength == 0) {
-        if (byteSeparatorLength == 0) {
-            for (index in 0 until numberOfBytes) {
-                result[index] = parseByteAt(i)
-                i += 2
-            }
-            return result
-        } else if (byteSeparatorLength == 1) {
-            val byteSeparatorChar = byteSeparator[0]
-            result[0] = parseByteAt(i)
-            i += 2
-            for (index in 1 until numberOfBytes) {
-                if (this[i] != byteSeparatorChar) {
-                    checkContainsAt(byteSeparator, i, endIndex, "byte separator")
-                }
-                result[index] = parseByteAt(i + 1)
-                i += 3
-            }
-            return result
-        }
-    }
-
-    i = checkContainsAt(bytePrefix, i, endIndex, "byte prefix")
-    val between = byteSuffix + byteSeparator + bytePrefix
-    for (index in 0 until numberOfBytes - 1) {
-        result[index] = parseByteAt(i)
-        i = checkContainsAt(between, i + 2, endIndex, "byte suffix + byte separator + byte prefix")
-    }
-    result[numberOfBytes - 1] = parseByteAt(i)
-    checkContainsAt(byteSuffix, i + 2, endIndex, "byte suffix")
-
-    return result
+    return if (byteIndex == byteArray.size) byteArray else byteArray.copyOf(byteIndex)
 }
 
 private fun String.parseByteAt(index: Int): Byte {
