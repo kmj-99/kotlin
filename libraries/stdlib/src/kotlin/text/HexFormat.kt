@@ -85,6 +85,15 @@ public class HexFormat internal constructor(
         internal val shortByteSeparatorNoPrefixAndSuffix: Boolean =
             bytePrefix.isEmpty() && byteSuffix.isEmpty() && byteSeparator.length <= 1
 
+        /**
+         * Whether to ignore case when parsing format strings.
+         * If false, case-sensitive parsing is conducted, which is faster.
+         */
+        internal val ignoreCase: Boolean =
+            groupSeparator.isCaseSensitive() ||
+                    byteSeparator.isCaseSensitive() ||
+                    bytePrefix.isCaseSensitive() ||
+                    byteSuffix.isCaseSensitive()
 
         override fun toString(): String = buildString {
             append("BytesHexFormat(").appendLine()
@@ -235,6 +244,12 @@ public class HexFormat internal constructor(
     ) {
 
         internal val isDigitsOnly: Boolean = prefix.isEmpty() && suffix.isEmpty()
+
+        /**
+         * Whether to ignore case when parsing format strings.
+         * If false, case-sensitive parsing is conducted, which is faster.
+         */
+        internal val ignoreCase: Boolean = prefix.isCaseSensitive() || suffix.isCaseSensitive()
 
         override fun toString(): String = buildString {
             append("NumberHexFormat(").appendLine()
@@ -417,4 +432,10 @@ public class HexFormat internal constructor(
 @InlineOnly
 public inline fun HexFormat(builderAction: HexFormat.Builder.() -> Unit): HexFormat {
     return HexFormat.Builder().apply(builderAction).build()
+}
+
+// --- private functions ---
+
+private fun String.isCaseSensitive(): Boolean {
+    return this.any { it >= '\u0080' || it.isLetter() }
 }

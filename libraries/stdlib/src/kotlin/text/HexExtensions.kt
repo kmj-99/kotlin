@@ -374,7 +374,7 @@ private fun String.hexToByteArrayShortByteSeparatorNoPrefixAndSuffix(
         i += 2
         for (index in 1 until numberOfBytes) {
             if (this[i] != byteSeparatorChar) {
-                checkContainsAt(bytesFormat.byteSeparator, i, endIndex, "byte separator")
+                checkContainsAt(bytesFormat.byteSeparator, bytesFormat.ignoreCase, i, endIndex, "byte separator")
             }
             byteArray[index] = parseByteAt(i + 1)
             i += 3
@@ -389,12 +389,12 @@ private fun String.hexToByteArrayNoLineAndGroupSeparatorSlowPath(
     endIndex: Int,
     bytesFormat: HexFormat.BytesHexFormat
 ): ByteArray? {
-    val numberOfChars = (endIndex - startIndex).toLong()
     val bytePrefix = bytesFormat.bytePrefix
     val byteSuffix = bytesFormat.byteSuffix
     val byteSeparator = bytesFormat.byteSeparator
     val byteSeparatorLength = byteSeparator.length
     val charsPerByte = 2L + bytePrefix.length + byteSuffix.length + byteSeparatorLength
+    val numberOfChars = (endIndex - startIndex).toLong()
     val numberOfBytes = ((numberOfChars + byteSeparatorLength) / charsPerByte).toInt()
 
     // Go to the default implementation when the string length doesn't match
@@ -402,17 +402,19 @@ private fun String.hexToByteArrayNoLineAndGroupSeparatorSlowPath(
         return null
     }
 
+    val ignoreCase = bytesFormat.ignoreCase
+
     val byteArray = ByteArray(numberOfBytes)
     var i = startIndex
 
-    i = checkContainsAt(bytePrefix, i, endIndex, "byte prefix")
+    i = checkContainsAt(bytePrefix, ignoreCase, i, endIndex, "byte prefix")
     val between = byteSuffix + byteSeparator + bytePrefix
     for (index in 0 until numberOfBytes - 1) {
         byteArray[index] = parseByteAt(i)
-        i = checkContainsAt(between, i + 2, endIndex, "byte suffix + byte separator + byte prefix")
+        i = checkContainsAt(between, ignoreCase, i + 2, endIndex, "byte suffix + byte separator + byte prefix")
     }
     byteArray[numberOfBytes - 1] = parseByteAt(i)
-    checkContainsAt(byteSuffix, i + 2, endIndex, "byte suffix")
+    checkContainsAt(byteSuffix, ignoreCase, i + 2, endIndex, "byte suffix")
 
     return byteArray
 }
@@ -429,6 +431,7 @@ private fun String.hexToByteArraySlowPath(
     val byteSuffix = bytesFormat.byteSuffix
     val byteSeparator = bytesFormat.byteSeparator
     val groupSeparator = bytesFormat.groupSeparator
+    val ignoreCase = bytesFormat.ignoreCase
 
     val parseMaxSize = parsedByteArrayMaxSize(
         stringLength = endIndex - startIndex,
@@ -452,20 +455,20 @@ private fun String.hexToByteArraySlowPath(
             indexInLine = 0
             indexInGroup = 0
         } else if (indexInGroup == bytesPerGroup) {
-            i = checkContainsAt(groupSeparator, i, endIndex, "group separator")
+            i = checkContainsAt(groupSeparator, ignoreCase, i, endIndex, "group separator")
             indexInGroup = 0
         } else if (indexInGroup != 0) {
-            i = checkContainsAt(byteSeparator, i, endIndex, "byte separator")
+            i = checkContainsAt(byteSeparator, ignoreCase, i, endIndex, "byte separator")
         }
         indexInLine += 1
         indexInGroup += 1
 
-        i = checkContainsAt(bytePrefix, i, endIndex, "byte prefix")
+        i = checkContainsAt(bytePrefix, ignoreCase, i, endIndex, "byte prefix")
         if (endIndex - 2 < i) {
             throwInvalidNumberOfDigits(i, endIndex, maxDigits = 2, requireMaxLength = true)
         }
         byteArray[byteIndex++] = parseByteAt(i)
-        i = checkContainsAt(byteSuffix, i + 2, endIndex, "byte suffix")
+        i = checkContainsAt(byteSuffix, ignoreCase, i + 2, endIndex, "byte suffix")
     }
 
     return if (byteIndex == byteArray.size) byteArray else byteArray.copyOf(byteIndex)
@@ -882,7 +885,7 @@ private fun String.hexToIntImpl(startIndex: Int, endIndex: Int, format: HexForma
 
     val prefix = numberFormat.prefix
     val suffix = numberFormat.suffix
-    checkPrefixSuffixMaxDigits(startIndex, endIndex, prefix, suffix, maxDigits)
+    checkPrefixSuffixMaxDigits(startIndex, endIndex, prefix, suffix, numberFormat.ignoreCase, maxDigits)
     return parseInt(startIndex + prefix.length, endIndex - suffix.length)
 }
 
@@ -899,20 +902,25 @@ private fun String.hexToLongImpl(startIndex: Int, endIndex: Int, format: HexForm
 
     val prefix = numberFormat.prefix
     val suffix = numberFormat.suffix
-    checkPrefixSuffixMaxDigits(startIndex, endIndex, prefix, suffix, maxDigits)
+    checkPrefixSuffixMaxDigits(startIndex, endIndex, prefix, suffix, numberFormat.ignoreCase, maxDigits)
     return parseLong(startIndex + prefix.length, endIndex - suffix.length)
 }
 
-private fun String.checkPrefixSuffixMaxDigits(startIndex: Int, endIndex: Int, prefix: String, suffix: String, maxDigits: Int) {
+private fun String.checkPrefixSuffixMaxDigits(
+    startIndex: Int,
+    endIndex: Int,
+    prefix: String,
+    suffix: String,
+    ignoreCase: Boolean,
+    maxDigits: Int
+) {
     if (endIndex - startIndex - prefix.length <= suffix.length) {
-        throw NumberFormatException(
-            "Expected a hexadecimal number with prefix \"$prefix\" and suffix \"$suffix\", but was ${substring(startIndex, endIndex)}"
-        )
+        throwInvalidPrefixSuffix(startIndex, endIndex, prefix, suffix)
     }
 
-    val digitsStartIndex = checkContainsAt(prefix, startIndex, endIndex, "prefix")
+    val digitsStartIndex = checkContainsAt(prefix, ignoreCase, startIndex, endIndex, "prefix")
     val digitsEndIndex = endIndex - suffix.length
-    checkContainsAt(suffix, digitsEndIndex, endIndex, "suffix")
+    checkContainsAt(suffix, ignoreCase, digitsEndIndex, endIndex, "suffix")
 
     checkMaxDigits(digitsStartIndex, digitsEndIndex, maxDigits)
 }
@@ -940,16 +948,31 @@ private fun String.parseLong(startIndex: Int, endIndex: Int): Long {
 }
 
 @Suppress("NOTHING_TO_INLINE")
-private inline fun String.checkContainsAt(part: String, index: Int, endIndex: Int, partName: String): Int {
+private inline fun String.checkContainsAt(part: String, ignoreCase: Boolean, index: Int, endIndex: Int, partName: String): Int {
     val partLength = part.length
     if (partLength == 0) return index
-    val end = index + partLength
-    if (regionMatches(index, part, 0, partLength, ignoreCase = true)) {
-        return end
+    if (regionMatches(index, part, 0, partLength, ignoreCase)) {
+        return index + partLength
     }
-    throw NumberFormatException(
-        "Expected $partName \"$part\" at index $index, but was ${this.substring(index, end.coerceAtMost(endIndex))}"
-    )
+    throwNotContained(part, index, endIndex, partName)
+}
+
+@Suppress("NOTHING_TO_INLINE")
+private inline fun String.decimalFromHexDigitAt(index: Int): Int {
+    val code = this[index].code
+    if (code ushr 8 == 0 && HEX_DIGITS_TO_DECIMAL[code] >= 0) {
+        return HEX_DIGITS_TO_DECIMAL[code]
+    }
+    throwInvalidDigit(index)
+}
+
+@Suppress("NOTHING_TO_INLINE")
+private inline fun String.longDecimalFromHexDigitAt(index: Int): Long {
+    val code = this[index].code
+    if (code ushr 8 == 0 && HEX_DIGITS_TO_LONG_DECIMAL[code] >= 0) {
+        return HEX_DIGITS_TO_LONG_DECIMAL[code]
+    }
+    throwInvalidDigit(index)
 }
 
 private fun String.throwInvalidNumberOfDigits(startIndex: Int, endIndex: Int, maxDigits: Int, requireMaxLength: Boolean) {
@@ -960,20 +983,20 @@ private fun String.throwInvalidNumberOfDigits(startIndex: Int, endIndex: Int, ma
     )
 }
 
-@Suppress("NOTHING_TO_INLINE")
-private inline fun String.decimalFromHexDigitAt(index: Int): Int {
-    val code = this[index].code
-    if (code ushr 8 == 0 && HEX_DIGITS_TO_DECIMAL[code] >= 0) {
-        return HEX_DIGITS_TO_DECIMAL[code]
-    }
-    throw NumberFormatException("Expected a hexadecimal digit at index $index, but was ${this[index]}")
+private fun String.throwNotContained(part: String, index: Int, endIndex: Int, partName: String): Nothing {
+    val substring = substring(index, (index + part.length).coerceAtMost(endIndex))
+    throw NumberFormatException(
+        "Expected $partName \"$part\" at index $index, but was $substring"
+    )
 }
 
-@Suppress("NOTHING_TO_INLINE")
-private inline fun String.longDecimalFromHexDigitAt(index: Int): Long {
-    val code = this[index].code
-    if (code ushr 8 == 0 && HEX_DIGITS_TO_LONG_DECIMAL[code] >= 0) {
-        return HEX_DIGITS_TO_LONG_DECIMAL[code]
-    }
+private fun String.throwInvalidPrefixSuffix(startIndex: Int, endIndex: Int, prefix: String, suffix: String) {
+    val substring = substring(startIndex, endIndex)
+    throw NumberFormatException(
+        "Expected a hexadecimal number with prefix \"$prefix\" and suffix \"$suffix\", but was $substring"
+    )
+}
+
+private fun String.throwInvalidDigit(index: Int): Nothing {
     throw NumberFormatException("Expected a hexadecimal digit at index $index, but was ${this[index]}")
 }
