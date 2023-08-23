@@ -90,13 +90,14 @@ class NativeDownloadAndPlatformLibsIT : KGPBaseTest() {
             gradleVersion = gradleVersion,
             environmentVariables = EnvironmentalVariables(Pair("KONAN_DATA_DIR", anotherKonanDataDir.absolutePathString()))
         ) {
-            build("linkDebugExecutableNative",
-                  forceOutput = true,
-                  buildOptions = defaultBuildOptions.copy(
-                      nativeOptions =  defaultBuildOptions.nativeOptions.copy(
-                          cacheKind = null
-                      )
-                  )) {
+            build(
+                "linkDebugExecutableNative",
+                buildOptions = defaultBuildOptions.copy(
+                    nativeOptions = defaultBuildOptions.nativeOptions.copy(
+                        cacheKind = null
+                    )
+                )
+            ) {
                 assertOutputDoesNotContain("w: Failed to build cache")
                 assertTasksExecuted(":linkDebugExecutableNative")
                 assertFileNotExists(anotherKonanDataDir)
@@ -133,7 +134,7 @@ class NativeDownloadAndPlatformLibsIT : KGPBaseTest() {
     @DisplayName("K/N distribution with platform libraries generation")
     @GradleTest
     fun testLibrariesGeneration(gradleVersion: GradleVersion) {
-        nativeProject("native-platform-libraries", gradleVersion = gradleVersion, enableGradleDebug = true) {
+        nativeProject("native-platform-libraries", gradleVersion = gradleVersion) {
 
             includeOtherProjectAsSubmodule("native-platform-libraries", "", "subproject", true)
 
