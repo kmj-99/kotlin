@@ -38,11 +38,6 @@ object FirJvmAnnotationsPlatformSpecificSupportComponent : FirAnnotationsPlatfor
         JvmStandardClassIds.Annotations.JvmVolatile,
     )
 
-    /**
-     * Maps deprecation annotation ClassIds to the flag
-     * which is true iff the corresponding annotation must
-     * be propagated to overrides.
-     */
     override val deprecationAnnotationsWithOverridesPropagation: Map<ClassId, Boolean> = mapOf(
         StandardClassIds.Annotations.Deprecated to true,
         JvmStandardClassIds.Annotations.Java.Deprecated to false,

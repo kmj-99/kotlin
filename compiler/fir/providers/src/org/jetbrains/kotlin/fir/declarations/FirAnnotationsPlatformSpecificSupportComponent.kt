@@ -25,6 +25,11 @@ abstract class FirAnnotationsPlatformSpecificSupportComponent : FirSessionCompon
         requiredAnnotations.mapTo(mutableSetOf()) { it.shortClassName }
     }
 
+    /**
+     * Maps deprecation annotation ClassIds to the flag
+     * which is true iff the corresponding annotation must
+     * be propagated to overrides.
+     */
     abstract val deprecationAnnotationsWithOverridesPropagation: Map<ClassId, Boolean>
 
     abstract fun symbolContainsRepeatableAnnotation(symbol: FirClassLikeSymbol<*>, session: FirSession): Boolean
