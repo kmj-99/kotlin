@@ -57,18 +57,13 @@ internal class KtFirSymbolInfoProvider(
         }
     }
 
-    val deprecationAnnotationSimpleNames: Set<String> = setOf(
-        StandardClassIds.Annotations.Deprecated.shortClassName.asString(),
-        JvmStandardClassIds.Annotations.Java.Deprecated.shortClassName.asString(),
-        StandardClassIds.Annotations.SinceKotlin.shortClassName.asString(),
-    )
-
     private fun KtFirPsiJavaClassSymbol.mayHaveDeprecation(): Boolean {
         if (!hasAnnotations) return false
 
         // Check the simple names of the Java annotations. While presence of such an annotation name does not prove deprecation, it is a
         // necessary condition for it. Type aliases are not a problem here: Java code cannot access Kotlin type aliases. (Currently,
         // deprecation annotation type aliases do not work in Kotlin, either, but this might change in the future.)
+        val deprecationAnnotationSimpleNames = analysisSession.useSiteSession.annotationPlatformSupport.deprecationAnnotationsSimpleNames
         return annotationSimpleNames.any { it != null && it in deprecationAnnotationSimpleNames }
     }
 
