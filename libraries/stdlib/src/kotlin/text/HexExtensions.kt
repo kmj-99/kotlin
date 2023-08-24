@@ -949,12 +949,13 @@ private fun String.parseLong(startIndex: Int, endIndex: Int): Long {
 
 @Suppress("NOTHING_TO_INLINE")
 private inline fun String.checkContainsAt(part: String, ignoreCase: Boolean, index: Int, endIndex: Int, partName: String): Int {
-    val partLength = part.length
-    if (partLength == 0) return index
-    if (regionMatches(index, part, 0, partLength, ignoreCase)) {
-        return index + partLength
+    if (part.isEmpty()) return index
+    for (i in part.indices) {
+        if (!part[i].equals(this[index + i], ignoreCase)) {
+            throwNotContained(part, index, endIndex, partName)
+        }
     }
-    throwNotContained(part, index, endIndex, partName)
+    return index + part.length
 }
 
 @Suppress("NOTHING_TO_INLINE")
@@ -983,7 +984,7 @@ private fun String.throwInvalidNumberOfDigits(startIndex: Int, endIndex: Int, ma
     )
 }
 
-private fun String.throwNotContained(part: String, index: Int, endIndex: Int, partName: String): Nothing {
+private fun String.throwNotContained(part: String, index: Int, endIndex: Int, partName: String) {
     val substring = substring(index, (index + part.length).coerceAtMost(endIndex))
     throw NumberFormatException(
         "Expected $partName \"$part\" at index $index, but was $substring"
