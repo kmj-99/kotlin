@@ -3,6 +3,7 @@ KtEnumEntrySymbol:
   callableIdIfNonLocal: kotlin/LazyThreadSafetyMode.SYNCHRONIZED
   containingEnumClassIdIfNonLocal: kotlin/LazyThreadSafetyMode
   contextReceivers: []
+  initializer: null
   isExtension: false
   name: SYNCHRONIZED
   origin: LIBRARY

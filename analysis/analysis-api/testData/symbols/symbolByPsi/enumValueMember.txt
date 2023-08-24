@@ -213,6 +213,7 @@ KtEnumEntrySymbol:
   callableIdIfNonLocal: /Style.SHEET
   containingEnumClassIdIfNonLocal: Style
   contextReceivers: []
+  initializer: KtAnonymousObjectSymbol(<local>/<no name provided>)
   isExtension: false
   name: SHEET
   origin: SOURCE
