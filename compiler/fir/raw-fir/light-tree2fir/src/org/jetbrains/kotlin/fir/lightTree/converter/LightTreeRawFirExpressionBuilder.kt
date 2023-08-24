@@ -66,22 +66,18 @@ class LightTreeRawFirExpressionBuilder(
         errorReason: String = "",
         sourceWhenStatementLike: LighterASTNode? = expression,
     ): R {
-        val allowArraySetExpression = expression in context.arraySetArgument
         val converted = expression?.let { convertExpression(it, errorReason) }
 
         return when {
-            converted is R -> {
-                val isExpressionAnAllowedArraySet = converted.isArraySet && allowArraySetExpression
-                when {
-                    converted.isCallToStatementLikeFunction && !isExpressionAnAllowedArraySet -> {
-                        buildErrorExpression(
-                            sourceWhenStatementLike?.toFirSourceElement(),
-                            ConeSimpleDiagnostic(errorReason, DiagnosticKind.ExpressionExpected),
-                            converted,
-                        )
-                    }
-                    else -> converted
+            converted is R -> when {
+                converted.isCallToStatementLikeFunction -> {
+                    buildErrorExpression(
+                        sourceWhenStatementLike?.toFirSourceElement(),
+                        ConeSimpleDiagnostic(errorReason, DiagnosticKind.ExpressionExpected),
+                        converted,
+                    )
                 }
+                else -> converted
             }
             else -> buildErrorExpression(
                 converted?.source?.withForcedKindFrom(context) ?: expression?.toFirSourceElement(),
@@ -327,6 +323,9 @@ class LightTreeRawFirExpressionBuilder(
         } else {
             val firOperation = operationToken.toFirOperation()
             if (firOperation in FirOperation.ASSIGNMENTS) {
+                val errorReason = "Incorrect expression in assignment: ${binaryExpression.asText}"
+                fun buildDiagnostic() = ConeSimpleDiagnostic(errorReason, DiagnosticKind.ExpressionExpected)
+
                 return leftArgNode.generateAssignment(
                     binaryExpression.toFirSourceElement(),
                     leftArgNode?.toFirSourceElement(),
@@ -335,11 +334,25 @@ class LightTreeRawFirExpressionBuilder(
                     leftArgAsFir.annotations,
                     rightArg,
                 ) {
-                    getAsFirExpression(
-                        this,
-                        "Incorrect expression in assignment: ${binaryExpression.asText}",
-                        binaryExpression,
-                    )
+                    val converted = convertExpression(this, errorReason)
+
+                    when {
+                        converted is FirExpression -> when {
+                            converted.isCallToStatementLikeFunction && !converted.isArraySet -> {
+                                buildErrorExpression(
+                                    binaryExpression.toFirSourceElement(),
+                                    buildDiagnostic(),
+                                    converted,
+                                )
+                            }
+                            else -> converted
+                        }
+                        else -> buildErrorExpression(
+                            converted.source?.withForcedKindFrom(context) ?: this.toFirSourceElement(),
+                            buildDiagnostic(),
+                            converted,
+                        )
+                    }
                 }
             } else {
                 buildEqualityOperatorCall {

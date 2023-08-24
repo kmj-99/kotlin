@@ -283,22 +283,18 @@ open class PsiRawFirBuilder(
                 return buildErrorExpression(source = sourceWhenThisIsNull?.toFirSourceElement(), diagnosticFn())
             }
 
-            val allowArraySetExpression = this in this@PsiRawFirBuilder.context.arraySetArgument
             val fir = convertElement(this, null)
 
             return when {
-                fir is FirExpression -> {
-                    val isExpressionAnAllowedArraySet = fir.isArraySet && allowArraySetExpression
-                    when {
-                        fir.isCallToStatementLikeFunction && !isExpressionAnAllowedArraySet -> {
-                            buildErrorExpression {
-                                nonExpressionElement = fir
-                                diagnostic = diagnosticFn()
-                                source = sourceWhenStatementLike?.toFirSourceElement()
-                            }
+                fir is FirExpression -> when {
+                    fir.isCallToStatementLikeFunction -> {
+                        buildErrorExpression {
+                            nonExpressionElement = fir
+                            diagnostic = diagnosticFn()
+                            source = sourceWhenStatementLike?.toFirSourceElement()
                         }
-                        else -> toFirExpression(fir)
                     }
+                    else -> toFirExpression(fir)
                 }
                 else -> buildErrorExpression {
                     nonExpressionElement = fir
@@ -2667,6 +2663,11 @@ open class PsiRawFirBuilder(
             } else {
                 val firOperation = operationToken.toFirOperation()
                 if (firOperation in FirOperation.ASSIGNMENTS) {
+                    fun buildDiagnostic() = ConeSimpleDiagnostic(
+                        "Incorrect expression in assignment: ${expression.text}",
+                        DiagnosticKind.ExpressionExpected
+                    )
+
                     return expression.left.generateAssignment(
                         source,
                         expression.left?.toFirSourceElement(),
@@ -2675,11 +2676,24 @@ open class PsiRawFirBuilder(
                         leftArgument.annotations,
                         expression.right,
                     ) {
-                        (this as KtExpression).toFirExpression(sourceWhenStatementLike = expression) {
-                            ConeSimpleDiagnostic(
-                                "Incorrect expression in assignment: ${expression.text}",
-                                DiagnosticKind.ExpressionExpected
-                            )
+                        val fir = convertElement(this as KtExpression, null)
+
+                        when {
+                            fir is FirExpression -> when {
+                                fir.isCallToStatementLikeFunction && !fir.isArraySet -> {
+                                    buildErrorExpression {
+                                        nonExpressionElement = fir
+                                        diagnostic = buildDiagnostic()
+                                        this.source = expression.toFirSourceElement()
+                                    }
+                                }
+                                else -> toFirExpression(fir)
+                            }
+                            else -> buildErrorExpression {
+                                nonExpressionElement = fir
+                                diagnostic = buildDiagnostic()
+                                this.source = fir?.source?.withForcedKindFrom(this@PsiRawFirBuilder.context) ?: toFirSourceElement()
+                            }
                         }
                     }
                 } else {
