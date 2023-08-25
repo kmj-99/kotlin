@@ -47,6 +47,24 @@ public class FirIdeNormalAnalysisSourceModuleDeclaredMemberScopeTestGenerated ex
     }
 
     @Test
+    @TestMetadata("enumEntryInitializer.kt")
+    public void testEnumEntryInitializer() throws Exception {
+        runTest("analysis/analysis-api/testData/components/scopeProvider/declaredMemberScope/enumEntryInitializer.kt");
+    }
+
+    @Test
+    @TestMetadata("enumEntryInitializerWithFinalEnumMember.kt")
+    public void testEnumEntryInitializerWithFinalEnumMember() throws Exception {
+        runTest("analysis/analysis-api/testData/components/scopeProvider/declaredMemberScope/enumEntryInitializerWithFinalEnumMember.kt");
+    }
+
+    @Test
+    @TestMetadata("enumEntryInitializerWithOverriddenMember.kt")
+    public void testEnumEntryInitializerWithOverriddenMember() throws Exception {
+        runTest("analysis/analysis-api/testData/components/scopeProvider/declaredMemberScope/enumEntryInitializerWithOverriddenMember.kt");
+    }
+
+    @Test
     @TestMetadata("javaDeclaredEnhancementScope.kt")
     public void testJavaDeclaredEnhancementScope() throws Exception {
         runTest("analysis/analysis-api/testData/components/scopeProvider/declaredMemberScope/javaDeclaredEnhancementScope.kt");
