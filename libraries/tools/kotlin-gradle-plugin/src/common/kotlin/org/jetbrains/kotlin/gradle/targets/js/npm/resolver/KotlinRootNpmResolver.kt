@@ -9,8 +9,10 @@ import org.gradle.api.Project
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinJsCompilation
 import org.jetbrains.kotlin.gradle.plugin.mpp.isMain
+import org.jetbrains.kotlin.gradle.targets.js.KotlinWasmTargetType
 import org.jetbrains.kotlin.gradle.targets.js.NpmVersions
 import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrCompilation
+import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrTarget
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.TasksRequirements
 import org.jetbrains.kotlin.gradle.targets.js.npm.resolved.KotlinRootNpmResolution
 import java.io.File
@@ -53,7 +55,8 @@ class KotlinRootNpmResolver internal constructor(
         if (mainCompilations.isEmpty()) return null
 
         //TODO[Ilya Goncharov, Igor Iakovlev] Hack for Mixed mode of legacy and IR tooling and Wasm
-        var containsWasm = false
+        var containsWasmJs = false
+        var containsWasmWasi = false
         var containsIrJs = false
         var containsLegacyJs = false
         val errorMessage = "Cannot resolve project dependency $src -> $target." +
@@ -64,8 +67,15 @@ class KotlinRootNpmResolver internal constructor(
             when (val compilation = npmResolver.compilation) {
                 is KotlinJsIrCompilation -> {
                     if (compilation.platformType == KotlinPlatformType.wasm) {
-                        check(!containsWasm) { errorMessage }
-                        containsWasm = true
+                        val jsTarget = compilation.target as KotlinJsIrTarget
+                        if (jsTarget.wasmTargetType == KotlinWasmTargetType.JS) {
+                            check(!containsWasmJs) { errorMessage }
+                            containsWasmJs = true
+                        }
+                        if (jsTarget.wasmTargetType == KotlinWasmTargetType.WASI) {
+                            check(!containsWasmWasi) { errorMessage }
+                            containsWasmWasi = true
+                        }
                     } else {
                         check(!containsIrJs) { errorMessage }
                         containsIrJs = true
@@ -78,7 +88,7 @@ class KotlinRootNpmResolver internal constructor(
                 }
             }
         }
-        check(containsWasm || containsIrJs || containsLegacyJs) { errorMessage }
+        check(containsWasmJs || containsWasmWasi || containsIrJs || containsLegacyJs) { errorMessage }
 
         return mainCompilations
     }
