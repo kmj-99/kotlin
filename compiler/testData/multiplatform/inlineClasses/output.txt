@@ -5,7 +5,7 @@ Output:
 -- JVM --
 Exit code: COMPILATION_ERROR
 Output:
-compiler/testData/multiplatform/inlineClasses/jvm.kt:5:14: error: actual class Foo2 : Any has no corresponding expected declaration
+compiler/testData/multiplatform/inlineClasses/jvm.kt:5:14: error: 'actual class Foo2 : Any' has no corresponding expected declaration
 The following declaration is incompatible because modifiers are different (companion, inner, inline):
     expect class Foo2 : Any
 
@@ -18,7 +18,7 @@ Output:
 compiler/testData/multiplatform/inlineClasses/common.kt:4:1: error: expect declaration `Foo2` doesn't match actual `Foo2` because modifiers are different (companion, inner, inline)
 expect inline class Foo2(val y: String)
 ^
-compiler/testData/multiplatform/inlineClasses/js.kt:5:14: error: actual class Foo2 : Any has no corresponding expected declaration
+compiler/testData/multiplatform/inlineClasses/js.kt:5:14: error: 'actual class Foo2 : Any' has no corresponding expected declaration
 The following declaration is incompatible because modifiers are different (companion, inner, inline):
     expect class Foo2 : Any
 
