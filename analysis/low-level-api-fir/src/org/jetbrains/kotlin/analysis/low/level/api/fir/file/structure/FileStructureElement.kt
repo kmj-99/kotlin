@@ -16,7 +16,7 @@ import org.jetbrains.kotlin.analysis.low.level.api.fir.diagnostics.ScriptDiagnos
 import org.jetbrains.kotlin.analysis.low.level.api.fir.diagnostics.SingleNonLocalDeclarationDiagnosticRetriever
 import org.jetbrains.kotlin.analysis.low.level.api.fir.util.isScriptStatement
 import org.jetbrains.kotlin.fir.FirElement
-import org.jetbrains.kotlin.fir.accept
+import org.jetbrains.kotlin.fir.visitors.accept
 import org.jetbrains.kotlin.fir.correspondingProperty
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.impl.FirPrimaryConstructor

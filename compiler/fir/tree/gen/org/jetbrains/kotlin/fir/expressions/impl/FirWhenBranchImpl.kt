@@ -13,8 +13,6 @@ import org.jetbrains.kotlin.fir.expressions.FirBlock
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.FirWhenBranch
 import org.jetbrains.kotlin.fir.visitors.*
-import org.jetbrains.kotlin.fir.accept
-import org.jetbrains.kotlin.fir.transform
 
 /*
  * This file was generated automatically

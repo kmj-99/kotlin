@@ -6,7 +6,7 @@
 package org.jetbrains.kotlin.fir.analysis.cfa.util
 
 import org.jetbrains.kotlin.fir.FirElement
-import org.jetbrains.kotlin.fir.accept
+import org.jetbrains.kotlin.fir.visitors.accept
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.expressions.FirDoWhileLoop
 import org.jetbrains.kotlin.fir.expressions.FirLoop

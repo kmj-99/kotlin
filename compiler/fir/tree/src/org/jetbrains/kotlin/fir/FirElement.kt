@@ -20,5 +20,5 @@ abstract class FirElement : FirElementInterface {
 
     fun acceptChildren(visitor: FirVisitorVoid) = acceptChildren(visitor, null)
 
-    abstract fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirElementInterface // TODO: make FirElement instead
+    abstract fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirElement
 }

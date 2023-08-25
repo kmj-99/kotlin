@@ -32,8 +32,6 @@ import org.jetbrains.kotlin.fir.visitors.*
 import org.jetbrains.kotlin.fir.MutableOrEmptyList
 import org.jetbrains.kotlin.fir.builder.toMutableOrEmpty
 import org.jetbrains.kotlin.fir.declarations.ResolveStateAccess
-import org.jetbrains.kotlin.fir.accept
-import org.jetbrains.kotlin.fir.transform
 
 /*
  * This file was generated automatically

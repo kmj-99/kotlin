@@ -13,8 +13,6 @@ import org.jetbrains.kotlin.fir.types.FirTypeProjectionWithVariance
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.fir.visitors.*
-import org.jetbrains.kotlin.fir.accept
-import org.jetbrains.kotlin.fir.transform
 
 /*
  * This file was generated automatically

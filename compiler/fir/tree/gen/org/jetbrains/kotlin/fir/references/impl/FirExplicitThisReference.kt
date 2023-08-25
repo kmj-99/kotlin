@@ -13,8 +13,6 @@ import org.jetbrains.kotlin.fir.diagnostics.ConeDiagnostic
 import org.jetbrains.kotlin.fir.references.FirThisReference
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.visitors.*
-import org.jetbrains.kotlin.fir.accept
-import org.jetbrains.kotlin.fir.transform
 
 /*
  * This file was generated automatically

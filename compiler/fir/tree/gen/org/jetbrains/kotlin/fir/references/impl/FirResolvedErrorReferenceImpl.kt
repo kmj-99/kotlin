@@ -14,8 +14,6 @@ import org.jetbrains.kotlin.fir.references.FirResolvedErrorReference
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.fir.visitors.*
-import org.jetbrains.kotlin.fir.accept
-import org.jetbrains.kotlin.fir.transform
 
 /*
  * This file was generated automatically

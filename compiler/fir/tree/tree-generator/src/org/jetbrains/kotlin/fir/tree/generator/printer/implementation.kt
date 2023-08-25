@@ -23,11 +23,7 @@ fun Implementation.generateCode(generationPath: File): GeneratedFile {
         println()
         println("package $packageName")
         println()
-        val imports = buildList {
-            addAll(collectImports())
-            add("org.jetbrains.kotlin.fir.accept")
-            add("org.jetbrains.kotlin.fir.transform")
-        }
+        val imports = collectImports()
         imports.forEach { println("import $it") }
         if (imports.isNotEmpty()) {
             println()
