@@ -1,7 +1,7 @@
 // FIR_IDENTICAL
 // JVM_FILE_NAME: ContextReceiversOnFunctionTypeKt
 // !LANGUAGE: +ContextReceivers
-
+// KNM_IGNORE
 fun f(g: context(A, B) Int.(Int) -> Int) {}
 
 class A {

@@ -1,3 +1,6 @@
+// Issue: KTIJ-26788 (need stdlib for Continuation)
+// KNM_IGNORE
+
 package test
 import kotlin.coroutines.*
 

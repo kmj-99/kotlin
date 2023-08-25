@@ -1,3 +1,6 @@
+// Issue: KTIJ-26788 (need stdlib for lazy)
+// KNM_IGNORE
+
 @a public class Annotations private @a constructor(private @property:a @param:a val c1: Int, @property:a @param:a val c2: Int) {
     @a() val hasValueArguments = 42
 

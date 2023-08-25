@@ -1,4 +1,6 @@
 // FIR_IDENTICAL
+// KNM_IGNORE
+
 package test
 
 class LocalClass {

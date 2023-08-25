@@ -1,3 +1,5 @@
+// KNM_IGNORE
+
 package test
 
 public class AnnotatedFlexibleTypes(val javaClass: d.JavaClass) {
