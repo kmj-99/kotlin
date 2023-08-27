@@ -1,3 +1,4 @@
+// LANGUAGE: -ExpectActualMustHaveSameDeprecationLevel
 // MODULE: m1-common
 // FILE: common.kt
 
@@ -16,5 +17,5 @@ fun test() {
 
 package test
 
-@Deprecated("To check that ::foo is resolved to actual fun foo when compiling common+jvm")
+<!EXPECT_ACTUAL_DEPRECATION_LEVEL_WARNING!>@Deprecated("To check that ::foo is resolved to actual fun foo when compiling common+jvm")<!>
 actual fun foo(): String = ""

@@ -33,6 +33,7 @@ import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.StandardClassIds
 import org.jetbrains.kotlin.resolve.calls.mpp.AbstractExpectActualAnnotationMatchChecker
 import org.jetbrains.kotlin.resolve.checkers.OptInNames
+import org.jetbrains.kotlin.resolve.deprecation.DeprecationLevelValue
 import org.jetbrains.kotlin.resolve.multiplatform.ExpectActualCompatibility
 import org.jetbrains.kotlin.resolve.multiplatform.ExpectActualCompatibility.*
 
@@ -192,6 +193,7 @@ object FirExpectActualDeclarationChecker : FirBasicDeclarationChecker() {
                 reporter,
             )
             checkOptInAnnotation(declaration, expectedSingleCandidate, context, reporter)
+            checkActualDeprecatedAnnotation(symbol, expectedSingleCandidate, context, reporter)
             checkAnnotationsMatch(expectedSingleCandidate, symbol, context, reporter)
         }
     }
@@ -298,6 +300,26 @@ object FirExpectActualDeclarationChecker : FirBasicDeclarationChecker() {
             declaration.hasAnnotation(OptInNames.REQUIRES_OPT_IN_CLASS_ID, context.session)
         ) {
             reporter.reportOn(declaration.source, FirErrors.EXPECT_ACTUAL_OPT_IN_ANNOTATION, context)
+        }
+    }
+
+    private fun checkActualDeprecatedAnnotation(
+        actualDeclarationSymbol: FirBasedSymbol<*>,
+        expectDeclarationSymbol: FirBasedSymbol<*>,
+        context: CheckerContext,
+        reporter: DiagnosticReporter,
+    ) {
+        val actualAnnotation =
+            actualDeclarationSymbol.getAnnotationByClassId(StandardClassIds.Annotations.Deprecated, context.session) ?: return
+        val actualDeprecationLevel = actualAnnotation.getDeprecationLevel() ?: DeprecationLevelValue.WARNING
+        val expectAnnotation = expectDeclarationSymbol.getAnnotationByClassId(StandardClassIds.Annotations.Deprecated, context.session)
+        val expectDeprecationLevel = expectAnnotation?.getDeprecationLevel() ?: DeprecationLevelValue.WARNING
+        if (expectAnnotation == null || expectDeprecationLevel < actualDeprecationLevel) {
+            val message = when (expectAnnotation) {
+                null -> "Expect declaration doesn't have ${StandardClassIds.Annotations.Deprecated.asFqNameString()} annotation, but actual declaration has"
+                else -> "Expect declaration has '$expectDeprecationLevel' deprecation level, but actual declaration has '$actualDeprecationLevel'"
+            }
+            reporter.reportOn(actualAnnotation.source, FirErrors.EXPECT_ACTUAL_DEPRECATION_LEVEL, message, context)
         }
     }
 }

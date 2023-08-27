@@ -765,6 +765,48 @@ public class FirOldFrontendMPPDiagnosticsWithLightTreeTestGenerated extends Abst
         }
 
         @Test
+        @TestMetadata("expectActualDeprecationLevelImplicit.kt")
+        public void testExpectActualDeprecationLevelImplicit() throws Exception {
+            runTest("compiler/testData/diagnostics/tests/multiplatform/annotationMatching/expectActualDeprecationLevelImplicit.kt");
+        }
+
+        @Test
+        @TestMetadata("expectActualDeprecationLevelSimple.kt")
+        public void testExpectActualDeprecationLevelSimple() throws Exception {
+            runTest("compiler/testData/diagnostics/tests/multiplatform/annotationMatching/expectActualDeprecationLevelSimple.kt");
+        }
+
+        @Test
+        @TestMetadata("expectActualDeprecationLevelSimple2.kt")
+        public void testExpectActualDeprecationLevelSimple2() throws Exception {
+            runTest("compiler/testData/diagnostics/tests/multiplatform/annotationMatching/expectActualDeprecationLevelSimple2.kt");
+        }
+
+        @Test
+        @TestMetadata("expectActualDeprecationLevelSimple3.kt")
+        public void testExpectActualDeprecationLevelSimple3() throws Exception {
+            runTest("compiler/testData/diagnostics/tests/multiplatform/annotationMatching/expectActualDeprecationLevelSimple3.kt");
+        }
+
+        @Test
+        @TestMetadata("expectActualDeprecationLevelSimple4.kt")
+        public void testExpectActualDeprecationLevelSimple4() throws Exception {
+            runTest("compiler/testData/diagnostics/tests/multiplatform/annotationMatching/expectActualDeprecationLevelSimple4.kt");
+        }
+
+        @Test
+        @TestMetadata("expectActualDeprecationLevelSimpleError.kt")
+        public void testExpectActualDeprecationLevelSimpleError() throws Exception {
+            runTest("compiler/testData/diagnostics/tests/multiplatform/annotationMatching/expectActualDeprecationLevelSimpleError.kt");
+        }
+
+        @Test
+        @TestMetadata("expectActualDeprecationLevelWithoutExpectAnnotation.kt")
+        public void testExpectActualDeprecationLevelWithoutExpectAnnotation() throws Exception {
+            runTest("compiler/testData/diagnostics/tests/multiplatform/annotationMatching/expectActualDeprecationLevelWithoutExpectAnnotation.kt");
+        }
+
+        @Test
         @TestMetadata("fakeOverrides.kt")
         public void testFakeOverrides() throws Exception {
             runTest("compiler/testData/diagnostics/tests/multiplatform/annotationMatching/fakeOverrides.kt");

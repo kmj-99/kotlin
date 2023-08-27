@@ -3628,6 +3628,20 @@ internal val KT_DIAGNOSTIC_CONVERTER = KtDiagnosticConverterBuilder.buildConvert
             token,
         )
     }
+    add(FirErrors.EXPECT_ACTUAL_DEPRECATION_LEVEL.errorFactory) { firDiagnostic ->
+        ExpectActualDeprecationLevelErrorImpl(
+            firDiagnostic.a,
+            firDiagnostic as KtPsiDiagnostic,
+            token,
+        )
+    }
+    add(FirErrors.EXPECT_ACTUAL_DEPRECATION_LEVEL.warningFactory) { firDiagnostic ->
+        ExpectActualDeprecationLevelWarningImpl(
+            firDiagnostic.a,
+            firDiagnostic as KtPsiDiagnostic,
+            token,
+        )
+    }
     add(FirErrors.ACTUAL_TYPEALIAS_TO_SPECIAL_ANNOTATION) { firDiagnostic ->
         ActualTypealiasToSpecialAnnotationImpl(
             firDiagnostic.a,

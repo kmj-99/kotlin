@@ -3059,6 +3059,18 @@ internal class ExpectActualOptInAnnotationImpl(
     token: KtLifetimeToken,
 ) : KtAbstractFirDiagnostic<KtNamedDeclaration>(firDiagnostic, token), KtFirDiagnostic.ExpectActualOptInAnnotation
 
+internal class ExpectActualDeprecationLevelErrorImpl(
+    override val message: String,
+    firDiagnostic: KtPsiDiagnostic,
+    token: KtLifetimeToken,
+) : KtAbstractFirDiagnostic<KtAnnotationEntry>(firDiagnostic, token), KtFirDiagnostic.ExpectActualDeprecationLevelError
+
+internal class ExpectActualDeprecationLevelWarningImpl(
+    override val message: String,
+    firDiagnostic: KtPsiDiagnostic,
+    token: KtLifetimeToken,
+) : KtAbstractFirDiagnostic<KtAnnotationEntry>(firDiagnostic, token), KtFirDiagnostic.ExpectActualDeprecationLevelWarning
+
 internal class ActualTypealiasToSpecialAnnotationImpl(
     override val typealiasedClassId: ClassId,
     firDiagnostic: KtPsiDiagnostic,

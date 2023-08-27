@@ -1233,6 +1233,9 @@ object DIAGNOSTICS_LIST : DiagnosticList("FirErrors") {
         val NOT_A_MULTIPLATFORM_COMPILATION by error<PsiElement>()
 
         val EXPECT_ACTUAL_OPT_IN_ANNOTATION by error<KtNamedDeclaration>(PositioningStrategy.EXPECT_ACTUAL_MODIFIER)
+        val EXPECT_ACTUAL_DEPRECATION_LEVEL by deprecationError<KtAnnotationEntry>(LanguageFeature.ExpectActualMustHaveSameDeprecationLevel){
+            parameter<String>("message")
+        }
 
         val ACTUAL_TYPEALIAS_TO_SPECIAL_ANNOTATION by error<KtTypeAlias>(PositioningStrategy.TYPEALIAS_TYPE_REFERENCE) {
             parameter<ClassId>("typealiasedClassId")

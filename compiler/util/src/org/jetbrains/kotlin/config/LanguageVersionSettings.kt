@@ -309,6 +309,7 @@ enum class LanguageFeature(
     ProhibitImplementingVarByInheritedVal(KOTLIN_2_1, kind = BUG_FIX), // KT-56779
     PrioritizedEnumEntries(KOTLIN_2_1, kind = UNSTABLE_FEATURE), // KT-58920
     ProhibitInlineModifierOnPrimaryConstructorParameters(KOTLIN_2_1, kind = BUG_FIX), // KT-59664
+    ExpectActualMustHaveSameDeprecationLevel(KOTLIN_2_1, kind = BUG_FIX), // KT-60523
 
     // End of 2.* language features --------------------------------------------------
 

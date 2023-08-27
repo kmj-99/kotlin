@@ -2537,6 +2537,16 @@ sealed interface KtFirDiagnostic<PSI : PsiElement> : KtDiagnosticWithPsi<PSI> {
         override val diagnosticClass get() = ExpectActualOptInAnnotation::class
     }
 
+    interface ExpectActualDeprecationLevelError : KtFirDiagnostic<KtAnnotationEntry> {
+        override val diagnosticClass get() = ExpectActualDeprecationLevelError::class
+        val message: String
+    }
+
+    interface ExpectActualDeprecationLevelWarning : KtFirDiagnostic<KtAnnotationEntry> {
+        override val diagnosticClass get() = ExpectActualDeprecationLevelWarning::class
+        val message: String
+    }
+
     interface ActualTypealiasToSpecialAnnotation : KtFirDiagnostic<KtTypeAlias> {
         override val diagnosticClass get() = ActualTypealiasToSpecialAnnotation::class
         val typealiasedClassId: ClassId
