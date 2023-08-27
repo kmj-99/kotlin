@@ -147,6 +147,7 @@ expect class StringBuilder : Appendable, CharSequence {
      *
      * In Kotlin/JS implementation of StringBuilder the value returned from this method may not indicate the actual size of the backing storage.
      */
+    @Deprecated("Obtaining StringBuilder capacity is not supported.")
     @SinceKotlin("1.3")
     fun capacity(): Int
 
