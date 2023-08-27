@@ -102,7 +102,6 @@ fun create(project: Project): ExecutorService {
     return when {
         project.compileOnlyTests -> NoOpExecutor(explanation = "compile-only tests").service(project)
         project.hasProperty("remote") -> sshExecutor(project, testTarget)
-        configurables is WasmConfigurables -> WasmExecutor(configurables).service(project)
         configurables is ConfigurablesWithEmulator && testTarget != HostManager.host -> EmulatorExecutor(configurables).service(project)
         configurables is AppleConfigurables && configurables.targetTriple.isSimulator -> XcodeSimulatorExecutor(configurables).apply {
             // Property can specify device identifier to be run on. For example, `com.apple.CoreSimulator.SimDeviceType.iPhone-11`

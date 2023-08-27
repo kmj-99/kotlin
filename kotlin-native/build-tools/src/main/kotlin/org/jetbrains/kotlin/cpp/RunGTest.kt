@@ -7,10 +7,13 @@
 package org.jetbrains.kotlin.cpp
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import org.gradle.kotlin.dsl.getByType
+import org.gradle.process.ExecOperations
 import org.gradle.workers.WorkAction
 import org.gradle.workers.WorkParameters
 import org.gradle.workers.WorkerExecutor
@@ -33,6 +36,7 @@ private abstract class RunGTestJob : WorkAction<RunGTestJob.Parameters> {
         //       so object identity matters, and platform managers are different between project and worker sides.
         val targetName: Property<String>
         val executionTimeout: Property<Duration>
+        val executorClasspath: ConfigurableFileCollection
     }
 
     // The `Executor` is created for every `RunGTest` task execution. It's okay, testing tasks are few-ish and big.
@@ -49,11 +53,19 @@ private abstract class RunGTestJob : WorkAction<RunGTestJob.Parameters> {
         }
     }
 
+    @get:Inject
+    abstract val execOperations: ExecOperations
+
     override fun execute() {
         // TODO: Try to make it like other gradle test tasks: report progress in a way gradle understands instead of dumping stdout of gtest.
 
         with(parameters) {
             reportFileUnprocessed.asFile.get().parentFile.mkdirs()
+
+            execOperations.javaexec {
+                classpath(executorClasspath.files)
+                mainClass.set("org.jetbrains.kotlin.native.executors.cli.ExecutorsCLI")
+            }
 
             executor.execute(ExecuteRequest(this@with.executable.asFile.get().absolutePath).apply {
                 this.args.add("--gtest_output=xml:${reportFileUnprocessed.asFile.get().absolutePath}")
@@ -146,6 +158,12 @@ abstract class RunGTest : DefaultTask() {
     @get:Input
     abstract val executionTimeout: Property<Duration>
 
+    /**
+     * Classpath for `:native:executor`
+     */
+    @get:Input
+    abstract val executorClasspath: Property<Configuration>
+
     @TaskAction
     fun run() {
         val workQueue = workerExecutor.noIsolation()
@@ -160,6 +178,7 @@ abstract class RunGTest : DefaultTask() {
             platformManager.set(project.extensions.getByType<PlatformManager>())
             targetName.set(this@RunGTest.target.get().name)
             executionTimeout.set(this@RunGTest.executionTimeout)
+            executorClasspath.from(this@RunGTest.executorClasspath.get())
         }
     }
 }

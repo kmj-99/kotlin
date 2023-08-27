@@ -9,6 +9,7 @@ import kotlinBuildProperties
 import org.gradle.api.*
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationVariant
+import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
@@ -87,6 +88,16 @@ private fun Project.moduleCompileBitcodeElements(moduleName: String, sourceSet: 
 }
 
 private fun Project.moduleCompileBitcodeElements(moduleName: String, sourceSet: String) = moduleCompileBitcodeElements(moduleName, sourceSet) {}
+
+private fun Project.executorConfiguration() = configurations.getOrCreate("executorConfiguration") {
+    isCanBeConsumed = false
+    isCanBeResolved = true
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
+        // TODO: Why classes?
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements.CLASSES))
+    }
+}
 
 private fun Configuration.targetVariant(target: TargetWithSanitizer): ConfigurationVariant = outgoing.variants.getOrCreate("$target") {
     attributes {
@@ -612,6 +623,7 @@ open class CompileToBitcodeExtension @Inject constructor(val project: Project) :
                     (project.findProperty("gtest_timeout") as? String)?.let {
                         Duration.parse("PT${it}")
                     } ?: Duration.ofMinutes(30)) // The tests binaries are big.
+                this.executorClasspath.set(project.executorConfiguration())
 
                 usesService(runGTestSemaphore)
             }
@@ -663,5 +675,8 @@ open class CompileToBitcodePlugin : Plugin<Project> {
         project.apply<CompilationDatabasePlugin>()
         project.apply<GitClangFormatPlugin>()
         project.extensions.create<CompileToBitcodeExtension>("bitcode", project)
+        project.dependencies {
+            project.executorConfiguration()(project(":native:executors"))
+        }
     }
 }
