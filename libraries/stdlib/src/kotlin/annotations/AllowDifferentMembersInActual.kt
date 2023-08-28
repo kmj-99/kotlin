@@ -38,5 +38,4 @@ import kotlin.annotation.AnnotationTarget.*
 @Target(CLASS, TYPEALIAS)
 @MustBeDocumented
 @ExperimentalMultiplatform
-@SinceKotlin("1.9")
 public annotation class AllowDifferentMembersInActual

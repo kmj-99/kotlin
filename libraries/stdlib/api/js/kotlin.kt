@@ -848,7 +848,6 @@ public inline fun <T : kotlin.AutoCloseable?, R> T.use(block: (T) -> R): R
 @kotlin.annotation.Target(allowedTargets = {AnnotationTarget.CLASS, AnnotationTarget.TYPEALIAS})
 @kotlin.annotation.MustBeDocumented
 @kotlin.ExperimentalMultiplatform
-@kotlin.SinceKotlin(version = "1.9")
 public final annotation class AllowDifferentMembersInActual : kotlin.Annotation {
     public constructor AllowDifferentMembersInActual()
 }
