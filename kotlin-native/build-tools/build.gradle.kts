@@ -124,5 +124,13 @@ gradlePlugin {
             id = "native"
             implementationClass = "org.jetbrains.kotlin.tools.NativePlugin"
         }
+        create("nativeDependenciesDownloader") {
+            id = "native-dependencies-downloader"
+            implementationClass = "org.jetbrains.kotlin.dependencies.NativeDependenciesDownloaderPlugin"
+        }
+        create("nativeDependencies") {
+            id = "native-dependencies"
+            implementationClass = "org.jetbrains.kotlin.dependencies.NativeDependenciesPlugin"
+        }
     }
 }
