@@ -14,7 +14,7 @@ It can and should be used as the reference for the mismatches between the review
   - Their responsibility is to ensure that the change in the corresponding subsystem makes sense: it is consistent with the rest of the subsystem, is tested and/or documented accordingly to their subsystem’s standards, does not contradict potential subsequent changes, etc.
   - There is no requirement to review other subsystems. This is up to the primary reviewer
 
-There is no formal way to define the primary code reviewer, but it's encouraged to mention them explicitly if it is not obvious. This reviewer should take a look at the overall picture when reviewing, and when there are multiple reviewers, it is worth explicitly spelling out who is the primary one.
+There is no formal way to define the primary code reviewer, but it’s encouraged to mention them explicitly if it is not obvious. This reviewer should take a look at the overall picture when reviewing, and when there are multiple reviewers, it is worth explicitly spelling out who is the primary one.
 When assigned as a reviewer, your very first action should be to ensure you are the relevant reviewer for the change and re-assign to someone else otherwise.
 
 ### Code authoring
@@ -47,7 +47,7 @@ The following list of general recommendations (that can also be used as a review
 1. At least one commit in an MR with functional changes should mention a YT ticket
 2. Please ensure that the ticket description is descriptive: the reviewer should understand from the ticket (not from the changes!), what’s the final goal of the change and what’s being done. The responsible QA should be able to deduce what they should check afterward
 3. Please ensure that the commit message is self-descriptive and detailed, explaining not only what’s being done but also how and why it is done this way
-    * Rule of thumb: if the MR required a nontrivial discussion, hundreds of lines of production code changed, but the final commit message looks like: "use X instead of Y in Z", chances that something is wrong with the message are high.
+    * Rule of thumb: if the MR required a nontrivial discussion, hundreds of lines of production code changed, but the final commit message looks like: “use X instead of Y in Z”, chances that something is wrong with the message are high.
     * This is also a subject of the code review
 4. Even for non-functional changes, it is strongly encouraged to explain *the reasoning* behind the change. Otherwise, it will be lost in time in a few months
     * Rule of thumb: prefer `Make X lazy: \n it’s a non-trivial computation that is frequently unused in the context of X` over `Make X lazy` or `Add X.toString(), used for a debugging purpose` over `Add X.toString()`
