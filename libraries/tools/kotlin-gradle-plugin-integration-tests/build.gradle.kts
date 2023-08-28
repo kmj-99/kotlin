@@ -1,4 +1,5 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.jvm.toolchain.internal.NoToolchainAvailableException
 import org.jetbrains.kotlin.pill.PillExtension
 
 plugins {
@@ -357,6 +358,7 @@ tasks.withType<Test> {
     val jdk11Provider = project.getToolchainJdkHomeFor(JdkMajorVersion.JDK_11_0)
     val jdk16Provider = project.getToolchainJdkHomeFor(JdkMajorVersion.JDK_16_0)
     val jdk17Provider = project.getToolchainJdkHomeFor(JdkMajorVersion.JDK_17_0)
+    val jdk21Provider = project.getToolchainJdkHomeFor(JdkMajorVersion.JDK_21_0)
     val mavenLocalRepo = project.providers.systemProperty("maven.repo.local").orNull
 
     // Query required JDKs paths only on execution phase to avoid triggering auto-download on project configuration phase
@@ -368,6 +370,10 @@ tasks.withType<Test> {
         systemProperty("jdk11Home", jdk11Provider.get())
         systemProperty("jdk16Home", jdk16Provider.get())
         systemProperty("jdk17Home", jdk17Provider.get())
+        // jdk21Provider.isPresent throws NoToolchainAvailableException, so, we have to check for the exception
+        try {
+            systemProperty("jdk21Home", jdk21Provider.get())
+        } catch (_: NoToolchainAvailableException) {}
         if (mavenLocalRepo != null) {
             systemProperty("maven.repo.local", mavenLocalRepo)
         }
