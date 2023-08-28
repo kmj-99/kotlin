@@ -6,6 +6,8 @@
 package kotlin.text
 
 import kotlin.math.abs
+import kotlin.wasm.internal.WasmCharArray
+import kotlin.wasm.internal.copyWasmArray
 import kotlin.wasm.internal.wasm_f32_demote_f64
 
 /**
@@ -130,26 +132,36 @@ actual fun Int.toString(radix: Int): String = toLong().toString(radix)
 actual fun Long.toString(radix: Int): String {
     checkRadix(radix)
 
-    fun Long.getChar() = toInt().let { if (it < 10) '0' + it else 'a' + (it - 10) }
-
     if (radix == 10) return toString()
     if (this in 0 until radix) return getChar().toString()
 
     val isNegative = this < 0
-    val buffer = CharArray(Long.SIZE_BITS + 1)
+    val buffer = WasmCharArray(Long.SIZE_BITS + 1)
 
-    var currentBufferIndex = buffer.lastIndex
+    var currentBufferIndex = Long.SIZE_BITS
     var current: Long = this
-    while(current != 0L) {
-        buffer[currentBufferIndex] = abs(current % radix).getChar()
+    while (current != 0L) {
+        buffer.set(currentBufferIndex, abs(current % radix).getChar())
         current /= radix
         currentBufferIndex--
     }
 
     if (isNegative) {
-        buffer[currentBufferIndex] = '-'
+        buffer.set(currentBufferIndex, '-')
         currentBufferIndex--
     }
 
-    return buffer.concatToString(currentBufferIndex + 1)
+    return buffer.createStringStartingFrom(currentBufferIndex + 1)
 }
+
+internal fun WasmCharArray.createStringStartingFrom(index: Int): String {
+    if (index == 0) return createString()
+    val newLength = this.len() - index
+    if (newLength == 0) return ""
+    val newChars = WasmCharArray(newLength)
+    copyWasmArray(this, newChars, index, 0, newLength)
+    return newChars.createString()
+}
+
+internal fun Long.getChar() = toInt().let { if (it < 10) '0' + it else 'a' + (it - 10) }
+

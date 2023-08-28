@@ -42,10 +42,14 @@ private fun digitToChar(input: Int): Char {
     return (CharCodes._0.code + input).toChar()
 }
 
-// Inspired by the AssemblyScript implementation
-internal fun itoa32(inputValue: Int, radix: Int): String {
+private fun assertCorrectRadix(radix: Int) {
     if (radix < 2 || radix > 36)
         throw IllegalArgumentException("Radix argument is unreasonable")
+}
+
+// Inspired by the AssemblyScript implementation
+internal fun itoa32(inputValue: Int, radix: Int): String {
+    assertCorrectRadix(radix)
 
     if (radix != 10)
         TODO("When we need it")
@@ -56,7 +60,7 @@ internal fun itoa32(inputValue: Int, radix: Int): String {
 
     val sign = inputValue ushr 31
     assert(sign == 1 || sign == 0)
-    val absValue = if (sign == 1) -inputValue else inputValue
+    val absValue = (if (sign == 1) -inputValue else inputValue).toUInt()
 
     val decimals = decimalCount32(absValue) + sign
     val buf = WasmCharArray(decimals)
@@ -67,54 +71,68 @@ internal fun itoa32(inputValue: Int, radix: Int): String {
     return buf.createString()
 }
 
-private fun utoaDecSimple(buffer: WasmCharArray, numInput: Int, offsetInput: Int) {
-    assert(numInput != 0)
-    assert(buffer.len() > 0)
-    assert(offsetInput > 0 && offsetInput <= buffer.len())
+internal fun utoa32(inputValue: UInt, radix: Int): String {
+    assertCorrectRadix(radix)
 
-    var num = numInput
-    var offset = offsetInput
-    do {
-        val t = num / 10
-        val r = num % 10
-        num = t
-        offset--
-        buffer.set(offset, digitToChar(r))
-    } while (num > 0)
+    if (radix != 10) TODO("When we need it")
+    if (inputValue == 0U) return "0"
+
+    val decimals = decimalCount32(inputValue)
+    val buf = WasmCharArray(decimals)
+
+    utoaDecSimple(buf, inputValue, decimals)
+
+    return buf.createString()
 }
 
-private fun utoaDecSimple64(buffer: WasmCharArray, numInput: Long, offsetInput: Int) {
-    assert(numInput != 0L)
+private fun utoaDecSimple(buffer: WasmCharArray, numInput: UInt, offsetInput: Int) {
+    assert(numInput != 0U)
     assert(buffer.len() > 0)
     assert(offsetInput > 0 && offsetInput <= buffer.len())
 
     var num = numInput
     var offset = offsetInput
     do {
-        val t = num / 10
-        val r = (num % 10).toInt()
+        val t = num / 10U
+        val r = num % 10U
         num = t
         offset--
-        buffer.set(offset, digitToChar(r))
-    } while (num > 0)
+        buffer.set(offset, digitToChar(r.toInt()))
+    } while (num > 0U)
+}
+
+private fun utoaDecSimple64(buffer: WasmCharArray, numInput: ULong, offsetInput: Int) {
+    assert(numInput != 0UL)
+    assert(buffer.len() > 0)
+    assert(offsetInput > 0 && offsetInput <= buffer.len())
+
+    var num = numInput
+    var offset = offsetInput
+    do {
+        val t = num / 10U
+        val r = num % 10U
+        num = t
+        offset--
+        buffer.set(offset, digitToChar(r.toInt()))
+    } while (num > 0U)
 }
 
 
 private fun Boolean.toInt() = if (this) 1 else 0
 private fun Boolean.toLong() = if (this) 1L else 0L
 
-private fun decimalCount32(value: Int): Int {
-    if (value < 100000) {
-        if (value < 100) {
-            return 1 + (value >= 10).toInt()
+private fun decimalCount32(value: UInt): Int {
+    if (value < 100000u) {
+        if (value < 100u) {
+            return 1 + (value >= 10u).toInt()
         } else {
-            return 3 + (value >= 10000).toInt() + (value >= 1000).toInt()
+            return 3 + (value >= 10000u).toInt() + (value >= 1000u).toInt()
         }
     } else {
-        if (value < 10000000) {
-            return 6 + (value >= 1000000).toInt()
+        if (value < 10000000u) {
+            return 6 + (value >= 1000000u).toInt()
         } else {
-            return 8 + (value >= 1000000000).toInt() + (value >= 100000000).toInt()
+            return 8 + (value >= 1000000000u).toInt() + (value >= 100000000u).toInt()
         }
     }
 }
@@ -123,8 +141,7 @@ internal fun itoa64(inputValue: Long, radix: Int): String {
     if (inputValue in Int.MIN_VALUE..Int.MAX_VALUE)
         return itoa32(inputValue.toInt(), radix)
 
-    if (radix < 2 || radix > 36)
-        throw IllegalArgumentException("Radix argument is unreasonable")
+    assertCorrectRadix(radix)
 
     if (inputValue == 0L) return "0"
     // We can't represent abs(Long.MIN_VALUE), so just hardcode it here
@@ -136,7 +153,7 @@ internal fun itoa64(inputValue: Long, radix: Int): String {
 
     val sign = (inputValue ushr 63).toInt()
     assert(sign == 1 || sign == 0)
-    val absValue = if (sign == 1) -inputValue else inputValue
+    val absValue = (if (sign == 1) -inputValue else inputValue).toULong()
 
     val decimals = decimalCount64High(absValue) + sign
     val buf = WasmCharArray(decimals)
@@ -147,20 +164,37 @@ internal fun itoa64(inputValue: Long, radix: Int): String {
     return buf.createString()
 }
 
+internal fun utoa64(inputValue: ULong, radix: Int): String {
+    if (inputValue <= UInt.MAX_VALUE)
+        return utoa32(inputValue.toUInt(), radix)
+
+    assertCorrectRadix(radix)
+
+    if (inputValue == 0UL) return "0"
+    if (radix != 10) TODO("When we need it")
+
+    val decimals = decimalCount64High(inputValue)
+    val buf = WasmCharArray(decimals)
+
+    utoaDecSimple64(buf, inputValue, decimals)
+
+    return buf.createString()
+}
+
 // Count number of decimals for u64 values
 // In our case input value always greater than 2^32-1 so we can skip some parts
-private fun decimalCount64High(value: Long): Int {
-    if (value < 1000000000000000) {
-        if (value < 1000000000000) {
-            return 10 + (value >= 100000000000).toInt() + (value >= 10000000000).toInt()
+private fun decimalCount64High(value: ULong): Int {
+    if (value < 1000000000000000UL) {
+        if (value < 1000000000000UL) {
+            return 10 + (value >= 100000000000UL).toInt() + (value >= 10000000000UL).toInt()
         } else {
-            return 13 + (value >= 100000000000000).toInt() + (value >= 10000000000000).toInt()
+            return 13 + (value >= 100000000000000UL).toInt() + (value >= 10000000000000UL).toInt()
         }
     } else {
-        if (value < 100000000000000000) {
-            return 16 + (value >= 10000000000000000).toInt()
+        if (value < 100000000000000000UL) {
+            return 16 + (value >= 10000000000000000UL).toInt()
         } else {
-            return 18 + (value >= 1000000000000000000).toInt()
+            return 18 + (value >= 10000000000000000000UL).toInt() + (value >= 1000000000000000000UL).toInt()
         }
     }
 }
@@ -331,7 +365,7 @@ private fun genDigits(buffer: WasmCharArray, w_frc: Long, mp_frc: Long, mp_exp: 
     var p1 = (mp_frc ushr one_exp).toInt()
     var p2 = mp_frc and mask
 
-    var kappa = decimalCount32(p1)
+    var kappa = decimalCount32(p1.toUInt())
     var len = sign
 
     while (kappa > 0) {

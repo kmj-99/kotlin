@@ -1,7 +1,7 @@
 // TARGET_BACKEND: WASM
 
-// WASM_DCE_EXPECTED_OUTPUT_SIZE: wasm 18_621
-// WASM_DCE_EXPECTED_OUTPUT_SIZE:  mjs 5_328
+// WASM_DCE_EXPECTED_OUTPUT_SIZE: wasm 18_341
+// WASM_DCE_EXPECTED_OUTPUT_SIZE:  mjs 5_451
 
 // Muting because K2 DCE code size was less than expected (17377)
 // IGNORE_BACKEND_K2: WASM
@@ -23,7 +23,7 @@ object SimpleWithPropertyInitializedDurintInit {
     }
 }
 
-object SimpleWithFunctionsOnly {
+//object SimpleWithFunctionsOnly {
     fun foo() = "Foo"
     fun bar() = "Bar"
 }

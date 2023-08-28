@@ -32,6 +32,7 @@ fun generateUnsignedTypes(
 class UnsignedTypeGenerator(val type: UnsignedType, out: PrintWriter) : BuiltInsSourceGenerator(out) {
     val className = type.capitalized
     val storageType = type.asSigned.capitalized
+    val toStorageType = "to$storageType()"
 
     internal fun binaryOperatorDoc(operator: String, operand1: UnsignedType, operand2: UnsignedType): String = when (operator) {
         "floorDiv" ->
@@ -133,7 +134,7 @@ class UnsignedTypeGenerator(val type: UnsignedType, out: PrintWriter) : BuiltIns
             if (otherType == type) out.print("override ")
             out.print("inline operator fun compareTo(other: ${otherType.capitalized}): Int = ")
             if (otherType == type && maxByDomainCapacity(type, UnsignedType.UINT) == type) {
-                out.println("${className.lowercase()}Compare(this.data, other.data)")
+                out.println("${className.lowercase()}Compare(this.to${otherType.asSigned.capitalized}(), other.to${otherType.asSigned.capitalized}())")
             } else {
                 if (maxOf(type, otherType) < UnsignedType.UINT) {
                     out.println("this.toInt().compareTo(other.toInt())")
@@ -163,7 +164,7 @@ class UnsignedTypeGenerator(val type: UnsignedType, out: PrintWriter) : BuiltIns
             out.print("    public inline operator fun $name(other: ${otherType.capitalized}): ${returnType.capitalized} = ")
             if (type == otherType && type == returnType) {
                 when (name) {
-                    "plus", "minus", "times" -> out.println("$className(this.data.$name(other.data))")
+                    "plus", "minus", "times" -> out.println("$className(this.$toStorageType.$name(other.$toStorageType))")
                     "div" -> out.println("${type.capitalized.lowercase()}Divide(this, other)")
                     "rem" -> out.println("${type.capitalized.lowercase()}Remainder(this, other)")
                     else -> error(name)
@@ -206,7 +207,7 @@ class UnsignedTypeGenerator(val type: UnsignedType, out: PrintWriter) : BuiltIns
         for (name in listOf("inc", "dec")) {
             out.printDoc(BasePrimitivesGenerator.incDecOperatorsDoc(name), "    ")
             out.println("    @kotlin.internal.InlineOnly")
-            out.println("    public inline operator fun $name(): $className = $className(data.$name())")
+            out.println("    public inline operator fun $name(): $className = $className($toStorageType.$name())")
             out.println()
         }
     }
@@ -245,7 +246,7 @@ class UnsignedTypeGenerator(val type: UnsignedType, out: PrintWriter) : BuiltIns
             val detail = BasePrimitivesGenerator.shiftOperatorsDocDetail(type.asSigned)
             out.printDoc(doc + END_LINE + END_LINE + detail, "    ")
             out.println("    @kotlin.internal.InlineOnly")
-            out.println("    public inline infix fun $name(bitCount: Int): $className = $className(data $implementation bitCount)")
+            out.println("    public inline infix fun $name(bitCount: Int): $className = $className($toStorageType $implementation bitCount)")
             out.println()
         }
 
@@ -257,11 +258,11 @@ class UnsignedTypeGenerator(val type: UnsignedType, out: PrintWriter) : BuiltIns
         for ((name, doc) in BasePrimitivesGenerator.bitwiseOperators) {
             out.println("    /** $doc */")
             out.println("    @kotlin.internal.InlineOnly")
-            out.println("    public inline infix fun $name(other: $className): $className = $className(this.data $name other.data)")
+            out.println("    public inline infix fun $name(other: $className): $className = $className(this.$toStorageType $name other.$toStorageType)")
         }
         out.println("    /** Inverts the bits in this value. */")
         out.println("    @kotlin.internal.InlineOnly")
-        out.println("    public inline fun inv(): $className = $className(data.inv())")
+        out.println("    public inline fun inv(): $className = $className($toStorageType.inv())")
         out.println()
     }
 
@@ -299,9 +300,12 @@ class UnsignedTypeGenerator(val type: UnsignedType, out: PrintWriter) : BuiltIns
             out.println("    @kotlin.internal.InlineOnly")
             out.print("    public inline fun to$signed(): $signed = ")
             out.println(when {
-                otherType < type -> "data.to$signed()"
+                type == UnsignedType.UINT && otherType == UnsignedType.ULONG -> "uintToLong($toStorageType)"
+                type == UnsignedType.UINT && otherType == UnsignedType.UINT -> "uintToInt(this)"
+                type == UnsignedType.ULONG && otherType == UnsignedType.ULONG -> "ulongToLong(this)"
+                otherType < type -> "$toStorageType.to$signed()"
                 otherType == type -> "data"
-                else -> "data.to$signed() and ${type.mask}"
+                else -> "$toStorageType.to$signed() and ${type.mask}"
             })
         }
         out.println()
@@ -333,9 +337,10 @@ class UnsignedTypeGenerator(val type: UnsignedType, out: PrintWriter) : BuiltIns
             out.println("    @kotlin.internal.InlineOnly")
             out.print("    public inline fun to$name(): $name = ")
             out.println(when {
-                otherType > type -> "${otherType.capitalized}(data.to${otherType.asSigned.capitalized}() and ${type.mask})"
+                type == UnsignedType.UINT && otherType == UnsignedType.ULONG -> "uintToULong($toStorageType)"
+                otherType > type -> "${otherType.capitalized}($toStorageType.to${otherType.asSigned.capitalized}() and ${type.mask})"
                 otherType == type -> "this"
-                else -> "data.to${otherType.capitalized}()"
+                else -> "$toStorageType.to${otherType.capitalized}()"
             })
         }
         out.println()
@@ -359,9 +364,9 @@ class UnsignedTypeGenerator(val type: UnsignedType, out: PrintWriter) : BuiltIns
             out.print("    public inline fun to$otherName(): $otherName = ")
             when (type) {
                 UnsignedType.UINT, UnsignedType.ULONG ->
-                    out.println(if (otherType == PrimitiveType.FLOAT) "this.toDouble().toFloat()" else className.lowercase() + "ToDouble(data)")
+                    out.println(className.lowercase() + "To$otherName($toStorageType)")
                 else ->
-                    out.println("this.toInt().to$otherName()")
+                    out.println("uintTo$otherName(this.toInt())")
             }
         }
         out.println()
@@ -397,10 +402,16 @@ class UnsignedTypeGenerator(val type: UnsignedType, out: PrintWriter) : BuiltIns
             out.println("@WasExperimental(ExperimentalUnsignedTypes::class)")
             out.println("@kotlin.internal.InlineOnly")
             out.print("public inline fun $otherSigned.to$className(): $className = ")
-            out.println(when {
-                otherType == type -> "$className(this)"
-                else -> "$className(this.to$thisSigned())"
-            })
+            out.println(
+                when (type) {
+                    otherType -> when (type) {
+                        UnsignedType.UINT -> "intToUInt(this)"
+                        UnsignedType.ULONG -> "longToULong(this)"
+                        else -> "$className(this)"
+                    }
+                    else -> "$className(this.to$thisSigned())"
+                }
+            )
         }
 
         if (type == UnsignedType.UBYTE || type == UnsignedType.USHORT)
@@ -424,19 +435,17 @@ class UnsignedTypeGenerator(val type: UnsignedType, out: PrintWriter) : BuiltIns
             out.println("@WasExperimental(ExperimentalUnsignedTypes::class)")
             out.println("@kotlin.internal.InlineOnly")
             out.print("public inline fun $otherName.to$className(): $className = ")
-            val conversion = if (otherType == PrimitiveType.DOUBLE) "" else ".toDouble()"
-            out.println("doubleTo$className(this$conversion)")
+            out.println("${otherName.lowercase()}To$className(this)")
         }
     }
 
 
     private fun generateToStringHashCode() {
-
         out.print("    public override fun toString(): String = ")
         when (type) {
             UnsignedType.UBYTE, UnsignedType.USHORT -> out.println("toInt().toString()")
             UnsignedType.UINT -> out.println("toLong().toString()")
-            UnsignedType.ULONG -> out.println("ulongToString(data)")
+            UnsignedType.ULONG -> out.println("ulongToString($toStorageType)")
         }
 
         out.println()

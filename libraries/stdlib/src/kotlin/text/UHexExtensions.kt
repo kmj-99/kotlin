@@ -102,7 +102,7 @@ public inline fun String.hexToUByteArray(format: HexFormat = HexFormat.Default):
 @ExperimentalStdlibApi
 @SinceKotlin("1.9")
 @InlineOnly
-public inline fun UByte.toHexString(format: HexFormat = HexFormat.Default): String = data.toHexString(format)
+public inline fun UByte.toHexString(format: HexFormat = HexFormat.Default): String = toByte().toHexString(format)
 
 /**
  * Parses an `UByte` value from this string using the specified [format].
@@ -151,7 +151,7 @@ public inline fun String.hexToUByte(format: HexFormat = HexFormat.Default): UByt
 @ExperimentalStdlibApi
 @SinceKotlin("1.9")
 @InlineOnly
-public inline fun UShort.toHexString(format: HexFormat = HexFormat.Default): String = data.toHexString(format)
+public inline fun UShort.toHexString(format: HexFormat = HexFormat.Default): String = toShort().toHexString(format)
 
 /**
  * Parses an `UShort` value from this string using the specified [format].
@@ -200,7 +200,7 @@ public inline fun String.hexToUShort(format: HexFormat = HexFormat.Default): USh
 @ExperimentalStdlibApi
 @SinceKotlin("1.9")
 @InlineOnly
-public inline fun UInt.toHexString(format: HexFormat = HexFormat.Default): String = data.toHexString(format)
+public inline fun UInt.toHexString(format: HexFormat = HexFormat.Default): String = toInt().toHexString(format)
 
 /**
  * Parses an `UInt` value from this string using the specified [format].
@@ -249,7 +249,7 @@ public inline fun String.hexToUInt(format: HexFormat = HexFormat.Default): UInt 
 @ExperimentalStdlibApi
 @SinceKotlin("1.9")
 @InlineOnly
-public inline fun ULong.toHexString(format: HexFormat = HexFormat.Default): String = data.toHexString(format)
+public inline fun ULong.toHexString(format: HexFormat = HexFormat.Default): String = toLong().toHexString(format)
 
 /**
  * Parses an `ULong` value from this string using the specified [format].

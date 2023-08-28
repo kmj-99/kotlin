@@ -223,7 +223,7 @@ public value class UShort @kotlin.internal.IntrinsicConstEvaluation @PublishedAp
      * @sample samples.misc.Builtins.inc
      */
     @kotlin.internal.InlineOnly
-    public inline operator fun inc(): UShort = UShort(data.inc())
+    public inline operator fun inc(): UShort = UShort(toShort().inc())
 
     /**
      * Returns this value decremented by one.
@@ -231,7 +231,7 @@ public value class UShort @kotlin.internal.IntrinsicConstEvaluation @PublishedAp
      * @sample samples.misc.Builtins.dec
      */
     @kotlin.internal.InlineOnly
-    public inline operator fun dec(): UShort = UShort(data.dec())
+    public inline operator fun dec(): UShort = UShort(toShort().dec())
 
     /** Creates a range from this value to the specified [other] value. */
     @kotlin.internal.InlineOnly
@@ -249,16 +249,16 @@ public value class UShort @kotlin.internal.IntrinsicConstEvaluation @PublishedAp
 
     /** Performs a bitwise AND operation between the two values. */
     @kotlin.internal.InlineOnly
-    public inline infix fun and(other: UShort): UShort = UShort(this.data and other.data)
+    public inline infix fun and(other: UShort): UShort = UShort(this.toShort() and other.toShort())
     /** Performs a bitwise OR operation between the two values. */
     @kotlin.internal.InlineOnly
-    public inline infix fun or(other: UShort): UShort = UShort(this.data or other.data)
+    public inline infix fun or(other: UShort): UShort = UShort(this.toShort() or other.toShort())
     /** Performs a bitwise XOR operation between the two values. */
     @kotlin.internal.InlineOnly
-    public inline infix fun xor(other: UShort): UShort = UShort(this.data xor other.data)
+    public inline infix fun xor(other: UShort): UShort = UShort(this.toShort() xor other.toShort())
     /** Inverts the bits in this value. */
     @kotlin.internal.InlineOnly
-    public inline fun inv(): UShort = UShort(data.inv())
+    public inline fun inv(): UShort = UShort(toShort().inv())
 
     /**
      * Converts this [UShort] value to [Byte].
@@ -270,7 +270,7 @@ public value class UShort @kotlin.internal.IntrinsicConstEvaluation @PublishedAp
      * Note that the resulting `Byte` value may be negative.
      */
     @kotlin.internal.InlineOnly
-    public inline fun toByte(): Byte = data.toByte()
+    public inline fun toByte(): Byte = toShort().toByte()
     /**
      * Converts this [UShort] value to [Short].
      *
@@ -290,7 +290,7 @@ public value class UShort @kotlin.internal.IntrinsicConstEvaluation @PublishedAp
      * whereas the most significant 16 bits are filled with zeros.
      */
     @kotlin.internal.InlineOnly
-    public inline fun toInt(): Int = data.toInt() and 0xFFFF
+    public inline fun toInt(): Int = toShort().toInt() and 0xFFFF
     /**
      * Converts this [UShort] value to [Long].
      *
@@ -300,7 +300,7 @@ public value class UShort @kotlin.internal.IntrinsicConstEvaluation @PublishedAp
      * whereas the most significant 48 bits are filled with zeros.
      */
     @kotlin.internal.InlineOnly
-    public inline fun toLong(): Long = data.toLong() and 0xFFFF
+    public inline fun toLong(): Long = toShort().toLong() and 0xFFFF
 
     /**
      * Converts this [UShort] value to [UByte].
@@ -311,7 +311,7 @@ public value class UShort @kotlin.internal.IntrinsicConstEvaluation @PublishedAp
      * The resulting `UByte` value is represented by the least significant 8 bits of this `UShort` value.
      */
     @kotlin.internal.InlineOnly
-    public inline fun toUByte(): UByte = data.toUByte()
+    public inline fun toUByte(): UByte = toShort().toUByte()
     /** Returns this value. */
     @kotlin.internal.InlineOnly
     public inline fun toUShort(): UShort = this
@@ -324,7 +324,7 @@ public value class UShort @kotlin.internal.IntrinsicConstEvaluation @PublishedAp
      * whereas the most significant 16 bits are filled with zeros.
      */
     @kotlin.internal.InlineOnly
-    public inline fun toUInt(): UInt = UInt(data.toInt() and 0xFFFF)
+    public inline fun toUInt(): UInt = UInt(toShort().toInt() and 0xFFFF)
     /**
      * Converts this [UShort] value to [ULong].
      *
@@ -334,7 +334,7 @@ public value class UShort @kotlin.internal.IntrinsicConstEvaluation @PublishedAp
      * whereas the most significant 48 bits are filled with zeros.
      */
     @kotlin.internal.InlineOnly
-    public inline fun toULong(): ULong = ULong(data.toLong() and 0xFFFF)
+    public inline fun toULong(): ULong = ULong(toShort().toLong() and 0xFFFF)
 
     /**
      * Converts this [UShort] value to [Float].
@@ -342,14 +342,14 @@ public value class UShort @kotlin.internal.IntrinsicConstEvaluation @PublishedAp
      * The resulting `Float` value represents the same numerical value as this `UShort`.
      */
     @kotlin.internal.InlineOnly
-    public inline fun toFloat(): Float = this.toInt().toFloat()
+    public inline fun toFloat(): Float = uintToFloat(this.toInt())
     /**
      * Converts this [UShort] value to [Double].
      *
      * The resulting `Double` value represents the same numerical value as this `UShort`.
      */
     @kotlin.internal.InlineOnly
-    public inline fun toDouble(): Double = this.toInt().toDouble()
+    public inline fun toDouble(): Double = uintToDouble(this.toInt())
 
     public override fun toString(): String = toInt().toString()
 
