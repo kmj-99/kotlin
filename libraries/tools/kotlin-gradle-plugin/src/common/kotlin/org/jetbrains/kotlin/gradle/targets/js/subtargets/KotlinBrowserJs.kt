@@ -129,7 +129,7 @@ abstract class KotlinBrowserJs @Inject constructor(target: KotlinJsTarget) :
     private fun configureRun(
         compilation: KotlinJsCompilation,
         dceTaskProvider: TaskProvider<KotlinJsDceTask>,
-        devDceTaskProvider: TaskProvider<KotlinJsDceTask>
+        devDceTaskProvider: TaskProvider<KotlinJsDceTask>,
     ) {
         val project = compilation.target.project
         val nodeJs = project.rootProject.kotlinNodeJsExtension
@@ -154,16 +154,19 @@ abstract class KotlinBrowserJs @Inject constructor(target: KotlinJsTarget) :
 
                     task.description = "start ${type.name.toLowerCaseAsciiOnly()} webpack dev server"
 
-                    task.devServer = KotlinWebpackConfig.DevServer(
-                        open = true,
-                        static = mutableListOf(compilation.output.resourcesDir.canonicalPath),
-                        client = KotlinWebpackConfig.DevServer.Client(
-                            KotlinWebpackConfig.DevServer.Client.Overlay(
-                                errors = true,
-                                warnings = false
+                    val resourcesDir = compilation.output.resourcesDir
+                    task.devServer = project.provider {
+                        KotlinWebpackConfig.DevServer(
+                            open = true,
+                            static = mutableListOf(resourcesDir.canonicalPath),
+                            client = KotlinWebpackConfig.DevServer.Client(
+                                KotlinWebpackConfig.DevServer.Client.Overlay(
+                                    errors = true,
+                                    warnings = false
+                                )
                             )
                         )
-                    )
+                    }
 
                     task.doNotTrackStateCompat("Tracked by external webpack tool")
 
@@ -190,7 +193,7 @@ abstract class KotlinBrowserJs @Inject constructor(target: KotlinJsTarget) :
     private fun configureBuild(
         compilation: KotlinJsCompilation,
         dceTaskProvider: TaskProvider<KotlinJsDceTask>,
-        devDceTaskProvider: TaskProvider<KotlinJsDceTask>
+        devDceTaskProvider: TaskProvider<KotlinJsDceTask>,
     ) {
         val project = compilation.target.project
         val nodeJs = project.rootProject.kotlinNodeJsExtension
@@ -308,7 +311,7 @@ abstract class KotlinBrowserJs @Inject constructor(target: KotlinJsTarget) :
 
     private fun configureDce(
         compilation: KotlinJsCompilation,
-        dev: Boolean
+        dev: Boolean,
     ): TaskProvider<KotlinJsDceTask> {
         val project = compilation.target.project
 
@@ -361,7 +364,7 @@ abstract class KotlinBrowserJs @Inject constructor(target: KotlinJsTarget) :
     private fun <T> getByKind(
         kind: KotlinJsBinaryMode,
         releaseValue: T,
-        debugValue: T
+        debugValue: T,
     ): T = when (kind) {
         KotlinJsBinaryMode.PRODUCTION -> releaseValue
         KotlinJsBinaryMode.DEVELOPMENT -> debugValue

@@ -67,7 +67,7 @@ abstract class KotlinNpmInstallTask :
     @get:IgnoreEmptyDirectories
     @get:NormalizeLineEndings
     @get:InputFiles
-    val packageJsonFiles: Collection<File> by lazy {
+    val packageJsonFiles: Collection<Provider<RegularFile>> by lazy {
         rootResolver.projectResolvers.values
             .flatMap { it.compilationResolvers }
             .map { it.compilationNpmResolution }

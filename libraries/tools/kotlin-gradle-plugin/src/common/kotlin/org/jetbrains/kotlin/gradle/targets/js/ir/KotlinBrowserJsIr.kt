@@ -129,19 +129,22 @@ abstract class KotlinBrowserJsIr @Inject constructor(target: KotlinJsIrTarget) :
                     task.description = "start ${mode.name.toLowerCaseAsciiOnly()} webpack dev server"
 
                     val npmProject = compilation.npmProject
-                    task.devServer = KotlinWebpackConfig.DevServer(
-                        open = true,
-                        static = mutableListOf(
-                            npmProject.dist.normalize().relativeOrAbsolute(npmProject.dir),
-                            compilation.output.resourcesDir.relativeOrAbsolute(npmProject.dir),
-                        ),
-                        client = KotlinWebpackConfig.DevServer.Client(
-                            KotlinWebpackConfig.DevServer.Client.Overlay(
-                                errors = true,
-                                warnings = false
+                    val resourcesDir = compilation.output.resourcesDir
+                    task.devServer = project.provider {
+                        KotlinWebpackConfig.DevServer(
+                            open = true,
+                            static = mutableListOf(
+                                npmProject.dist.get().asFile.normalize().relativeOrAbsolute(npmProject.dir.get().asFile),
+                                resourcesDir.relativeOrAbsolute(npmProject.dir.get().asFile),
+                            ),
+                            client = KotlinWebpackConfig.DevServer.Client(
+                                KotlinWebpackConfig.DevServer.Client.Overlay(
+                                    errors = true,
+                                    warnings = false
+                                )
                             )
                         )
-                    )
+                    }
 
                     task.watchOptions = KotlinWebpackConfig.WatchOptions(
                         ignored = arrayOf("*.kt")

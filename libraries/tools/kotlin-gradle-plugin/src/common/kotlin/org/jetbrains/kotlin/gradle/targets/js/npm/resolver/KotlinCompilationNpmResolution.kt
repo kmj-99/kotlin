@@ -6,12 +6,14 @@
 package org.jetbrains.kotlin.gradle.targets.js.npm.resolver
 
 import org.gradle.api.Action
+import org.gradle.api.file.Directory
+import org.gradle.api.file.RegularFile
 import org.gradle.api.logging.Logger
 import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Provider
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.TasksRequirements
 import org.jetbrains.kotlin.gradle.targets.js.npm.*
 import org.jetbrains.kotlin.gradle.targets.js.npm.resolved.PreparedKotlinCompilationNpmResolution
-import java.io.File
 import java.io.Serializable
 
 class KotlinCompilationNpmResolution(
@@ -25,8 +27,8 @@ class KotlinCompilationNpmResolution(
     val npmProjectName: String,
     val npmProjectVersion: String,
     val npmProjectMain: String,
-    val npmProjectPackageJsonFile: File,
-    val npmProjectDir: File,
+    val npmProjectPackageJsonFile: Provider<RegularFile>,
+    val npmProjectDir: Provider<Directory>,
     val tasksRequirements: TasksRequirements,
 ) : Serializable {
 
@@ -140,7 +142,7 @@ class KotlinCompilationNpmResolution(
             it.execute(packageJson)
         }
 
-        packageJson.saveTo(npmProjectPackageJsonFile)
+        packageJson.saveTo(npmProjectPackageJsonFile.get().asFile)
     }
 
     private fun disambiguateDependencies(

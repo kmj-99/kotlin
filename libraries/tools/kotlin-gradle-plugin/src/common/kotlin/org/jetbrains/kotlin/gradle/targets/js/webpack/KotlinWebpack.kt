@@ -193,7 +193,7 @@ constructor(
 
     @Input
     @Optional
-    var devServer: KotlinWebpackConfig.DevServer? = null
+    var devServer: Provider<KotlinWebpackConfig.DevServer>? = null
 
     @Input
     @Optional

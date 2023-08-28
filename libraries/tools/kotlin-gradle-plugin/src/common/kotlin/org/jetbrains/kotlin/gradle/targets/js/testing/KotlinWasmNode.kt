@@ -40,7 +40,7 @@ internal class KotlinWasmNode(private val kotlinJsTest: KotlinJsTest) : KotlinJs
 
     override val workingDir: Path
         get() = if (wasmTargetType != KotlinWasmTargetType.WASI) {
-            npmProjectDir.toPath()
+            npmProjectDir.get().asFile.toPath()
         } else {
             kotlinJsTest.inputFileProperty.get().asFile.toPath().parent
         }
