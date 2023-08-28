@@ -27,8 +27,6 @@ class KotlinCompilationNpmResolution(
     val npmProjectName: String,
     val npmProjectVersion: String,
     val npmProjectMain: String,
-    val npmProjectPackageJsonFile: Provider<RegularFile>,
-    val npmProjectDir: Provider<Directory>,
     val tasksRequirements: TasksRequirements,
 ) : Serializable {
 
@@ -120,7 +118,7 @@ class KotlinCompilationNpmResolution(
         val allNpmDependencies = disambiguateDependencies(externalNpmDependencies, otherNpmDependencies, logger)
 
         return PreparedKotlinCompilationNpmResolution(
-            npmProjectDir,
+            npmResolutionManager.packagesDir.map { it.dir(npmProjectName) },
             importedExternalGradleDependencies,
             allNpmDependencies,
         )
@@ -142,7 +140,7 @@ class KotlinCompilationNpmResolution(
             it.execute(packageJson)
         }
 
-        packageJson.saveTo(npmProjectPackageJsonFile.get().asFile)
+        packageJson.saveTo(resolution.npmProjectDir.get().asFile.resolve(NpmProject.PACKAGE_JSON))
     }
 
     private fun disambiguateDependencies(

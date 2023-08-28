@@ -14,7 +14,7 @@ import org.gradle.work.DisableCachingByDefault
 import org.gradle.work.NormalizeLineEndings
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin.Companion.kotlinNodeJsExtension
-import org.jetbrains.kotlin.gradle.targets.js.npm.KotlinNpmResolutionManager
+import org.jetbrains.kotlin.gradle.targets.js.npm.*
 import org.jetbrains.kotlin.gradle.targets.js.npm.UsesKotlinNpmResolutionManager
 import org.jetbrains.kotlin.gradle.targets.js.npm.asNpmEnvironment
 import org.jetbrains.kotlin.gradle.targets.js.npm.asYarnEnvironment
@@ -41,6 +41,9 @@ abstract class KotlinNpmInstallTask :
 
     private val rootResolver: KotlinRootNpmResolver
         get() = nodeJs.resolver
+
+    private val packagesDir: Provider<Directory>
+        get() = nodeJs.projectPackagesDir
 
     // -----
 
@@ -71,7 +74,10 @@ abstract class KotlinNpmInstallTask :
         rootResolver.projectResolvers.values
             .flatMap { it.compilationResolvers }
             .map { it.compilationNpmResolution }
-            .map { it.npmProjectPackageJsonFile }
+            .map { resolution ->
+                val name = resolution.npmProjectName
+                packagesDir.map { it.dir(name).file(NpmProject.PACKAGE_JSON) }
+            }
     }
 
     @get:OutputFile

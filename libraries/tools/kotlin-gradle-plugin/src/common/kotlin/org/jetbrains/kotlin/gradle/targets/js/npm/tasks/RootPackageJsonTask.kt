@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.gradle.targets.js.npm.tasks
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
@@ -39,6 +40,9 @@ abstract class RootPackageJsonTask :
     private val rootResolver: KotlinRootNpmResolver
         get() = nodeJs.resolver
 
+    private val packagesDir: Provider<Directory>
+        get() = nodeJs.projectPackagesDir
+
     // -----
 
     private val npmEnvironment by lazy {
@@ -62,7 +66,10 @@ abstract class RootPackageJsonTask :
         rootResolver.projectResolvers.values
             .flatMap { it.compilationResolvers }
             .map { it.compilationNpmResolution }
-            .map { it.npmProjectPackageJsonFile }
+            .map { resolution ->
+                val name = resolution.npmProjectName
+                packagesDir.map { it.dir(name).file(NpmProject.PACKAGE_JSON) }
+            }
     }
 
     @TaskAction

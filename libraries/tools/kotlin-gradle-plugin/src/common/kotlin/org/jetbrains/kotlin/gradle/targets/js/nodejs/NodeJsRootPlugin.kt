@@ -110,6 +110,7 @@ open class NodeJsRootPlugin : Plugin<Project> {
                 }
             )
             it.parameters.gradleNodeModulesProvider.set(gradleNodeModulesProvider)
+            it.parameters.packagesDir.set(nodeJs.projectPackagesDir)
         }
 
         YarnPlugin.apply(project)

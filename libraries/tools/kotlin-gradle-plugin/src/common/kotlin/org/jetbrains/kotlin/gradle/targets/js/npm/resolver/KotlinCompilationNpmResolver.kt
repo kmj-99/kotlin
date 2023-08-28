@@ -317,8 +317,6 @@ class KotlinCompilationNpmResolver(
             npmProject.name,
             npmVersion,
             npmProject.main,
-            npmProject.packageJsonFile,
-            npmProject.dir,
             rootResolver.tasksRequirements
         )
     }
