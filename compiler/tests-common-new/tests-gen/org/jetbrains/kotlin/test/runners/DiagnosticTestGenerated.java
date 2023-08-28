@@ -29229,6 +29229,12 @@ public class DiagnosticTestGenerated extends AbstractDiagnosticTest {
             }
 
             @Test
+            @TestMetadata("nestedClassUnresolvedReference.kt")
+            public void testNestedClassUnresolvedReference() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/resolve/nestedClassUnresolvedReference.kt");
+            }
+
+            @Test
             @TestMetadata("newLineLambda.kt")
             public void testNewLineLambda() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/resolve/newLineLambda.kt");
