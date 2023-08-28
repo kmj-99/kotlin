@@ -43,6 +43,7 @@ public value class UInt @kotlin.internal.IntrinsicConstEvaluation @PublishedApi 
      * or a positive number if it's greater than other.
      */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline operator fun compareTo(other: UByte): Int = this.compareTo(other.toUInt())
 
     /**
@@ -51,6 +52,7 @@ public value class UInt @kotlin.internal.IntrinsicConstEvaluation @PublishedApi 
      * or a positive number if it's greater than other.
      */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline operator fun compareTo(other: UShort): Int = this.compareTo(other.toUInt())
 
     /**
@@ -59,6 +61,7 @@ public value class UInt @kotlin.internal.IntrinsicConstEvaluation @PublishedApi 
      * or a positive number if it's greater than other.
      */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     @Suppress("OVERRIDE_BY_INLINE")
     public override inline operator fun compareTo(other: UInt): Int = uintCompare(this.toInt(), other.toInt())
 
@@ -68,58 +71,75 @@ public value class UInt @kotlin.internal.IntrinsicConstEvaluation @PublishedApi 
      * or a positive number if it's greater than other.
      */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline operator fun compareTo(other: ULong): Int = this.toULong().compareTo(other)
 
     /** Adds the other value to this value. */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline operator fun plus(other: UByte): UInt = this.plus(other.toUInt())
     /** Adds the other value to this value. */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline operator fun plus(other: UShort): UInt = this.plus(other.toUInt())
     /** Adds the other value to this value. */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline operator fun plus(other: UInt): UInt = UInt(this.toInt().plus(other.toInt()))
     /** Adds the other value to this value. */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline operator fun plus(other: ULong): ULong = this.toULong().plus(other)
 
     /** Subtracts the other value from this value. */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline operator fun minus(other: UByte): UInt = this.minus(other.toUInt())
     /** Subtracts the other value from this value. */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline operator fun minus(other: UShort): UInt = this.minus(other.toUInt())
     /** Subtracts the other value from this value. */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline operator fun minus(other: UInt): UInt = UInt(this.toInt().minus(other.toInt()))
     /** Subtracts the other value from this value. */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline operator fun minus(other: ULong): ULong = this.toULong().minus(other)
 
     /** Multiplies this value by the other value. */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline operator fun times(other: UByte): UInt = this.times(other.toUInt())
     /** Multiplies this value by the other value. */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline operator fun times(other: UShort): UInt = this.times(other.toUInt())
     /** Multiplies this value by the other value. */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline operator fun times(other: UInt): UInt = UInt(this.toInt().times(other.toInt()))
     /** Multiplies this value by the other value. */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline operator fun times(other: ULong): ULong = this.toULong().times(other)
 
     /** Divides this value by the other value, truncating the result to an integer that is closer to zero. */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline operator fun div(other: UByte): UInt = this.div(other.toUInt())
     /** Divides this value by the other value, truncating the result to an integer that is closer to zero. */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline operator fun div(other: UShort): UInt = this.div(other.toUInt())
     /** Divides this value by the other value, truncating the result to an integer that is closer to zero. */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline operator fun div(other: UInt): UInt = uintDivide(this, other)
     /** Divides this value by the other value, truncating the result to an integer that is closer to zero. */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline operator fun div(other: ULong): ULong = this.toULong().div(other)
 
     /**
@@ -128,6 +148,7 @@ public value class UInt @kotlin.internal.IntrinsicConstEvaluation @PublishedApi 
      * The result is always less than the divisor.
      */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline operator fun rem(other: UByte): UInt = this.rem(other.toUInt())
     /**
      * Calculates the remainder of truncating division of this value (dividend) by the other value (divisor).
@@ -135,6 +156,7 @@ public value class UInt @kotlin.internal.IntrinsicConstEvaluation @PublishedApi 
      * The result is always less than the divisor.
      */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline operator fun rem(other: UShort): UInt = this.rem(other.toUInt())
     /**
      * Calculates the remainder of truncating division of this value (dividend) by the other value (divisor).
@@ -142,6 +164,7 @@ public value class UInt @kotlin.internal.IntrinsicConstEvaluation @PublishedApi 
      * The result is always less than the divisor.
      */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline operator fun rem(other: UInt): UInt = uintRemainder(this, other)
     /**
      * Calculates the remainder of truncating division of this value (dividend) by the other value (divisor).
@@ -149,6 +172,7 @@ public value class UInt @kotlin.internal.IntrinsicConstEvaluation @PublishedApi 
      * The result is always less than the divisor.
      */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline operator fun rem(other: ULong): ULong = this.toULong().rem(other)
 
     /**
@@ -157,6 +181,7 @@ public value class UInt @kotlin.internal.IntrinsicConstEvaluation @PublishedApi 
      * For unsigned types, the results of flooring division and truncating division are the same.
      */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline fun floorDiv(other: UByte): UInt = this.floorDiv(other.toUInt())
     /**
      * Divides this value by the other value, flooring the result to an integer that is closer to negative infinity.
@@ -164,6 +189,7 @@ public value class UInt @kotlin.internal.IntrinsicConstEvaluation @PublishedApi 
      * For unsigned types, the results of flooring division and truncating division are the same.
      */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline fun floorDiv(other: UShort): UInt = this.floorDiv(other.toUInt())
     /**
      * Divides this value by the other value, flooring the result to an integer that is closer to negative infinity.
@@ -171,6 +197,7 @@ public value class UInt @kotlin.internal.IntrinsicConstEvaluation @PublishedApi 
      * For unsigned types, the results of flooring division and truncating division are the same.
      */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline fun floorDiv(other: UInt): UInt = div(other)
     /**
      * Divides this value by the other value, flooring the result to an integer that is closer to negative infinity.
@@ -178,6 +205,7 @@ public value class UInt @kotlin.internal.IntrinsicConstEvaluation @PublishedApi 
      * For unsigned types, the results of flooring division and truncating division are the same.
      */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline fun floorDiv(other: ULong): ULong = this.toULong().floorDiv(other)
 
     /**
@@ -188,6 +216,7 @@ public value class UInt @kotlin.internal.IntrinsicConstEvaluation @PublishedApi 
      * For unsigned types, the remainders of flooring division and truncating division are the same.
      */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline fun mod(other: UByte): UByte = this.mod(other.toUInt()).toUByte()
     /**
      * Calculates the remainder of flooring division of this value (dividend) by the other value (divisor).
@@ -197,6 +226,7 @@ public value class UInt @kotlin.internal.IntrinsicConstEvaluation @PublishedApi 
      * For unsigned types, the remainders of flooring division and truncating division are the same.
      */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline fun mod(other: UShort): UShort = this.mod(other.toUInt()).toUShort()
     /**
      * Calculates the remainder of flooring division of this value (dividend) by the other value (divisor).
@@ -206,6 +236,7 @@ public value class UInt @kotlin.internal.IntrinsicConstEvaluation @PublishedApi 
      * For unsigned types, the remainders of flooring division and truncating division are the same.
      */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline fun mod(other: UInt): UInt = rem(other)
     /**
      * Calculates the remainder of flooring division of this value (dividend) by the other value (divisor).
@@ -215,6 +246,7 @@ public value class UInt @kotlin.internal.IntrinsicConstEvaluation @PublishedApi 
      * For unsigned types, the remainders of flooring division and truncating division are the same.
      */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline fun mod(other: ULong): ULong = this.toULong().mod(other)
 
     /**
@@ -223,6 +255,7 @@ public value class UInt @kotlin.internal.IntrinsicConstEvaluation @PublishedApi 
      * @sample samples.misc.Builtins.inc
      */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline operator fun inc(): UInt = UInt(toInt().inc())
 
     /**
@@ -231,6 +264,7 @@ public value class UInt @kotlin.internal.IntrinsicConstEvaluation @PublishedApi 
      * @sample samples.misc.Builtins.dec
      */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline operator fun dec(): UInt = UInt(toInt().dec())
 
     /** Creates a range from this value to the specified [other] value. */
@@ -254,6 +288,7 @@ public value class UInt @kotlin.internal.IntrinsicConstEvaluation @PublishedApi 
      * The shift distance actually used is therefore always in the range `0..31`.
      */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline infix fun shl(bitCount: Int): UInt = UInt(toInt() shl bitCount)
 
     /**
@@ -263,19 +298,24 @@ public value class UInt @kotlin.internal.IntrinsicConstEvaluation @PublishedApi 
      * The shift distance actually used is therefore always in the range `0..31`.
      */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline infix fun shr(bitCount: Int): UInt = UInt(toInt() ushr bitCount)
 
     /** Performs a bitwise AND operation between the two values. */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline infix fun and(other: UInt): UInt = UInt(this.toInt() and other.toInt())
     /** Performs a bitwise OR operation between the two values. */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline infix fun or(other: UInt): UInt = UInt(this.toInt() or other.toInt())
     /** Performs a bitwise XOR operation between the two values. */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline infix fun xor(other: UInt): UInt = UInt(this.toInt() xor other.toInt())
     /** Inverts the bits in this value. */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline fun inv(): UInt = UInt(toInt().inv())
 
     /**
@@ -288,6 +328,7 @@ public value class UInt @kotlin.internal.IntrinsicConstEvaluation @PublishedApi 
      * Note that the resulting `Byte` value may be negative.
      */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline fun toByte(): Byte = toInt().toByte()
     /**
      * Converts this [UInt] value to [Short].
@@ -299,6 +340,7 @@ public value class UInt @kotlin.internal.IntrinsicConstEvaluation @PublishedApi 
      * Note that the resulting `Short` value may be negative.
      */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline fun toShort(): Short = toInt().toShort()
     /**
      * Converts this [UInt] value to [Int].
@@ -309,6 +351,7 @@ public value class UInt @kotlin.internal.IntrinsicConstEvaluation @PublishedApi 
      * The resulting `Int` value has the same binary representation as this `UInt` value.
      */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline fun toInt(): Int = uintToInt(this)
     /**
      * Converts this [UInt] value to [Long].
@@ -319,6 +362,7 @@ public value class UInt @kotlin.internal.IntrinsicConstEvaluation @PublishedApi 
      * whereas the most significant 32 bits are filled with zeros.
      */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline fun toLong(): Long = uintToLong(toInt())
 
     /**
@@ -330,6 +374,7 @@ public value class UInt @kotlin.internal.IntrinsicConstEvaluation @PublishedApi 
      * The resulting `UByte` value is represented by the least significant 8 bits of this `UInt` value.
      */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline fun toUByte(): UByte = toInt().toUByte()
     /**
      * Converts this [UInt] value to [UShort].
@@ -340,9 +385,11 @@ public value class UInt @kotlin.internal.IntrinsicConstEvaluation @PublishedApi 
      * The resulting `UShort` value is represented by the least significant 16 bits of this `UInt` value.
      */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline fun toUShort(): UShort = toInt().toUShort()
     /** Returns this value. */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline fun toUInt(): UInt = this
     /**
      * Converts this [UInt] value to [ULong].
@@ -353,6 +400,7 @@ public value class UInt @kotlin.internal.IntrinsicConstEvaluation @PublishedApi 
      * whereas the most significant 32 bits are filled with zeros.
      */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline fun toULong(): ULong = uintToULong(toInt())
 
     /**
@@ -363,6 +411,7 @@ public value class UInt @kotlin.internal.IntrinsicConstEvaluation @PublishedApi 
      * the one with zero at least significant bit of mantissa is selected.
      */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline fun toFloat(): Float = uintToFloat(toInt())
     /**
      * Converts this [UInt] value to [Double].
@@ -370,8 +419,10 @@ public value class UInt @kotlin.internal.IntrinsicConstEvaluation @PublishedApi 
      * The resulting `Double` value represents the same numerical value as this `UInt`.
      */
     @kotlin.internal.InlineOnly
+    @kotlin.internal.IntrinsicConstEvaluation
     public inline fun toDouble(): Double = uintToDouble(toInt())
 
+    @kotlin.internal.IntrinsicConstEvaluation
     public override fun toString(): String = toLong().toString()
 
 }

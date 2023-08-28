@@ -67,6 +67,14 @@ internal actual fun ulongCompare(v1: Long, v2: Long): Int = (v1 xor Long.MIN_VAL
 
 @PublishedApi
 @InlineOnly
+internal actual inline fun ubyteToByte(value: UByte): Byte = value.data
+
+@PublishedApi
+@InlineOnly
+internal actual inline fun ushortToShort(value: UShort): Short = value.data
+
+@PublishedApi
+@InlineOnly
 internal actual inline fun uintToInt(value: UInt): Int = value.data
 
 @PublishedApi

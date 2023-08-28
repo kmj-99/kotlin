@@ -24,6 +24,12 @@ internal expect fun uintCompare(v1: Int, v2: Int): Int
 internal expect fun ulongCompare(v1: Long, v2: Long): Int
 
 @PublishedApi
+internal expect fun ubyteToByte(value: UByte): Byte
+
+@PublishedApi
+internal expect fun ushortToShort(value: UShort): Short
+
+@PublishedApi
 internal expect fun uintToInt(value: UInt): Int
 
 @PublishedApi
