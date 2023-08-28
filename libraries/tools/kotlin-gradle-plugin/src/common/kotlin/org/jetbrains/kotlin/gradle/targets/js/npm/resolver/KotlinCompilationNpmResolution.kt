@@ -29,7 +29,7 @@ class KotlinCompilationNpmResolution(
     val npmProjectMain: String,
     val npmProjectPackageJsonFile: File,
     val npmProjectDir: File,
-    val tasksRequirements: TasksRequirements,
+    val tasksRequirements: TasksRequirements
 ) : Serializable {
 
     val inputs: PackageJsonProducerInputs
@@ -45,13 +45,17 @@ class KotlinCompilationNpmResolution(
 
     @Synchronized
     fun prepareWithDependencies(
+        skipWriting: Boolean = false,
         npmResolutionManager: KotlinNpmResolutionManager,
-        logger: Logger,
+        packageJsonHandlers: ListProperty<Action<PackageJson>>,
+        logger: Logger
     ): PreparedKotlinCompilationNpmResolution {
         check(resolution == null) { "$this already resolved" }
 
         return createPreparedResolution(
+            skipWriting,
             npmResolutionManager,
+            packageJsonHandlers,
             logger
         ).also {
             resolution = it
@@ -61,28 +65,30 @@ class KotlinCompilationNpmResolution(
     @Synchronized
     fun getResolutionOrPrepare(
         npmResolutionManager: KotlinNpmResolutionManager,
+        packageJsonHandlers: ListProperty<Action<PackageJson>>,
         logger: Logger,
     ): PreparedKotlinCompilationNpmResolution {
 
         return resolution ?: prepareWithDependencies(
+            skipWriting = true,
             npmResolutionManager,
+            packageJsonHandlers,
             logger
         )
     }
 
     @Synchronized
-    fun close(
-        npmResolutionManager: KotlinNpmResolutionManager,
-        logger: Logger,
-    ): PreparedKotlinCompilationNpmResolution {
+    fun close(): PreparedKotlinCompilationNpmResolution {
         check(!closed) { "$this already closed" }
         closed = true
-        return getResolutionOrPrepare(npmResolutionManager, logger)
+        return resolution!!
     }
 
     fun createPreparedResolution(
+        skipWriting: Boolean,
         npmResolutionManager: KotlinNpmResolutionManager,
-        logger: Logger,
+        packageJsonHandlers: ListProperty<Action<PackageJson>>,
+        logger: Logger
     ): PreparedKotlinCompilationNpmResolution {
         val rootResolver = npmResolutionManager.parameters.resolution.get()
 
@@ -91,6 +97,7 @@ class KotlinCompilationNpmResolution(
                 val compilationNpmResolution: KotlinCompilationNpmResolution = rootResolver[it.projectPath][it.compilationName]
                 compilationNpmResolution.getResolutionOrPrepare(
                     npmResolutionManager,
+                    packageJsonHandlers,
                     logger
                 )
             }
@@ -119,22 +126,11 @@ class KotlinCompilationNpmResolution(
         val otherNpmDependencies = toolsNpmDependencies + transitiveNpmDependencies
         val allNpmDependencies = disambiguateDependencies(externalNpmDependencies, otherNpmDependencies, logger)
 
-        return PreparedKotlinCompilationNpmResolution(
-            npmProjectDir,
-            importedExternalGradleDependencies,
-            allNpmDependencies,
-        )
-    }
-
-    fun createPackageJson(
-        resolution: PreparedKotlinCompilationNpmResolution,
-        packageJsonHandlers: ListProperty<Action<PackageJson>>,
-    ) {
         val packageJson = packageJson(
             npmProjectName,
             npmProjectVersion,
             npmProjectMain,
-            resolution.externalNpmDependencies,
+            allNpmDependencies,
             packageJsonHandlers.get()
         )
 
@@ -142,7 +138,15 @@ class KotlinCompilationNpmResolution(
             it.execute(packageJson)
         }
 
-        packageJson.saveTo(npmProjectPackageJsonFile)
+        if (!skipWriting) {
+            packageJson.saveTo(npmProjectPackageJsonFile)
+        }
+
+        return PreparedKotlinCompilationNpmResolution(
+            npmProjectDir,
+            importedExternalGradleDependencies,
+            allNpmDependencies,
+        )
     }
 
     private fun disambiguateDependencies(
