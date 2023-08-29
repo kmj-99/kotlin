@@ -8,13 +8,24 @@ package kotlin.text
 private const val LOWER_CASE_HEX_DIGITS = "0123456789abcdef"
 private const val UPPER_CASE_HEX_DIGITS = "0123456789ABCDEF"
 
-// case-insensitive parsing
+/**
+ * The table for converting hex digits (both lowercase and uppercase) to their `Int` decimal value.
+ *
+ * Although `Char.code` of every hex digit is less than 128, the table size is 256 for the following reason:
+ * If the string whose chars are being converted is ASCII-encoded, the JIT optimizes `charAt` to a byte-sized load.
+ * When the table is 256 entries wide then both the `code ushr 8 == 0` and array bounds check are eliminated.
+ * This noticeably improves performance for ASCII strings.
+ */
 private val HEX_DIGITS_TO_DECIMAL = IntArray(256) { -1 }.apply {
     LOWER_CASE_HEX_DIGITS.forEachIndexed { index, char -> this[char.code] = index }
     UPPER_CASE_HEX_DIGITS.forEachIndexed { index, char -> this[char.code] = index }
 }
 
-// case-insensitive parsing
+/**
+ * The table for converting hex digits (both lowercase and uppercase) to their `Long` decimal value.
+ *
+ * @see HEX_DIGITS_TO_DECIMAL
+ */
 private val HEX_DIGITS_TO_LONG_DECIMAL = LongArray(256) { -1 }.apply {
     LOWER_CASE_HEX_DIGITS.forEachIndexed { index, char -> this[char.code] = index.toLong() }
     UPPER_CASE_HEX_DIGITS.forEachIndexed { index, char -> this[char.code] = index.toLong() }
