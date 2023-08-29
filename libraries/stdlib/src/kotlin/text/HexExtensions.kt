@@ -5,6 +5,8 @@
 
 package kotlin.text
 
+// Benchmarks repository: https://github.com/qurbonzoda/KotlinHexFormatBenchmarks
+
 private const val LOWER_CASE_HEX_DIGITS = "0123456789abcdef"
 private const val UPPER_CASE_HEX_DIGITS = "0123456789ABCDEF"
 
@@ -31,6 +33,8 @@ private val HEX_DIGITS_TO_DECIMAL = IntArray(256) { -1 }.apply {
 
 /**
  * The table for converting hex digits (both lowercase and uppercase) to their `Long` decimal value.
+ *
+ * Because `Int.toLong()` noticeably impacted performance, this separate table was introduced.
  *
  * @see HEX_DIGITS_TO_DECIMAL
  */
