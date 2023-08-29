@@ -29,7 +29,7 @@ import org.jetbrains.kotlin.js.sourceMap.SourceMapBuilderConsumer
 import org.jetbrains.kotlin.js.util.TextOutputImpl
 import org.jetbrains.kotlin.serialization.js.ModuleKind
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
-import org.jetbrains.kotlin.utils.putWithoutOverriding
+import org.jetbrains.kotlin.utils.putToMultiMap
 import org.jetbrains.kotlin.utils.addToStdlib.runIf
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.io.File
@@ -274,18 +274,18 @@ class IrModuleToJsTransformer(
                     val programFragments = generateProgramFragment(fileExports, mode)
                     val mainProgramFragmentMainModule = fileExports.toJsIrModule(programFragments.mainFragment)
 
-                    putWithoutOverriding(mainProgramFragmentMainModule.externalModuleName, mainProgramFragmentMainModule)
+                    putToMultiMap(mainProgramFragmentMainModule.externalModuleName, mainProgramFragmentMainModule)
 
                     programFragments.exportFragment?.let {
                         val exportedProgramFragmentModule = fileExports.toJsIrModuleForExport(module, it)
-                        putWithoutOverriding(exportedProgramFragmentModule.externalModuleName, exportedProgramFragmentModule)
+                        putToMultiMap(exportedProgramFragmentModule.externalModuleName, exportedProgramFragmentModule)
                         hasFileWithJsExportedDeclaration = true
                     }
                 }
 
                 if (hasFileWithJsExportedDeclaration) {
                     val proxyModule = module.toJsIrProxyModule()
-                    putWithoutOverriding(proxyModule.externalModuleName, proxyModule)
+                    putToMultiMap(proxyModule.externalModuleName, proxyModule)
                 }
             }
         }
