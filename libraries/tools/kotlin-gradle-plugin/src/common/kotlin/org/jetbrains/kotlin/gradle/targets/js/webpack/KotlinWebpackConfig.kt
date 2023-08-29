@@ -69,7 +69,7 @@ data class KotlinWebpackConfig(
                 )
             }
 
-            if (devServer != null) {
+            if (devServer != null && devServer!!.isPresent) {
                 it.add(
                     versions.webpackDevServer
                 )
@@ -176,7 +176,7 @@ data class KotlinWebpackConfig(
     }
 
     private fun Appendable.appendDevServer() {
-        if (devServer != null) {
+        if (devServer != null && devServer!!.isPresent) {
 
             appendLine("// dev server")
             appendLine("config.devServer = ${json(devServer!!.get())};")

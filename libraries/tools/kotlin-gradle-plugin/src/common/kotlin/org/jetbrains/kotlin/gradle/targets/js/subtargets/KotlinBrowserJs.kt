@@ -155,18 +155,20 @@ abstract class KotlinBrowserJs @Inject constructor(target: KotlinJsTarget) :
                     task.description = "start ${type.name.toLowerCaseAsciiOnly()} webpack dev server"
 
                     val resourcesDir = compilation.output.resourcesDir
-                    task.devServer = project.provider {
-                        KotlinWebpackConfig.DevServer(
-                            open = true,
-                            static = mutableListOf(resourcesDir.canonicalPath),
-                            client = KotlinWebpackConfig.DevServer.Client(
-                                KotlinWebpackConfig.DevServer.Client.Overlay(
-                                    errors = true,
-                                    warnings = false
+                    task.devServer.convention(
+                        project.provider {
+                            KotlinWebpackConfig.DevServer(
+                                open = true,
+                                static = mutableListOf(resourcesDir.canonicalPath),
+                                client = KotlinWebpackConfig.DevServer.Client(
+                                    KotlinWebpackConfig.DevServer.Client.Overlay(
+                                        errors = true,
+                                        warnings = false
+                                    )
                                 )
                             )
-                        )
-                    }
+                        }
+                    )
 
                     task.doNotTrackStateCompat("Tracked by external webpack tool")
 

@@ -22,7 +22,10 @@ import org.gradle.deployment.internal.DeploymentRegistry
 import org.gradle.process.internal.ExecHandle
 import org.gradle.process.internal.ExecHandleFactory
 import org.gradle.work.NormalizeLineEndings
-import org.jetbrains.kotlin.build.report.metrics.*
+import org.jetbrains.kotlin.build.report.metrics.BuildMetricsReporter
+import org.jetbrains.kotlin.build.report.metrics.BuildMetricsReporterImpl
+import org.jetbrains.kotlin.build.report.metrics.GradleBuildPerformanceMetric
+import org.jetbrains.kotlin.build.report.metrics.GradleBuildTime
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinJsCompilation
 import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.util.archivesName
@@ -49,7 +52,7 @@ constructor(
     @Internal
     @Transient
     override val compilation: KotlinJsCompilation,
-    private val objects: ObjectFactory
+    private val objects: ObjectFactory,
 ) : DefaultTask(), RequiresNpmDependencies, WebpackRulesDsl, UsesBuildMetricsService {
     @Transient
     private val nodeJs = project.rootProject.kotlinNodeJsExtension
@@ -167,7 +170,8 @@ constructor(
         get() = mainOutputFile.get().asFile
 
     @get:Internal
-    val mainOutputFile: Provider<RegularFile> = objects.providerWithLazyConvention { outputDirectory.file(mainOutputFileName) }.flatMap { it }
+    val mainOutputFile: Provider<RegularFile> =
+        objects.providerWithLazyConvention { outputDirectory.file(mainOutputFileName) }.flatMap { it }
 
     private val projectDir = project.projectDir
 
@@ -193,7 +197,7 @@ constructor(
 
     @Input
     @Optional
-    var devServer: Provider<KotlinWebpackConfig.DevServer>? = null
+    val devServer: Property<KotlinWebpackConfig.DevServer> = project.objects.property(KotlinWebpackConfig.DevServer::class.java)
 
     @Input
     @Optional
