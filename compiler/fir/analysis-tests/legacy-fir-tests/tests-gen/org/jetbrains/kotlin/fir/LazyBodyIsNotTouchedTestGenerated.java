@@ -1672,6 +1672,11 @@ public class LazyBodyIsNotTouchedTestGenerated extends AbstractLazyBodyIsNotTouc
             runTest("compiler/fir/analysis-tests/testData/resolve/diagnostics/qualifiedSupertypeExtendedByOtherSupertype.kt");
         }
 
+        @TestMetadata("recursiveProblemWithSyntaxError.kt")
+        public void testRecursiveProblemWithSyntaxError() throws Exception {
+            runTest("compiler/fir/analysis-tests/testData/resolve/diagnostics/recursiveProblemWithSyntaxError.kt");
+        }
+
         @TestMetadata("redundantModifier.kt")
         public void testRedundantModifier() throws Exception {
             runTest("compiler/fir/analysis-tests/testData/resolve/diagnostics/redundantModifier.kt");

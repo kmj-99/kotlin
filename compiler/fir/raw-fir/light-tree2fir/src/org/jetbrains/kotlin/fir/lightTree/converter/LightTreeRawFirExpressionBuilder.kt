@@ -1484,7 +1484,7 @@ class LightTreeRawFirExpressionBuilder(
                 LAMBDA_EXPRESSION,
                 LABELED_EXPRESSION,
                 ANNOTATED_EXPRESSION -> container += buildLambdaArgumentExpression {
-                    source = valueArguments.toFirSourceElement()
+                    source = node.toFirSourceElement()
                     expression = getAsFirExpression(node)
                 }
             }

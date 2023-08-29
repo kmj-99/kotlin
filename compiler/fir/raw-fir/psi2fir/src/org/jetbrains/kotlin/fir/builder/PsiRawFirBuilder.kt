@@ -884,7 +884,7 @@ open class PsiRawFirBuilder(
                         buildOrLazyExpression((argument as? PsiElement)?.toFirSourceElement()) { argument.toFirExpression() }
                     arguments += when (argument) {
                         is KtLambdaArgument -> buildLambdaArgumentExpression {
-                            source = argument.toFirSourceElement()
+                            source = argument.getLambdaExpression()?.toFirSourceElement()
                             expression = argumentExpression
                         }
                         else -> argumentExpression
