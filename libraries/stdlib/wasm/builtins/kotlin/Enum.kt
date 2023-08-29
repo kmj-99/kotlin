@@ -11,10 +11,16 @@ public abstract class Enum<E : Enum<E>>(
     public val ordinal: Int
 ) : Comparable<E> {
 
-    override fun compareTo(other: E): Int =
+    public override final fun compareTo(other: E): Int =
         ordinal.compareTo(other.ordinal)
 
-    override fun toString(): String =
+    public override final fun equals(other: Any?): Boolean =
+        this === other
+
+    public override final fun hashCode(): Int =
+        super.hashCode()
+
+    public override fun toString(): String =
         name
 
     public companion object
