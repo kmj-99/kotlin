@@ -8,6 +8,14 @@ package kotlin.text
 private const val LOWER_CASE_HEX_DIGITS = "0123456789abcdef"
 private const val UPPER_CASE_HEX_DIGITS = "0123456789ABCDEF"
 
+private val BYTE_TO_LOWER_CASE_HEX_DIGITS = IntArray(256) {
+    (LOWER_CASE_HEX_DIGITS[(it shr 4)].code shl 8) or LOWER_CASE_HEX_DIGITS[(it and 0xF)].code
+}
+
+private val BYTE_TO_UPPER_CASE_HEX_DIGITS = IntArray(256) {
+    (UPPER_CASE_HEX_DIGITS[(it shr 4)].code shl 8) or UPPER_CASE_HEX_DIGITS[(it and 0xF)].code
+}
+
 /**
  * The table for converting hex digits (both lowercase and uppercase) to their `Int` decimal value.
  *
@@ -72,15 +80,15 @@ public fun ByteArray.toHexString(
         return ""
     }
 
-    val digits = if (format.upperCase) UPPER_CASE_HEX_DIGITS else LOWER_CASE_HEX_DIGITS
+    val byteToDigits = if (format.upperCase) BYTE_TO_UPPER_CASE_HEX_DIGITS else BYTE_TO_LOWER_CASE_HEX_DIGITS
     val bytesFormat = format.bytes
 
     // Optimize for formats with unspecified bytesPerLine and bytesPerGroup
     if (bytesFormat.noLineAndGroupSeparator) {
-        return toHexStringNoLineAndGroupSeparator(startIndex, endIndex, bytesFormat, digits)
+        return toHexStringNoLineAndGroupSeparator(startIndex, endIndex, bytesFormat, byteToDigits)
     }
 
-    return toHexStringSlowPath(startIndex, endIndex, bytesFormat, digits)
+    return toHexStringSlowPath(startIndex, endIndex, bytesFormat, byteToDigits)
 }
 
 @ExperimentalStdlibApi
@@ -88,14 +96,14 @@ private fun ByteArray.toHexStringNoLineAndGroupSeparator(
     startIndex: Int,
     endIndex: Int,
     bytesFormat: HexFormat.BytesHexFormat,
-    digits: String
+    byteToDigits: IntArray
 ): String {
     // Optimize for formats with a short byteSeparator and no bytePrefix/Suffix
     if (bytesFormat.shortByteSeparatorNoPrefixAndSuffix) {
-        return toHexStringShortByteSeparatorNoPrefixAndSuffix(startIndex, endIndex, bytesFormat, digits)
+        return toHexStringShortByteSeparatorNoPrefixAndSuffix(startIndex, endIndex, bytesFormat, byteToDigits)
     }
 
-    return toHexStringNoLineAndGroupSeparatorSlowPath(startIndex, endIndex, bytesFormat, digits)
+    return toHexStringNoLineAndGroupSeparatorSlowPath(startIndex, endIndex, bytesFormat, byteToDigits)
 }
 
 @ExperimentalStdlibApi
@@ -103,7 +111,7 @@ private fun ByteArray.toHexStringShortByteSeparatorNoPrefixAndSuffix(
     startIndex: Int,
     endIndex: Int,
     bytesFormat: HexFormat.BytesHexFormat,
-    digits: String
+    byteToDigits: IntArray
 ): String {
     val byteSeparatorLength = bytesFormat.byteSeparator.length
     require(byteSeparatorLength <= 1)
@@ -114,17 +122,17 @@ private fun ByteArray.toHexStringShortByteSeparatorNoPrefixAndSuffix(
     if (byteSeparatorLength == 0) {
         val charArray = CharArray(checkFormatLength(2L * numberOfBytes))
         for (byteIndex in startIndex until endIndex) {
-            charIndex = formatByteAt(byteIndex, digits, charArray, charIndex)
+            charIndex = formatByteAt(byteIndex, byteToDigits, charArray, charIndex)
         }
         return charArray.concatToString()
     } else {
         val charArray = CharArray(checkFormatLength(3L * numberOfBytes - 1))
         val byteSeparatorChar = bytesFormat.byteSeparator[0]
 
-        charIndex = formatByteAt(startIndex, digits, charArray, charIndex)
+        charIndex = formatByteAt(startIndex, byteToDigits, charArray, charIndex)
         for (byteIndex in startIndex + 1 until endIndex) {
             charArray[charIndex++] = byteSeparatorChar
-            charIndex = formatByteAt(byteIndex, digits, charArray, charIndex)
+            charIndex = formatByteAt(byteIndex, byteToDigits, charArray, charIndex)
         }
 
         return charArray.concatToString()
@@ -136,7 +144,7 @@ private fun ByteArray.toHexStringNoLineAndGroupSeparatorSlowPath(
     startIndex: Int,
     endIndex: Int,
     bytesFormat: HexFormat.BytesHexFormat,
-    digits: String
+    byteToDigits: IntArray
 ): String {
     val bytePrefix = bytesFormat.bytePrefix
     val byteSuffix = bytesFormat.byteSuffix
@@ -151,10 +159,10 @@ private fun ByteArray.toHexStringNoLineAndGroupSeparatorSlowPath(
     val charArray = CharArray(formatLength)
     var charIndex = 0
 
-    charIndex = formatByteAt(startIndex, bytePrefix, byteSuffix, digits, charArray, charIndex)
+    charIndex = formatByteAt(startIndex, bytePrefix, byteSuffix, byteToDigits, charArray, charIndex)
     for (byteIndex in startIndex + 1 until endIndex) {
         charIndex = byteSeparator.toCharArrayIfNotEmpty(charArray, charIndex)
-        charIndex = formatByteAt(byteIndex, bytePrefix, byteSuffix, digits, charArray, charIndex)
+        charIndex = formatByteAt(byteIndex, bytePrefix, byteSuffix, byteToDigits, charArray, charIndex)
     }
 
     return charArray.concatToString()
@@ -165,7 +173,7 @@ private fun ByteArray.toHexStringSlowPath(
     startIndex: Int,
     endIndex: Int,
     bytesFormat: HexFormat.BytesHexFormat,
-    digits: String
+    byteToDigits: IntArray
 ): String {
     val bytesPerLine = bytesFormat.bytesPerLine
     val bytesPerGroup = bytesFormat.bytesPerGroup
@@ -202,7 +210,7 @@ private fun ByteArray.toHexStringSlowPath(
             charIndex = byteSeparator.toCharArrayIfNotEmpty(charArray, charIndex)
         }
 
-        charIndex = formatByteAt(byteIndex, bytePrefix, byteSuffix, digits, charArray, charIndex)
+        charIndex = formatByteAt(byteIndex, bytePrefix, byteSuffix, byteToDigits, charArray, charIndex)
 
         indexInGroup += 1
         indexInLine += 1
@@ -216,19 +224,25 @@ private fun ByteArray.formatByteAt(
     index: Int,
     bytePrefix: String,
     byteSuffix: String,
-    digits: String,
+    byteToDigits: IntArray,
     destination: CharArray,
     destinationOffset: Int
 ): Int {
     var offset = bytePrefix.toCharArrayIfNotEmpty(destination, destinationOffset)
-    offset = formatByteAt(index, digits, destination, offset)
+    offset = formatByteAt(index, byteToDigits, destination, offset)
     return byteSuffix.toCharArrayIfNotEmpty(destination, offset)
 }
 
-private fun ByteArray.formatByteAt(index: Int, digits: String, destination: CharArray, destinationOffset: Int): Int {
+private fun ByteArray.formatByteAt(
+    index: Int,
+    byteToDigits: IntArray,
+    destination: CharArray,
+    destinationOffset: Int
+): Int {
     val byte = this[index].toInt() and 0xFF
-    destination[destinationOffset] = digits[byte shr 4]
-    destination[destinationOffset + 1] = digits[byte and 0xF]
+    val byteDigits = byteToDigits[byte]
+    destination[destinationOffset] = (byteDigits shr 8).toChar()
+    destination[destinationOffset + 1] = (byteDigits and 0xFF).toChar()
     return destinationOffset + 2
 }
 
