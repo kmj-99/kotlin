@@ -56,7 +56,6 @@ class NativeIncrementalCompilationIT : KGPBaseTest() {
                         incremental = true
                     )
                 ),
-                forceOutput = true
             ) {
                 assertDirectoryExists(mainKtCache)
                 assertDirectoryExists(fooKtCache)
@@ -114,7 +113,6 @@ class NativeIncrementalCompilationIT : KGPBaseTest() {
                         incremental = true
                     )
                 ),
-                forceOutput = true
             ) {
                 assertDirectoryExists(mainKtCache)
                 assertDirectoryExists(fooKtCache)
@@ -174,7 +172,6 @@ class NativeIncrementalCompilationIT : KGPBaseTest() {
                         incremental = true
                     )
                 ),
-                forceOutput = true
             ) {
                 assertDirectoryExists(fooKtCache)
                 assertDirectoryExists(barKtCache)
@@ -195,7 +192,6 @@ class NativeIncrementalCompilationIT : KGPBaseTest() {
                         incremental = true
                     )
                 ),
-                forceOutput = true
             ) {
                 assertDirectoryExists(fooKtCache)
                 assertDirectoryExists(barKtCache)
