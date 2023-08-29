@@ -18,7 +18,7 @@ const val BASE_PACKAGE = "org.jetbrains.kotlin.fir"
 
 fun generateElements(builder: AbstractFirTreeBuilder, generationPath: File): List<GeneratedFile> {
     val generatedFiles = mutableListOf<GeneratedFile>()
-    builder.elements.mapTo(generatedFiles) { it.generateCode(generationPath) }
+    builder.elements.filter { it != AbstractFirTreeBuilder.baseFirElement }.mapTo(generatedFiles) { it.generateCode(generationPath) }
     builder.elements.flatMap { it.allImplementations }.mapTo(generatedFiles) { it.generateCode(generationPath) }
     builder.elements.flatMap { it.allImplementations }.mapNotNull { it.builder }.mapTo(generatedFiles) { it.generateCode(generationPath) }
     builder.intermediateBuilders.mapTo(generatedFiles) { it.generateCode(generationPath) }

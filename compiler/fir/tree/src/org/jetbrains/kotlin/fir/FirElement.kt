@@ -9,6 +9,10 @@ import org.jetbrains.kotlin.fir.visitors.FirTransformer
 import org.jetbrains.kotlin.fir.visitors.FirVisitor
 import org.jetbrains.kotlin.fir.visitors.FirVisitorVoid
 
+/**
+ * Base class for all fir elements. Every fir element must inherit [FirElement]. About how interfaces are included in the fir hierarchy
+ * see [FirElementInterface].
+ */
 abstract class FirElement : FirElementInterface {
     abstract fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R // = visitor.visitElementInterface(this, data)
 

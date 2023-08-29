@@ -9,6 +9,9 @@ import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirElementInterface
 import org.jetbrains.kotlin.fir.MutableOrEmptyList
 
+// This file provides utility methods that allow one to use visitors and transformers API over fir interfaces.
+// Since any class implementing FirElementInterface must inherit from FirElement, all raw type conversions are safe.
+
 inline fun <reified TElement : FirElementInterface, D> TElement.transformSingle(transformer: FirTransformer<D>, data: D): TElement {
     return (this as FirElement).transformSingle(transformer, data) as TElement
 }
