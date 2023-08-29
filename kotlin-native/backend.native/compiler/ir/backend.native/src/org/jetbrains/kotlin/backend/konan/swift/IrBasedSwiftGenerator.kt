@@ -84,7 +84,6 @@ class IrBasedSwiftGenerator(private val moduleName: String) : IrElementVisitorVo
                     parameters = listOf(parameter(parameterName = "obj", type = T), parameter(argumentName = "slot", type = "UnsafeMutableRawPointer".type)),
                     genericTypes = listOf(T.name.genericParameter(constraint = "AnyObject".type)),
                     returnType = "UnsafeMutableRawPointer".type,
-                    isStatic = true,
                     attributes = listOf(attribute("inline", "__always".identifier)),
                     visibility = private
             ) {
@@ -218,8 +217,11 @@ class IrBasedSwiftGenerator(private val moduleName: String) : IrElementVisitorVo
             val elements: MutableList<T> = mutableListOf(),
             val children: MutableMap<String, Namespace<T>> = mutableMapOf(),
     ) {
-        fun <R> reduce(transform: (String, List<T>, List<R>) -> R): R =
-                transform(name, elements, children.map { it.value.reduce(transform) })
+        fun <R> reduce(transform: (List<String>, List<T>, List<R>) -> R): R {
+            fun reduceFrom(node: Namespace<T>, rootPath: List<String> = emptyList(), transform: (List<String>, List<T>, List<R>) -> R): R =
+                    transform(rootPath + node.name, node.elements, node.children.map { reduceFrom(it.value, rootPath + node.name, transform) })
+            return reduceFrom(this, emptyList(), transform)
+        }
 
         fun insert(path: List<String>, value: T) {
             if (path.isEmpty()) {
@@ -262,22 +264,34 @@ class IrBasedSwiftGenerator(private val moduleName: String) : IrElementVisitorVo
     }
 
     fun buildSwiftShimFile() = SwiftCode.File {
+        fun SwiftCode.Declaration.patchStatic() = when (this) {
+            is SwiftCode.Declaration.Function -> this.copy(isStatic = true)
+            is SwiftCode.Declaration.Variable -> when (this) {
+                is SwiftCode.Declaration.StoredVariable -> this.copy(isStatic = true)
+                is SwiftCode.Declaration.ComputedVariable -> this.copy(isStatic = true)
+                is SwiftCode.Declaration.Constant -> this.copy(isStatic = true)
+            }
+            else -> this
+        }
+
         swiftImports.forEach { +it }
-        swiftDeclarations.reduce<SwiftCode.Declaration.Enum> { name, elements, children ->
-            SwiftCode.build {
-                enum(name, visibility = public) {
-                    children.forEach { +it }
-                    elements.forEach { +it }
+        swiftDeclarations.reduce<Pair<List<SwiftCode.Declaration>, List<SwiftCode.Declaration>>> { path, elements, children ->
+            path.dropWhile { it.isEmpty() }.takeIf { it.isNotEmpty() }?.let { namePath ->
+                val name = namePath.fold<String, SwiftCode.Type.Nominal?>(null) { ac, el -> ac?.nested(el) ?: el.type }!!
+
+                listOf(enum(namePath.last(), visibility = public) {
+                    children.forEach { it.first.forEach { +it.patchStatic() } }
+                }) to children.flatMap { it.second } + elements.map {
+                    extension(name, visibility = public) {
+                        +it.patchStatic()
+                    }
                 }
+            } ?: let {
+                children.flatMap { it.first } to children.flatMap { it.second } + elements
             }
-        }.block.elements.forEach {
-            when (it) {
-                // We need to patch-out 'static' from top-level free functions
-                is SwiftCode.Declaration.Function -> +it.copy(isStatic = false)
-                // Enum cases aren't expected – and aren't allowed
-                is SwiftCode.Declaration -> +it
-                else -> {}
-            }
+        }.let {
+            it.first.forEach { +it }
+            it.second.forEach { +it }
         }
     }
 

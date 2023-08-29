@@ -21,6 +21,7 @@ sealed interface SwiftCode {
 
     companion object {
         inline fun <R> build(build: Builder.() -> R): R = object : Builder {}.build()
+        inline fun <R : SwiftCode> buildList(body: ListBuilder<R>.() -> Unit): List<R> = ListBuilderImpl<R>().apply(body).build()
     }
 
     interface Builder {
@@ -182,6 +183,7 @@ sealed interface SwiftCode {
         sealed interface Variable : Declaration {
             val name: String
             val type: Type?
+            val isStatic: Boolean
         }
 
         data class Constant(
@@ -189,6 +191,7 @@ sealed interface SwiftCode {
                 override val type: Type? = null,
                 val value: Expression? = null,
                 val retention: ReferenceRetention,
+                override val isStatic: Boolean = false,
                 override val attributes: List<Attribute> = emptyList(),
                 override val visibility: Visibility = Visibility.INTERNAL,
         ) : Variable {
@@ -196,6 +199,7 @@ sealed interface SwiftCode {
                 return listOfNotNull(
                         attributes.render(),
                         visibility.renderAsPrefix(),
+                        "static ".takeIf { isStatic },
                         retention.render().takeIf { it.isNotEmpty() }?.let { "$it " },
                         "let ",
                         name,
@@ -210,6 +214,7 @@ sealed interface SwiftCode {
                 override val type: Type? = null,
                 val value: Expression? = null,
                 val retention: ReferenceRetention = ReferenceRetention.Strong,
+                override val isStatic: Boolean = false,
                 override val attributes: List<Attribute> = emptyList(),
                 override val visibility: Visibility = Visibility.INTERNAL,
                 val willSet: Observer? = null,
@@ -227,6 +232,7 @@ sealed interface SwiftCode {
                 return listOfNotNull(
                         attributes.render(),
                         visibility.renderAsPrefix(),
+                        "static ".takeIf { isStatic },
                         retention.render().takeIf { it.isNotEmpty() }?.let { "$it " },
                         "var ",
                         name,
@@ -242,6 +248,7 @@ sealed interface SwiftCode {
         data class ComputedVariable(
                 override val name: String,
                 override val type: Type,
+                override val isStatic: Boolean = false,
                 override val attributes: List<Attribute> = emptyList(),
                 override val visibility: Visibility = Visibility.INTERNAL,
                 val get: Accessor? = null,
@@ -259,6 +266,7 @@ sealed interface SwiftCode {
                 return listOfNotNull(
                         attributes.render(),
                         visibility.renderAsPrefix(),
+                        "static ".takeIf { isStatic },
                         "var ",
                         name,
                         type.render().let { ": $it" },
@@ -365,6 +373,25 @@ sealed interface SwiftCode {
                 block: DeclarationsBlock,
         ) : UserType<Declaration>(name, genericTypes, inheritedTypes, genericTypeConstraints, attributes, visibility, block) {
             override val kind get() = "actor"
+        }
+
+        class Extension<T : SwiftCode>(
+                val type: Type.Nominal,
+                val inheritedTypes: List<Type.Nominal> = emptyList(),
+                val genericTypeConstraints: List<GenericConstraint> = emptyList(),
+                override val attributes: List<Attribute> = emptyList(),
+                override val visibility: Visibility = Visibility.INTERNAL,
+                val block: Block<T>,
+        ) : Declaration {
+            override fun render(): String = listOfNotNull(
+                    attributes.render(),
+                    visibility.renderAsPrefix(),
+                    "extension ",
+                    type.render(),
+                    inheritedTypes.takeIf { it.isNotEmpty() }?.joinToString(separator = " & ") { it.render() }?.let { ": $it" },
+                    genericTypeConstraints.takeIf { it.isNotEmpty() }?.render()?.let { "\n$it" },
+                    block.renderAsBlock().let { " $it" }
+            ).joinToString(separator = "")
         }
     }
 
@@ -848,24 +875,26 @@ fun SwiftCode.Builder.`var`(
         name: String,
         type: SwiftCode.Type? = null,
         value: SwiftCode.Expression? = null,
+        isStatic: Boolean = false,
         retention: SwiftCode.ReferenceRetention = SwiftCode.ReferenceRetention.Strong,
         attributes: List<SwiftCode.Attribute> = emptyList(),
         visibility: SwiftCode.Declaration.Visibility = SwiftCode.Declaration.Visibility.INTERNAL,
         willSet: SwiftCode.Declaration.StoredVariable.Observer? = null,
         didSet: SwiftCode.Declaration.StoredVariable.Observer? = null,
 ): SwiftCode.Declaration.StoredVariable {
-    return SwiftCode.Declaration.StoredVariable(name, type, value, retention, attributes, visibility, willSet = willSet, didSet = didSet)
+    return SwiftCode.Declaration.StoredVariable(name, type, value, retention, isStatic, attributes, visibility, willSet = willSet, didSet = didSet)
 }
 
 fun SwiftCode.Builder.`var`(
         name: String,
         type: SwiftCode.Type,
+        isStatic: Boolean = false,
         attributes: List<SwiftCode.Attribute> = emptyList(),
         visibility: SwiftCode.Declaration.Visibility = SwiftCode.Declaration.Visibility.INTERNAL,
         get: SwiftCode.Declaration.ComputedVariable.Accessor? = null,
         set: SwiftCode.Declaration.ComputedVariable.Accessor? = null,
 ): SwiftCode.Declaration.ComputedVariable {
-    return SwiftCode.Declaration.ComputedVariable(name, type, attributes, visibility, get = get, set = set)
+    return SwiftCode.Declaration.ComputedVariable(name, type, isStatic, attributes, visibility, get = get, set = set)
 }
 
 fun SwiftCode.Builder.let(
@@ -873,10 +902,11 @@ fun SwiftCode.Builder.let(
         type: SwiftCode.Type? = null,
         value: SwiftCode.Expression? = null,
         retention: SwiftCode.ReferenceRetention = SwiftCode.ReferenceRetention.Strong,
+        isStatic: Boolean = false,
         attributes: List<SwiftCode.Attribute> = emptyList(),
         visibility: SwiftCode.Declaration.Visibility = SwiftCode.Declaration.Visibility.INTERNAL,
 ): SwiftCode.Declaration.Constant {
-    return SwiftCode.Declaration.Constant(name, type, value, retention, attributes, visibility)
+    return SwiftCode.Declaration.Constant(name, type, value, retention, isStatic, attributes, visibility)
 }
 
 fun SwiftCode.Builder.willSet(
@@ -982,6 +1012,22 @@ fun SwiftCode.Builder.enum(
         genericTypeConstraints,
         attributes, visibility,
         SwiftCode.EnumBlock(block)
+)
+
+fun SwiftCode.Builder.extension(
+        type: SwiftCode.Type.Nominal,
+        inheritedTypes: List<SwiftCode.Type.Nominal> = emptyList(),
+        genericTypeConstraints: List<SwiftCode.GenericConstraint> = emptyList(),
+        attributes: List<SwiftCode.Attribute> = emptyList(),
+        visibility: SwiftCode.Declaration.Visibility = SwiftCode.Declaration.Visibility.INTERNAL,
+        block: SwiftCode.ListBuilder<SwiftCode.Declaration>.() -> Unit
+) = SwiftCode.Declaration.Extension(
+        type,
+        inheritedTypes,
+        genericTypeConstraints,
+        attributes,
+        visibility,
+        SwiftCode.DeclarationsBlock(block)
 )
 
 fun SwiftCode.Builder.case(
@@ -1097,7 +1143,7 @@ val SwiftCode.Type.opaque: SwiftCode.Type.Opaque get() = SwiftCode.Type.Opaque(t
 
 val SwiftCode.Type.optional: SwiftCode.Type.Optional get() = SwiftCode.Type.Optional(this)
 
-fun SwiftCode.Type.contextualField(name: String) = SwiftCode.Type.Nested(this, name)
+fun SwiftCode.Type.nested(name: String) = SwiftCode.Type.Nested(this, name)
 
 fun SwiftCode.Type.PossiblyGeneric.withGenericArguments(vararg arguments: SwiftCode.Type) = SwiftCode.Type.GenericInstantiation(this, arguments.toList())
 
