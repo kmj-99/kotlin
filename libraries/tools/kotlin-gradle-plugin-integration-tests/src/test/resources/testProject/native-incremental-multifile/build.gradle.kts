@@ -16,7 +16,3 @@ kotlin {
         }
     }
 }
-
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink>().configureEach {
-    toolOptions.verbose.set(true)
-}
