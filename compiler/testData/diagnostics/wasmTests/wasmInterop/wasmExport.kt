@@ -56,3 +56,9 @@ fun fooDeafultAndVararg(
 <!WASM_IMPORT_EXPORT_PARAMETER_DEFAULT_VALUE!><!UNUSED_PARAMETER!>a<!>: Int = <!CALL_TO_DEFINED_EXTERNALLY_FROM_NON_EXTERNAL_DECLARATION!>definedExternally<!><!>,
 <!WASM_IMPORT_EXPORT_UNSUPPORTED_PARAMETER_TYPE, WASM_IMPORT_EXPORT_VARARG_PARAMETER!>vararg b: Int<!>
 ): Unit { b.toString() }
+
+@WasmExport("a")
+fun fooUnsigned1(): UInt = 42u
+
+@WasmExport()
+fun fooUnsigned2(): UByte = 42u
