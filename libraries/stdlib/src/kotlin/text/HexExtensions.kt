@@ -10,10 +10,22 @@ package kotlin.text
 private const val LOWER_CASE_HEX_DIGITS = "0123456789abcdef"
 private const val UPPER_CASE_HEX_DIGITS = "0123456789ABCDEF"
 
+/**
+ * The table for converting Byte values to their two-digit hex representation.
+ *
+ * It's used for formatting ByteArray. Storing the hex representation
+ * of each Byte value makes it possible to access the table only once per Byte.
+ * This noticeably improves performance, especially for large ByteArray's.
+ */
 private val BYTE_TO_LOWER_CASE_HEX_DIGITS = IntArray(256) {
     (LOWER_CASE_HEX_DIGITS[(it shr 4)].code shl 8) or LOWER_CASE_HEX_DIGITS[(it and 0xF)].code
 }
 
+/**
+ * The table for converting Byte values to their two-digit hex representation.
+ *
+ * @see BYTE_TO_LOWER_CASE_HEX_DIGITS
+ */
 private val BYTE_TO_UPPER_CASE_HEX_DIGITS = IntArray(256) {
     (UPPER_CASE_HEX_DIGITS[(it shr 4)].code shl 8) or UPPER_CASE_HEX_DIGITS[(it and 0xF)].code
 }
