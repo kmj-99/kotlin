@@ -64,22 +64,11 @@ class LightTreeRawFirExpressionBuilder(
     inline fun <reified R : FirExpression> getAsFirExpression(
         expression: LighterASTNode?,
         errorReason: String = "",
-        sourceWhenStatementLike: LighterASTNode? = expression,
     ): R {
         val converted = expression?.let { convertExpression(it, errorReason) }
 
-        return when {
-            converted is R -> when {
-                converted.isCallToStatementLikeFunction -> {
-                    buildErrorExpression(
-                        sourceWhenStatementLike?.toFirSourceElement(),
-                        ConeSimpleDiagnostic(errorReason, DiagnosticKind.ExpressionExpected),
-                        converted,
-                    )
-                }
-                else -> converted
-            }
-            else -> buildErrorExpression(
+        return checkExpressionCorrectness<R>(converted) {
+            buildErrorExpression(
                 converted?.source?.withForcedKindFrom(context) ?: expression?.toFirSourceElement(),
                 if (expression == null) ConeSyntaxDiagnostic(errorReason)
                 else ConeSimpleDiagnostic(errorReason, DiagnosticKind.ExpressionExpected),
@@ -336,22 +325,12 @@ class LightTreeRawFirExpressionBuilder(
                 ) {
                     val converted = convertExpression(this, errorReason)
 
-                    when {
-                        converted is FirExpression -> when {
-                            converted.isCallToStatementLikeFunction && !converted.isArraySet -> {
-                                buildErrorExpression(
-                                    binaryExpression.toFirSourceElement(),
-                                    buildDiagnostic(),
-                                    converted,
-                                )
-                            }
-                            else -> converted
+                    checkExpressionCorrectness<FirExpression>(converted, isForArraySetLHS = true) { isDueToStatementLike ->
+                        val source = when {
+                            isDueToStatementLike -> binaryExpression.toFirSourceElement()
+                            else -> converted.source?.withForcedKindFrom(context) ?: this.toFirSourceElement()
                         }
-                        else -> buildErrorExpression(
-                            converted.source?.withForcedKindFrom(context) ?: this.toFirSourceElement(),
-                            buildDiagnostic(),
-                            converted,
-                        )
+                        buildErrorExpression(source, buildDiagnostic(), converted)
                     }
                 }
             } else {

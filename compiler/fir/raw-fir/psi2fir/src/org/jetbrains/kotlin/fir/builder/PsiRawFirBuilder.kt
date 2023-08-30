@@ -276,7 +276,6 @@ open class PsiRawFirBuilder(
 
         private inline fun KtElement?.toFirExpression(
             sourceWhenThisIsNull: KtElement? = null,
-            sourceWhenStatementLike: KtElement? = this,
             diagnosticFn: () -> ConeDiagnostic,
         ): FirExpression {
             if (this == null) {
@@ -285,22 +284,17 @@ open class PsiRawFirBuilder(
 
             val fir = convertElement(this, null)
 
-            return when {
-                fir is FirExpression -> when {
-                    fir.isCallToStatementLikeFunction -> {
-                        buildErrorExpression {
-                            nonExpressionElement = fir
-                            diagnostic = diagnosticFn()
-                            source = sourceWhenStatementLike?.toFirSourceElement()
-                        }
-                    }
-                    else -> toFirExpression(fir)
-                }
-                else -> buildErrorExpression {
+            val result = checkExpressionCorrectness<FirExpression>(fir) {
+                buildErrorExpression {
                     nonExpressionElement = fir
                     diagnostic = diagnosticFn()
                     source = fir?.source?.withForcedKindFrom(this@PsiRawFirBuilder.context) ?: toFirSourceElement()
                 }
+            }
+
+            return when (result) {
+                !is FirErrorExpression -> toFirExpression(result)
+                else -> result
             }
         }
 
@@ -2678,22 +2672,17 @@ open class PsiRawFirBuilder(
                     ) {
                         val fir = convertElement(this as KtExpression, null)
 
+                        val result = checkExpressionCorrectness<FirExpression>(fir, isForArraySetLHS = true) { isDueToStatementLike ->
+                            val errorExpressionSource = when {
+                                isDueToStatementLike -> expression.toFirSourceElement()
+                                else -> fir?.source?.withForcedKindFrom(this@PsiRawFirBuilder.context) ?: toFirSourceElement()
+                            }
+                            buildErrorExpression(errorExpressionSource, buildDiagnostic(), fir)
+                        }
+
                         when {
-                            fir is FirExpression -> when {
-                                fir.isCallToStatementLikeFunction && !fir.isArraySet -> {
-                                    buildErrorExpression {
-                                        nonExpressionElement = fir
-                                        diagnostic = buildDiagnostic()
-                                        this.source = expression.toFirSourceElement()
-                                    }
-                                }
-                                else -> toFirExpression(fir)
-                            }
-                            else -> buildErrorExpression {
-                                nonExpressionElement = fir
-                                diagnostic = buildDiagnostic()
-                                this.source = fir?.source?.withForcedKindFrom(this@PsiRawFirBuilder.context) ?: toFirSourceElement()
-                            }
+                            result !is FirErrorExpression -> toFirExpression(result)
+                            else -> result
                         }
                     }
                 } else {

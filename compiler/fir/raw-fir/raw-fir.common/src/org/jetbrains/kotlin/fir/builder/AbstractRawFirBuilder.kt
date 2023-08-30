@@ -755,6 +755,21 @@ abstract class AbstractRawFirBuilder<T>(val baseSession: FirSession, val context
         }
     }
 
+    inline fun <reified R : FirExpression> checkExpressionCorrectness(
+        converted: FirElement?,
+        isForArraySetLHS: Boolean = false,
+        buildErrorExpression: (Boolean) -> FirErrorExpression,
+    ): FirExpression = when {
+        converted is R -> {
+            val isArraySetConstructedFromLHS = isForArraySetLHS && converted.isArraySet
+            when {
+                converted.isCallToStatementLikeFunction && !isArraySetConstructedFromLHS -> buildErrorExpression(true)
+                else -> converted
+            }
+        }
+        else -> buildErrorExpression(false)
+    }
+
     // T is a PSI or a light-tree node
     @OptIn(FirContractViolation::class)
     fun T?.generateAssignment(
