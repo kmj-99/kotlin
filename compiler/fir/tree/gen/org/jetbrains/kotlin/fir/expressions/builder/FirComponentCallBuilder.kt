@@ -22,7 +22,6 @@ import org.jetbrains.kotlin.fir.expressions.FirFunctionCallOrigin
 import org.jetbrains.kotlin.fir.expressions.builder.FirCallBuilder
 import org.jetbrains.kotlin.fir.expressions.builder.FirExpressionBuilder
 import org.jetbrains.kotlin.fir.expressions.impl.FirComponentCallImpl
-import org.jetbrains.kotlin.fir.expressions.impl.FirNoReceiverExpression
 import org.jetbrains.kotlin.fir.references.FirNamedReference
 import org.jetbrains.kotlin.fir.references.FirReference
 import org.jetbrains.kotlin.fir.references.impl.FirSimpleNamedReference
@@ -42,8 +41,8 @@ class FirComponentCallBuilder : FirCallBuilder, FirAnnotationContainerBuilder, F
     override val annotations: MutableList<FirAnnotation> = mutableListOf()
     val contextReceiverArguments: MutableList<FirExpression> = mutableListOf()
     val typeArguments: MutableList<FirTypeProjection> = mutableListOf()
-    var dispatchReceiver: FirExpression = FirNoReceiverExpression
-    var extensionReceiver: FirExpression = FirNoReceiverExpression
+    var dispatchReceiver: FirExpression? = null
+    var extensionReceiver: FirExpression? = null
     override var source: KtSourceElement? = null
     override var argumentList: FirArgumentList = FirEmptyArgumentList
     lateinit var explicitReceiver: FirExpression

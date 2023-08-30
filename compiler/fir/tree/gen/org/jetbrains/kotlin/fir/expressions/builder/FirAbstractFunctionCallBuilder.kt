@@ -33,8 +33,8 @@ interface FirAbstractFunctionCallBuilder : FirQualifiedAccessExpressionBuilder, 
     abstract override val contextReceiverArguments: MutableList<FirExpression>
     abstract override val typeArguments: MutableList<FirTypeProjection>
     abstract override var explicitReceiver: FirExpression?
-    abstract override var dispatchReceiver: FirExpression
-    abstract override var extensionReceiver: FirExpression
+    abstract override var dispatchReceiver: FirExpression?
+    abstract override var extensionReceiver: FirExpression?
     abstract override var source: KtSourceElement?
     abstract override var argumentList: FirArgumentList
     abstract var calleeReference: FirNamedReference

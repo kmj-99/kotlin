@@ -140,7 +140,7 @@ object FirReassignmentAndInvisibleSetterChecker : FirVariableAssignmentChecker()
         // See `FirPropertyInitializationAnalyzer` for locals and `FirMemberPropertiesChecker` for backing fields in initializers.
         if (property.isLocal && property.requiresInitialization(isForClassInitialization = false)) return
         if (
-            isInOwnersInitializer(expression.dispatchReceiver.unwrapSmartcastExpression(), context)
+            isInOwnersInitializer(expression.dispatchReceiver!!.unwrapSmartcastExpression(), context)
             && property.requiresInitialization(isForClassInitialization = true)
         ) return
 

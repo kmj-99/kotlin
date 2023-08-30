@@ -25,8 +25,8 @@ abstract class FirImplicitInvokeCall : FirFunctionCall() {
     abstract override val contextReceiverArguments: List<FirExpression>
     abstract override val typeArguments: List<FirTypeProjection>
     abstract override val explicitReceiver: FirExpression?
-    abstract override val dispatchReceiver: FirExpression
-    abstract override val extensionReceiver: FirExpression
+    abstract override val dispatchReceiver: FirExpression?
+    abstract override val extensionReceiver: FirExpression?
     abstract override val source: KtSourceElement?
     abstract override val argumentList: FirArgumentList
     abstract override val calleeReference: FirNamedReference
@@ -48,9 +48,9 @@ abstract class FirImplicitInvokeCall : FirFunctionCall() {
 
     abstract override fun replaceExplicitReceiver(newExplicitReceiver: FirExpression?)
 
-    abstract override fun replaceDispatchReceiver(newDispatchReceiver: FirExpression)
+    abstract override fun replaceDispatchReceiver(newDispatchReceiver: FirExpression?)
 
-    abstract override fun replaceExtensionReceiver(newExtensionReceiver: FirExpression)
+    abstract override fun replaceExtensionReceiver(newExtensionReceiver: FirExpression?)
 
     @FirImplementationDetail
     abstract override fun replaceSource(newSource: KtSourceElement?)
