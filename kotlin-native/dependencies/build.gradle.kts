@@ -22,9 +22,11 @@ nativeDependenciesDownloader {
  * Download all dependencies.
  */
 val update by tasks.registering {
+    /*
     platformManager.allTargetsWithSanitizers.forEach {
         dependsOn(nativeDependencies.targetDependency(it))
     }
+     */
 }
 
 // TODO: This sort of task probably belongs to :kotlin-native
