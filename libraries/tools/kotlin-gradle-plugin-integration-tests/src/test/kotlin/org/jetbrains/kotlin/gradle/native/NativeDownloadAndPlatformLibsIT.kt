@@ -18,6 +18,8 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.condition.OS
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.appendText
@@ -83,8 +85,8 @@ class NativeDownloadAndPlatformLibsIT : KGPBaseTest() {
     @OptIn(EnvironmentalVariablesOverride::class)
     @DisplayName("K/N Gradle project build (on Linux or Mac) with a dependency from a Maven")
     @GradleTest
-    fun testSetupCommonOptionsForCaches(gradleVersion: GradleVersion) {
-        val anotherKonanDataDir = Paths.get("build/.konan2")
+    fun testSetupCommonOptionsForCaches(gradleVersion: GradleVersion, @TempDir tempDir: Path) {
+        val anotherKonanDataDir = tempDir.resolve(".konan2")
         nativeProject(
             "native-with-maven-dependencies",
             gradleVersion = gradleVersion,
@@ -100,7 +102,7 @@ class NativeDownloadAndPlatformLibsIT : KGPBaseTest() {
             ) {
                 assertOutputDoesNotContain("w: Failed to build cache")
                 assertTasksExecuted(":linkDebugExecutableNative")
-                assertFileNotExists(anotherKonanDataDir)
+                assertDirectoryDoesNotExist(anotherKonanDataDir)
             }
         }
     }
@@ -246,6 +248,7 @@ class NativeDownloadAndPlatformLibsIT : KGPBaseTest() {
     fun shouldDownloadPrebuiltNativeBundleWithMaven(gradleVersion: GradleVersion) {
         val maven = mavenUrl()
         // Don't run this test for build that are not yet published to central
+        // We won't public K/N into Maven central until this task is completed: KTI-1067
         Assumptions.assumeTrue(maven != MAVEN_CENTRAL)
 
         nativeProject("native-download-maven", gradleVersion = gradleVersion) {
@@ -268,8 +271,7 @@ class NativeDownloadAndPlatformLibsIT : KGPBaseTest() {
     fun shouldDownloadLightNativeBundleWithMaven(gradleVersion: GradleVersion) {
         val maven = mavenUrl()
         // Don't run this test for build that are not yet published to central
-        // We won't public K/N into Maven central until this task is completed.:
-        // https://youtrack.jetbrains.com/issue/KTI-1067/Try-deploy-native-artifacts-to-sonatype-and-verify-its-working.
+        // We won't public K/N into Maven central until this task is completed: KTI-1067
         Assumptions.assumeTrue(maven != MAVEN_CENTRAL)
 
         nativeProject("native-download-maven", gradleVersion = gradleVersion) {

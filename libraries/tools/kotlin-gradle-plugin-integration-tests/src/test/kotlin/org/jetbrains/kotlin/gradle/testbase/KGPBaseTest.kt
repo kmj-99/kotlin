@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
-import java.nio.file.Paths
 
 /**
  * Base class for all Kotlin Gradle plugin integration tests.
