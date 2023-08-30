@@ -245,8 +245,6 @@ tasks.register("distCompiler", Copy) {
     if (!UtilsKt.isDefaultNativeHome(project)) {
         enabled = false
     } else {
-        // TODO: Is this dependency actually needed?
-        dependsOn ":kotlin-native:dependencies:update"
         dependsOn ':kotlin-native:shadowJar'
         dependsOn ":kotlin-native-compiler-embeddable:kotlin-native-compiler-embeddable"
     }
