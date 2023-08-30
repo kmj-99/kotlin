@@ -759,7 +759,7 @@ class FirElementSerializer private constructor(
 
     fun typeId(typeRef: FirTypeRef): Int {
         if (typeRef !is FirResolvedTypeRef) {
-            return -1 // TODO: serializeErrorType?
+            error("Unresolved type in typeId: ${typeRef::class.java} ${typeRef.render()}")
         }
         return typeId(typeRef.type)
     }
