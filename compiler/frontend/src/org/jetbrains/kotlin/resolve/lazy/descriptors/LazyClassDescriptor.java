@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2018 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2023 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -666,7 +666,7 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
         ClassConstructorDescriptor constructor = getUnsubstitutedPrimaryConstructor();
         // Don't crash on invalid code.
         InlineClassRepresentation<SimpleType> invalidValueClassRepresentation = new InlineClassRepresentation<>(
-                SpecialNames.SAFE_IDENTIFIER_FOR_NO_NAME, c.getModuleDescriptor().getBuiltIns().getAnyType()
+                SpecialNames.NO_NAME_PROVIDED, c.getModuleDescriptor().getBuiltIns().getAnyType()
         );
         if (constructor == null) {
             return invalidValueClassRepresentation;
