@@ -116,6 +116,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile) {
         moduleKind = "commonjs"
         freeCompilerArgs = [
                 "-Xallow-kotlin-package",
+                "-Xexpect-actual-classes",
         ]
     }
 }

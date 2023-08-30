@@ -79,7 +79,9 @@ kotlin {
                     kotlinOptions {
                         freeCompilerArgs = listOf(
                             "-Xallow-kotlin-package",
-                            "-module-name", "kotlin-stdlib-common"
+                            "-Xexpect-actual-classes",
+                            "-Xexpect-actual-classes",
+                            "-module-name", "kotlin-stdlib-common",
                         )
                     }
                     // workaround for compiling legacy MPP metadata, remove when this compilation is not needed anymore
@@ -95,7 +97,7 @@ kotlin {
             val compileOnlyDeclarations by creating {
                 compileTaskProvider.configure {
                     kotlinOptions {
-                        freeCompilerArgs = listOf("-Xallow-kotlin-package")
+                        freeCompilerArgs = listOf("-Xallow-kotlin-package", "-Xexpect-actual-classes")
                     }
                 }
             }
@@ -110,6 +112,7 @@ kotlin {
                         // providing exhaustive list of args here
                         freeCompilerArgs = listOf(
                             "-Xallow-kotlin-package",
+                            "-Xexpect-actual-classes",
                             "-Xmultifile-parts-inherit",
                             "-Xuse-14-inline-classes-mangling-scheme",
                             "-Xbuiltins-from-sources",
@@ -133,6 +136,7 @@ kotlin {
                         jvmTarget = "1.8"
                         freeCompilerArgs = listOf(
                             "-Xallow-kotlin-package",
+                            "-Xexpect-actual-classes",
                             "-Xmultifile-parts-inherit",
                             "-Xno-new-java-annotation-targets"
                         )
@@ -147,6 +151,7 @@ kotlin {
                         moduleName = "kotlin-stdlib-jdk8"
                         freeCompilerArgs = listOf(
                             "-Xallow-kotlin-package",
+                            "-Xexpect-actual-classes",
                             "-Xmultifile-parts-inherit",
                             "-Xno-new-java-annotation-targets"
                         )
@@ -168,6 +173,7 @@ kotlin {
                     kotlinOptions {
                         freeCompilerArgs += listOf(
                             "-Xallow-kotlin-package", // TODO: maybe rename test packages
+                            "-Xexpect-actual-classes",
                         )
                         if (kotlinBuildProperties.useFir) {
                             freeCompilerArgs += "-Xuse-k2"
@@ -198,6 +204,7 @@ kotlin {
                     moduleKind = "commonjs"
                     freeCompilerArgs += listOf(
                         "-Xallow-kotlin-package",
+                        "-Xexpect-actual-classes",
                         "-Xforce-deprecated-legacy-compiler-usage",
                     )
                 }
@@ -250,12 +257,14 @@ kotlin {
             all {
                 kotlinOptions {
                     freeCompilerArgs += "-Xallow-kotlin-package"
+                    freeCompilerArgs += "-Xexpect-actual-classes"
                 }
             }
             val main by getting
             main.apply {
                 kotlinOptions {
                     freeCompilerArgs += "-Xir-module-name=kotlin"
+                    freeCompilerArgs += "-Xexpect-actual-classes"
 
                     if (!kotlinBuildProperties.disableWerror) {
                         allWarningsAsErrors = true
