@@ -55,6 +55,12 @@ public class DiagnosticsNativeTestGenerated extends AbstractDiagnosticsNativeTes
     }
 
     @Test
+    @TestMetadata("mppSupercallDefaultArguments.kt")
+    public void testMppSupercallDefaultArguments() throws Exception {
+        runTest("compiler/testData/diagnostics/nativeTests/mppSupercallDefaultArguments.kt");
+    }
+
+    @Test
     @TestMetadata("nativeProtectedFunCall.kt")
     public void testNativeProtectedFunCall() throws Exception {
         runTest("compiler/testData/diagnostics/nativeTests/nativeProtectedFunCall.kt");

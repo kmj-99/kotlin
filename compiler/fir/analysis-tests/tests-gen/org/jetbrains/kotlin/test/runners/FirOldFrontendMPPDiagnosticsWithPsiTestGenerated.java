@@ -290,6 +290,12 @@ public class FirOldFrontendMPPDiagnosticsWithPsiTestGenerated extends AbstractFi
     }
 
     @Test
+    @TestMetadata("supercall.kt")
+    public void testSupercall() throws Exception {
+        runTest("compiler/testData/diagnostics/tests/multiplatform/supercall.kt");
+    }
+
+    @Test
     @TestMetadata("supertypeActualizationWithAny.kt")
     public void testSupertypeActualizationWithAny() throws Exception {
         runTest("compiler/testData/diagnostics/tests/multiplatform/supertypeActualizationWithAny.kt");
