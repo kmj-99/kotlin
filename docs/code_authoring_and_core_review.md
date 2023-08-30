@@ -40,7 +40,6 @@ The following list of general recommendations (that can also be used as a review
 5. Keep the granularity of the change reasonably small, but avoid overdoing it:
     * A few small isolated refactorings can be fused together in a single commit with a bullet list of changes, especially if they are automated or trivial;
     * Rule of thumb: if refactorings are trivial and the reviewer is unlikely to get back to it after taking an initial look, it’s better to squash them before creating an MR – more concise history, easier git annotate/blame, and focus on the actual semantics both in review and history
-    * Contrary, multiple checkers around the same area might be rather a set of independent MRs
 
 ### Commit messages and YT tickets
 
