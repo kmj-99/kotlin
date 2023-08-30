@@ -11,6 +11,7 @@ plugins {
 }
 
 repositories {
+    maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-dependencies")
     mavenCentral()
 }
 
@@ -26,7 +27,7 @@ dependencies {
     }
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0")
-    implementation("org.jetbrains.kotlin:kotlin-native-utils:${project.bootstrapKotlinVersion}")
+    implementation("org.jetbrains.kotlin:kotlin-native-utils:${project.extra["bootstrapKotlinVersion"]}")
 }
 
 group = "org.jetbrains.kotlin"

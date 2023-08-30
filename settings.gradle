@@ -106,7 +106,6 @@ include ":benchmarks",
         ":native:kotlin-klib-commonizer",
         ":native:kotlin-klib-commonizer-api",
         ":native:kotlin-klib-commonizer-embeddable",
-        ":native:executors",
         ":core:compiler.common",
         ":core:compiler.common.jvm",
         ":core:compiler.common.js",
@@ -857,3 +856,5 @@ if (buildProperties.isKotlinNativeEnabled) {
     include ":kotlin-native-compiler-embeddable"
     project(":kotlin-native-compiler-embeddable").projectDir = "$rootDir/kotlin-native/prepare/kotlin-native-embeddable-compiler" as File
 }
+
+includeBuild("native/executors")

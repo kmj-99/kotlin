@@ -15,7 +15,7 @@ dependencies {
     testImplementation(projectTests(":compiler:test-infrastructure"))
     testImplementation(projectTests(":generators:test-generator"))
     testImplementation(project(":native:kotlin-native-utils"))
-    testImplementation(project(":native:executors"))
+    testImplementation("org.jetbrains.kotlin:executors")
     testImplementation(project(":kotlin-util-klib-abi"))
     testImplementation(projectTests(":kotlin-util-klib-abi"))
     testApiJUnit5()
