@@ -18,8 +18,10 @@ import com.intellij.util.lang.JavaVersion;
 import junit.framework.TestCase;
 import kotlin.Unit;
 import kotlin.collections.CollectionsKt;
+import kotlin.io.FilesKt;
 import kotlin.jvm.functions.Function0;
 import kotlin.jvm.functions.Function1;
+import kotlin.text.Charsets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.analyzer.AnalysisResult;
@@ -56,6 +58,7 @@ import org.junit.Assert;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
