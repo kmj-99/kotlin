@@ -8,40 +8,32 @@ package org.jetbrains.kotlin.statistics.fileloggers
 import java.io.File
 import java.io.IOException
 import java.io.OutputStream
+import java.lang.StringBuilder
 import java.nio.channels.Channels
 import java.nio.channels.FileChannel
 import java.nio.channels.FileLock
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
+import java.time.LocalDateTime
 
-class FileRecordLogger(file: File) : IRecordLogger {
-    private val channel: FileChannel =
-        FileChannel.open(Paths.get(file.toURI()), StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.APPEND)
-            ?: throw IOException("Could not open file $file")
-
-    private val outputStream: OutputStream
-    private val lock: FileLock
-
-    init {
-        lock = try {
-            channel.tryLock() ?: throw IOException("Could not acquire an exclusive lock of file ${file.name}")
-        } catch (e: Exception) {
-            channel.close()
-            // wrap in order to unify with FileOverlappingException
-            throw IOException(e.message, e)
-        }
-        outputStream = Channels.newOutputStream(channel)
-    }
+class FileRecordLogger(private val statisticsFolder: File, private val fileName: String) : IRecordLogger {
+    private val profileFileNameSuffix = ".profile"
+    private val outputStream = StringBuilder()
 
     override fun append(s: String) {
-        outputStream.write("$s\n".toByteArray(MetricsContainer.ENCODING))
+        outputStream.append("$s\n".toByteArray(MetricsContainer.ENCODING))
     }
 
     override fun close() {
-        channel.use {
-            outputStream.use {
-                lock.release()
+        try {
+            statisticsFolder.mkdirs()
+            var file = File(statisticsFolder, fileName + profileFileNameSuffix)
+            var suffixIndex = 0
+            while (!file.createNewFile()) {
+                file = File(statisticsFolder, "${fileName}.${suffixIndex++}$profileFileNameSuffix")
             }
+        } catch (e: IOException) {
+            NullRecordLogger()
         }
     }
 }

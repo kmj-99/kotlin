@@ -83,16 +83,11 @@ class KotlinBuildStatHandler {
     internal fun collectConfigurationTimeMetrics(
         project: Project,
         sessionLogger: BuildSessionLogger,
-        isProjectIsolationEnabled: Boolean,
     ): MetricContainer {
         val gradle = project.gradle
         val configurationTimeMetrics = MetricContainer()
         configurationTimeMetrics.put(StringMetrics.PROJECT_PATH, gradle.rootProject.projectDir.absolutePath)
         configurationTimeMetrics.put(StringMetrics.GRADLE_VERSION, gradle.gradleVersion)
-
-        if (isProjectIsolationEnabled) { //support project isolation - KT-58768
-            return configurationTimeMetrics
-        }
 
         gradle.taskGraph.whenReady { taskExecutionGraph ->
             val executedTaskNames = taskExecutionGraph.allTasks.map { it.name }.distinct()

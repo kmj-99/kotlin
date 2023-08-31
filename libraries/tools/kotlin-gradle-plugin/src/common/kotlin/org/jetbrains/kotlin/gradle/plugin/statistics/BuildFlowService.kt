@@ -6,7 +6,6 @@
 package org.jetbrains.kotlin.gradle.plugin.statistics
 
 import org.gradle.api.Project
-import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
@@ -21,7 +20,6 @@ import org.jetbrains.kotlin.gradle.logging.kotlinDebug
 import org.jetbrains.kotlin.gradle.plugin.BuildEventsListenerRegistryHolder
 import org.jetbrains.kotlin.gradle.plugin.StatisticsBuildFlowManager
 import org.jetbrains.kotlin.gradle.plugin.internal.isConfigurationCacheRequested
-import org.jetbrains.kotlin.gradle.plugin.internal.isProjectIsolationEnabled
 import org.jetbrains.kotlin.gradle.report.BuildReportType
 import org.jetbrains.kotlin.gradle.report.reportingSettings
 import org.jetbrains.kotlin.statistics.metrics.BooleanMetrics
@@ -50,9 +48,7 @@ internal abstract class BuildFlowService : BuildService<BuildFlowService.Paramet
             return when {
                 //known issue for Gradle with configurationCache: https://github.com/gradle/gradle/issues/20001
                 GradleVersion.current().baseVersion < GradleVersion.version("7.4") -> !project.isConfigurationCacheRequested
-                GradleVersion.current().baseVersion < GradleVersion.version("8.1") -> true
-                //known issue. Cant reuse cache if file is changed in gradle_user_home dir: KT-58768
-                else -> !project.isConfigurationCacheRequested
+                else -> true
             }
         }
         fun registerIfAbsent(
@@ -70,7 +66,6 @@ internal abstract class BuildFlowService : BuildService<BuildFlowService.Paramet
             //Workaround for known issues for Gradle 8+: https://github.com/gradle/gradle/issues/24887:
             // when this OperationCompletionListener is called services can be already closed for Gradle 8,
             // so there is a change that no VariantImplementationFactory will be found
-            val isProjectIsolationEnabled = project.isProjectIsolationEnabled
             return project.gradle.sharedServices.registerIfAbsent(serviceName, BuildFlowService::class.java) { spec ->
                 if (fusStatisticsAvailable) {
                     KotlinBuildStatsService.applyIfInitialised {
@@ -79,7 +74,7 @@ internal abstract class BuildFlowService : BuildService<BuildFlowService.Paramet
                 }
 
                 spec.parameters.configurationMetrics.set(project.provider {
-                    KotlinBuildStatsService.getInstance()?.collectStartMetrics(project, isProjectIsolationEnabled)
+                    KotlinBuildStatsService.getInstance()?.collectStartMetrics(project)
                 })
                 spec.parameters.fusStatisticsAvailable.set(fusStatisticsAvailable)
             }.also { buildService ->
