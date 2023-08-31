@@ -1,4 +1,5 @@
-// See also: compiler/testData/diagnostics/nativeTests/mppSupercallDefaultArguments.kt
+// KT-61572: SUPER_CALL_WITH_DEFAULT_PARAMETERS must be raised for K2/Native in fun bar1()
+// See also related test: compiler/testData/diagnostics/nativeTests/mppSupercallDefaultArguments.kt
 // !LANGUAGE: +MultiPlatformProjects
 // MODULE: common
 // FILE: common.kt

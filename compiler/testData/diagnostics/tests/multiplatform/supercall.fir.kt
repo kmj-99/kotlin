@@ -1,19 +1,16 @@
 // KT-61572: SUPER_CALL_WITH_DEFAULT_PARAMETERS must be raised for K2/Native in fun bar1()
-// See also related test: test compiler/testData/diagnostics/tests/multiplatform/supercall.kt
-
+// See also related test: compiler/testData/diagnostics/nativeTests/mppSupercallDefaultArguments.kt
 // !LANGUAGE: +MultiPlatformProjects
 // MODULE: common
 // FILE: common.kt
 
 package foo
-// K1/MPP raises diagnostics `NO_ACTUAL_FOR_EXPECT`, since expect and actual need to be in one module
-// K2/MPP needs them in different modules. So `mppSupercallDefaultArguments.fir.kt` does not have such diagnostics.
-expect open class <!NO_ACTUAL_FOR_EXPECT!>A<!> {
+expect open class A {
     open fun foo(x: Int = 20, y: Int = 3): Int
 }
 
 // MODULE: main()()(common)
-// FILE: main.kt
+// FILE: jvm.kt
 package foo
 actual open class A {
     actual open fun foo(x: Int, y: Int) = x + y
@@ -22,7 +19,7 @@ actual open class A {
 open class B : A() {
     override fun foo(x: Int, y: Int) = 0
 
-    fun bar1() = super.<!SUPER_CALL_WITH_DEFAULT_PARAMETERS!>foo<!>()
+    fun bar1() = super.foo()
 }
 
 fun box(): String {
