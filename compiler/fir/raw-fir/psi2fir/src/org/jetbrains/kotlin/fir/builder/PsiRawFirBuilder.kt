@@ -286,7 +286,7 @@ open class PsiRawFirBuilder(
 
             return when (val fir = convertElement(this, null)) {
                 is FirExpression -> when {
-                    isValidExpression(fir) -> toFirExpression(fir)
+                    isValidExpression(fir) -> checkSelectorInvariant(fir)
                     else -> buildErrorExpression {
                         nonExpressionElement = fir
                         diagnostic = diagnosticFn()
@@ -301,7 +301,7 @@ open class PsiRawFirBuilder(
             }
         }
 
-        private fun KtElement.toFirExpression(result: FirExpression): FirExpression {
+        private fun KtElement.checkSelectorInvariant(result: FirExpression): FirExpression {
             val callExpressionCallee = (this as? KtCallExpression)?.calleeExpression?.unwrapParenthesesLabelsAndAnnotations()
 
             if (this is KtNameReferenceExpression ||
