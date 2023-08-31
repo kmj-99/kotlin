@@ -3,16 +3,17 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
-#include "GCStatistics.hpp"
-#include "Mutex.hpp"
-#include "Porting.h"
-
-#include "Types.h"
-#include "Logging.hpp"
-#include "ThreadData.hpp"
-#include "std_support/Optional.hpp"
 #include <cinttypes>
 #include <limits>
+
+#include "Allocator.hpp"
+#include "GCStatistics.hpp"
+#include "Logging.hpp"
+#include "Mutex.hpp"
+#include "Porting.h"
+#include "ThreadData.hpp"
+#include "Types.h"
+#include "std_support/Optional.hpp"
 
 using namespace kotlin;
 
@@ -134,7 +135,7 @@ GCInfo* statByEpoch(uint64_t epoch) {
 
 MemoryUsage currentHeapUsage() noexcept {
     return MemoryUsage{
-            mm::GlobalData::Instance().gc().GetTotalHeapObjectsSizeBytes(),
+            alloc::allocatedBytes(),
     };
 }
 
