@@ -64,11 +64,21 @@ class LightTreeRawFirExpressionBuilder(
     inline fun <reified R : FirExpression> getAsFirExpression(
         expression: LighterASTNode?,
         errorReason: String = "",
+        sourceWhenInvalidExpression: LighterASTNode? = expression,
+        isValidExpression: (R) -> Boolean = { !it.isCallToStatementLikeFunction },
     ): R {
         val converted = expression?.let { convertExpression(it, errorReason) }
 
-        return checkExpressionCorrectness<R>(converted) {
-            buildErrorExpression(
+        return when {
+            converted is R -> when {
+                isValidExpression(converted) -> converted
+                else -> buildErrorExpression(
+                    sourceWhenInvalidExpression?.toFirSourceElement(),
+                    ConeSimpleDiagnostic(errorReason, DiagnosticKind.ExpressionExpected),
+                    converted,
+                )
+            }
+            else -> buildErrorExpression(
                 converted?.source?.withForcedKindFrom(context) ?: expression?.toFirSourceElement(),
                 if (expression == null) ConeSyntaxDiagnostic(errorReason)
                 else ConeSimpleDiagnostic(errorReason, DiagnosticKind.ExpressionExpected),
@@ -312,9 +322,6 @@ class LightTreeRawFirExpressionBuilder(
         } else {
             val firOperation = operationToken.toFirOperation()
             if (firOperation in FirOperation.ASSIGNMENTS) {
-                val errorReason = "Incorrect expression in assignment: ${binaryExpression.asText}"
-                fun buildDiagnostic() = ConeSimpleDiagnostic(errorReason, DiagnosticKind.ExpressionExpected)
-
                 return leftArgNode.generateAssignment(
                     binaryExpression.toFirSourceElement(),
                     leftArgNode?.toFirSourceElement(),
@@ -323,15 +330,12 @@ class LightTreeRawFirExpressionBuilder(
                     leftArgAsFir.annotations,
                     rightArg,
                 ) {
-                    val converted = convertExpression(this, errorReason)
-
-                    checkExpressionCorrectness<FirExpression>(converted, isForArraySetLHS = true) { isDueToStatementLike ->
-                        val source = when {
-                            isDueToStatementLike -> binaryExpression.toFirSourceElement()
-                            else -> converted.source?.withForcedKindFrom(context) ?: this.toFirSourceElement()
-                        }
-                        buildErrorExpression(source, buildDiagnostic(), converted)
-                    }
+                    getAsFirExpression<FirExpression>(
+                        this,
+                        "Incorrect expression in assignment: ${binaryExpression.asText}",
+                        sourceWhenInvalidExpression = binaryExpression,
+                        isValidExpression = { !it.isCallToStatementLikeFunction || it.isArraySet },
+                    )
                 }
             } else {
                 buildEqualityOperatorCall {
