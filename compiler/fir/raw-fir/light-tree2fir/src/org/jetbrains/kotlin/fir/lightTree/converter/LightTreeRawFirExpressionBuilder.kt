@@ -65,7 +65,7 @@ class LightTreeRawFirExpressionBuilder(
         expression: LighterASTNode?,
         errorReason: String = "",
         sourceWhenInvalidExpression: LighterASTNode? = expression,
-        isValidExpression: (R) -> Boolean = { !it.isCallToStatementLikeFunction },
+        isValidExpression: (R) -> Boolean = { !it.isStatementLikeExpression },
     ): R {
         val converted = expression?.let { convertExpression(it, errorReason) }
 
@@ -334,7 +334,7 @@ class LightTreeRawFirExpressionBuilder(
                         this,
                         "Incorrect expression in assignment: ${binaryExpression.asText}",
                         sourceWhenInvalidExpression = binaryExpression,
-                        isValidExpression = { !it.isCallToStatementLikeFunction || it.isArraySet },
+                        isValidExpression = { !it.isStatementLikeExpression || it.isArraySet },
                     )
                 }
             } else {

@@ -493,7 +493,7 @@ fun FirSafeCallExpression.propagateTypeFromQualifiedAccessAfterNullCheck(
     val selector = selector
 
     val resultingType = when {
-        selector is FirExpression && !selector.isCallToStatementLikeFunction -> {
+        selector is FirExpression && !selector.isStatementLikeExpression -> {
             val type = selector.typeRef.coneTypeSafe<ConeKotlinType>() ?: return
             type.withNullability(ConeNullability.NULLABLE, session.typeContext)
         }

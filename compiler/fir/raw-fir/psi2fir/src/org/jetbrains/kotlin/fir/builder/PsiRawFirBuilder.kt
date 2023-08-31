@@ -277,7 +277,7 @@ open class PsiRawFirBuilder(
         private inline fun KtElement?.toFirExpression(
             sourceWhenThisIsNull: KtElement? = null,
             sourceWhenInvalidExpression: KtElement? = this,
-            isValidExpression: (FirExpression) -> Boolean = { !it.isCallToStatementLikeFunction },
+            isValidExpression: (FirExpression) -> Boolean = { !it.isStatementLikeExpression },
             diagnosticFn: () -> ConeDiagnostic,
         ): FirExpression {
             if (this == null) {
@@ -2670,7 +2670,7 @@ open class PsiRawFirBuilder(
                     ) {
                         (this as KtExpression).toFirExpression(
                             sourceWhenInvalidExpression = expression,
-                            isValidExpression = { !it.isCallToStatementLikeFunction || it.isArraySet },
+                            isValidExpression = { !it.isStatementLikeExpression || it.isArraySet },
                         ) {
                             ConeSimpleDiagnostic(
                                 "Incorrect expression in assignment: ${expression.text}",

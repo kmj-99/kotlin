@@ -259,7 +259,7 @@ fun <T> List<T>.smartPlus(other: List<T>): List<T> = when {
 // Source element may be missing if the class came from a library
 fun FirVariable.isEnumEntries(containingClass: FirClass) = isStatic && name == StandardNames.ENUM_ENTRIES && containingClass.isEnumClass
 
-val FirExpression.isIndexedAssignment: Boolean
+private val FirExpression.isIndexedAssignment: Boolean
     get() = this is FirBlock && statements.lastOrNull()?.source?.kind == KtFakeSourceElementKind.ImplicitUnit.IndexedAssignmentCoercion
 
 val FirExpression.isArraySet: Boolean
@@ -268,7 +268,7 @@ val FirExpression.isArraySet: Boolean
         return origin == FirFunctionCallOrigin.Operator && name == OperatorNameConventions.SET
     }
 
-val FirExpression.isCallToStatementLikeFunction: Boolean
+val FirExpression.isStatementLikeExpression: Boolean
     get() = when (this) {
         is FirFunctionCall -> origin == FirFunctionCallOrigin.Operator && calleeReference.name in STATEMENT_LIKE_OPERATORS
         else -> isIndexedAssignment
