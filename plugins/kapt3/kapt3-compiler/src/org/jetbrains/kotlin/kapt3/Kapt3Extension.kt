@@ -31,7 +31,6 @@ import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity.OUTPUT
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.common.messages.OutputMessageUtil
 import org.jetbrains.kotlin.cli.common.output.writeAll
-import org.jetbrains.kotlin.util.ServiceLoaderLite
 import org.jetbrains.kotlin.codegen.ClassBuilderMode
 import org.jetbrains.kotlin.codegen.DefaultCodegenFactory
 import org.jetbrains.kotlin.codegen.KotlinCodegenFacade
@@ -54,7 +53,6 @@ import org.jetbrains.kotlin.kapt3.diagnostic.KaptError
 import org.jetbrains.kotlin.kapt3.stubs.ClassFileToSourceStubConverter
 import org.jetbrains.kotlin.kapt3.stubs.ClassFileToSourceStubConverter.KaptStub
 import org.jetbrains.kotlin.kapt3.util.MessageCollectorBackedKaptLogger
-import org.jetbrains.kotlin.kapt3.util.PrettyWithWorkarounds
 import org.jetbrains.kotlin.kapt3.util.prettyPrint
 import org.jetbrains.kotlin.modules.TargetId
 import org.jetbrains.kotlin.psi.KtFile
@@ -63,9 +61,6 @@ import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.jvm.extensions.PartialAnalysisHandlerExtension
 import org.jetbrains.kotlin.utils.kapt.MemoryLeakDetector
 import java.io.File
-import java.io.StringWriter
-import java.net.URLClassLoader
-import javax.annotation.processing.Processor
 
 class ClasspathBasedKapt3Extension(
     options: KaptOptions,
@@ -78,16 +73,8 @@ class ClasspathBasedKapt3Extension(
     private var processorLoader: ProcessorLoader? = null
 
     override fun loadProcessors(): LoadedProcessors {
-        val efficientProcessorLoader = object : ProcessorLoader(options, logger) {
-            override fun doLoadProcessors(classpath: LinkedHashSet<File>, classLoader: ClassLoader): List<Processor> =
-                when (classLoader) {
-                    is URLClassLoader -> ServiceLoaderLite.loadImplementations(Processor::class.java, classLoader)
-                    else -> super.doLoadProcessors(classpath, classLoader)
-                }
-        }
-
-        this.processorLoader = efficientProcessorLoader
-        return efficientProcessorLoader.loadProcessors()
+        this.processorLoader = EfficientProcessorLoader(options, logger)
+        return processorLoader!!.loadProcessors()
     }
 
     override fun analysisCompleted(
