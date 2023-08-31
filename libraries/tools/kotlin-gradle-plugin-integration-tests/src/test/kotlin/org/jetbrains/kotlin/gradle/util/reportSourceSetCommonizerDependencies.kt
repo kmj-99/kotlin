@@ -51,7 +51,7 @@ data class SourceSetCommonizerDependencies(
     }
 
     private fun SourceSetCommonizerDependency.isFromNativeDistribution(konanDataDirProperty: Path?): Boolean {
-        val konanDataDir = konanDataDirProperty?.toAbsolutePath()?.toFile() ?: System.getenv("KONAN_DATA_DIR")?.let(::File)
+        val konanDataDir = konanDataDirProperty?.toRealPath()?.toFile() ?: System.getenv("KONAN_DATA_DIR")?.let(::File)
         if (konanDataDir != null) {
             return file.startsWith(konanDataDir)
         }

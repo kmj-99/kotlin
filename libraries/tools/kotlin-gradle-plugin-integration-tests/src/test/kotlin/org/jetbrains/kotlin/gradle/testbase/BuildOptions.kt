@@ -284,5 +284,3 @@ fun BuildOptions.suppressDeprecationWarningsSinceGradleVersion(
 ) = suppressDeprecationWarningsOn(reason) {
     currentGradleVersion >= GradleVersion.version(gradleVersion)
 }
-
-private val konanDir get() = Paths.get(".").resolve("build").resolve(".konan")
