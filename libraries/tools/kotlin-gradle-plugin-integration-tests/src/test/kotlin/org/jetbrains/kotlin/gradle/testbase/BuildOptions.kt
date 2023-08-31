@@ -54,7 +54,7 @@ data class BuildOptions(
     val nativeOptions: NativeOptions = NativeOptions(),
     val compilerExecutionStrategy: KotlinCompilerExecutionStrategy? = null,
     val runViaBuildToolsApi: Boolean? = null,
-    val konanDataDir: Path? = Paths.get("build/.konan"),
+    val konanDataDir: Path? = konanDir,
 ) {
     val isK2ByDefault
         get() = KotlinVersion.DEFAULT >= KotlinVersion.KOTLIN_2_0
@@ -284,3 +284,5 @@ fun BuildOptions.suppressDeprecationWarningsSinceGradleVersion(
 ) = suppressDeprecationWarningsOn(reason) {
     currentGradleVersion >= GradleVersion.version(gradleVersion)
 }
+
+private val konanDir get() = Paths.get(".").resolve("build").resolve(".konan")

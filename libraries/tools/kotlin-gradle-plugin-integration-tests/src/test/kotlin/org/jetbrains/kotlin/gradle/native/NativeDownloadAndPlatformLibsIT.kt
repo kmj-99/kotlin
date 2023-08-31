@@ -247,9 +247,11 @@ class NativeDownloadAndPlatformLibsIT : KGPBaseTest() {
     @GradleTest
     fun shouldDownloadPrebuiltNativeBundleWithMaven(gradleVersion: GradleVersion) {
         val maven = mavenUrl()
-        // Don't run this test for build that are not yet published to central
-        // We won't public K/N into Maven central until this task is completed: KTI-1067
-        Assumptions.assumeTrue(maven != MAVEN_CENTRAL)
+        Assumptions.assumeTrue(
+            maven != MAVEN_CENTRAL,
+            "Don't run this test for build that are not yet published to central.\n" +
+                    " We won't public K/N into Maven central until this task is completed: KTI-1067"
+        )
 
         nativeProject("native-download-maven", gradleVersion = gradleVersion) {
 
@@ -270,9 +272,11 @@ class NativeDownloadAndPlatformLibsIT : KGPBaseTest() {
     @GradleTest
     fun shouldDownloadLightNativeBundleWithMaven(gradleVersion: GradleVersion) {
         val maven = mavenUrl()
-        // Don't run this test for build that are not yet published to central
-        // We won't public K/N into Maven central until this task is completed: KTI-1067
-        Assumptions.assumeTrue(maven != MAVEN_CENTRAL)
+        Assumptions.assumeTrue(
+            maven != MAVEN_CENTRAL,
+            "Don't run this test for build that are not yet published to central.\n" +
+                    " We won't public K/N into Maven central until this task is completed: KTI-1067"
+        )
 
         nativeProject("native-download-maven", gradleVersion = gradleVersion) {
             buildGradleKts.replaceFirst("// <MavenPlaceholder>", "maven(\"${maven}\")")

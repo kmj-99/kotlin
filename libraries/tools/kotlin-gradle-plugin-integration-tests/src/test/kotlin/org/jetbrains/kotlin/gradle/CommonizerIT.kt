@@ -359,7 +359,8 @@ open class CommonizerIT : KGPBaseTest() {
         nativeProject("commonize-kt-48118-c-interop-in-common-main", gradleVersion) {
             reportSourceSetCommonizerDependencies {
                 val upperMain = getCommonizerDependencies("upperMain")
-                val konanDataDirProperty = buildOptions.konanDataDir!!
+                val konanDataDirProperty = buildOptions.konanDataDir
+                    ?: error("konanDataDir must not be null in this test. Please set a custom konanDataDir property.")
                 upperMain.withoutNativeDistributionDependencies(konanDataDirProperty).assertDependencyFilesMatches(".*cinterop-dummy")
                 upperMain.onlyNativeDistributionDependencies(buildOptions.konanDataDir).assertNotEmpty()
 
@@ -408,7 +409,8 @@ open class CommonizerIT : KGPBaseTest() {
         nativeProject("commonize-kt-48138-nativeMain-nativeTest-different-targets", gradleVersion) {
             reportSourceSetCommonizerDependencies {
                 val nativeMain = getCommonizerDependencies("nativeMain")
-                val konanDataDirProperty = buildOptions.konanDataDir!!
+                val konanDataDirProperty = buildOptions.konanDataDir
+                    ?: error("konanDataDir must not be null in this test. Please set a custom konanDataDir property.")
                 nativeMain.withoutNativeDistributionDependencies(konanDataDirProperty).assertDependencyFilesMatches(".*cinterop-dummy")
                 nativeMain.onlyNativeDistributionDependencies(buildOptions.konanDataDir).assertNotEmpty()
                 nativeMain.assertTargetOnAllDependencies(CommonizerTarget(LINUX_X64, LINUX_ARM64, MINGW_X64))
@@ -525,7 +527,8 @@ open class CommonizerIT : KGPBaseTest() {
                 getCommonizerDependencies("commonMain").assertEmpty()
                 getCommonizerDependencies("commonTest").assertEmpty()
 
-                val konanDataDirProperty = buildOptions.konanDataDir!!
+                val konanDataDirProperty = buildOptions.konanDataDir
+                    ?: error("konanDataDir must not be null in this test. Please set a custom konanDataDir property.")
                 getCommonizerDependencies("nativeMain").withoutNativeDistributionDependencies(konanDataDirProperty).apply {
                     assertDependencyFilesMatches(".*nativeHelper")
                     assertTargetOnAllDependencies(
