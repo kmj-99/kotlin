@@ -45,7 +45,7 @@ package totally {
                 public final override /*1*/ /*fake_override*/ val ordinal: kotlin.Int
                 public final override /*1*/ /*fake_override*/ fun compareTo(/*0*/ other: totally.normal.pkg.`Check>Enum>Entry`): kotlin.Int
                 public final override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
-                public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+                public final override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
                 public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
 
                 // Static members
