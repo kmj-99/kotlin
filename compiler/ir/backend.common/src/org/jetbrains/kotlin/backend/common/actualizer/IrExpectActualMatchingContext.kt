@@ -241,7 +241,7 @@ internal abstract class IrExpectActualMatchingContext(
     ): TypeSubstitutorMarker {
         val expectParameters = expectTypeParameters.castAll<IrTypeParameterSymbol>()
         val actualParameters = actualTypeParameters.castAll<IrTypeParameterSymbol>()
-        val actualTypes = actualParameters.map { it.owner.defaultType }
+        val actualTypes = actualParameters.map { it.owner.defaultType as IrSimpleType }
         val substitutor = IrTypeSubstitutor(expectParameters, actualTypes, typeContext.irBuiltIns, allowEmptySubstitution = true)
         return when (parentSubstitutor) {
             null -> substitutor

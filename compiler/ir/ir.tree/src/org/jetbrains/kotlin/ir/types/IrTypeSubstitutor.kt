@@ -85,7 +85,7 @@ class IrTypeSubstitutor(
 
     override fun getSubstitutionArgument(typeParameter: IrTypeParameterSymbol): IrTypeArgument =
         substitution[typeParameter]
-            ?: typeParameter.takeIf { allowEmptySubstitution }?.owner?.defaultType
+            ?: typeParameter.takeIf { allowEmptySubstitution }?.owner?.defaultType as IrSimpleType?
             ?: error("Unsubstituted type parameter: ${typeParameter.owner.render()}")
 
     override fun isEmptySubstitution(): Boolean = substitution.isEmpty()
